@@ -7,3 +7,6 @@
 /build
 /mathquill-*.tgz
 /mathquill.github.com
+
+# doctags (ctags for JS) file
+tags

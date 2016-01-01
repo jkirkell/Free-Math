@@ -1,0 +1,7 @@
+Bugs:
+- \text
+    - trying to test out if crossing out part of expression with the \cancel command is supported
+    - this created a \text, doesn't appear to be supported
+        - deleting the text it added seemed to put it in a weird state, couldn't move th cusor
+        - on example page it shows the latex updating live, this was shown: \text{undefined}
+        - also seems to have issues moving from the left into the text after clicking elsewhere

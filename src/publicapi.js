@@ -19,6 +19,11 @@ function MathQuill(el) {
   return blockId ? Node.byId[blockId].controller.API : null;
 };
 
+// Expose creating node publicly to test out some of the internals
+function CreateNode() {
+    return P(Node, function(_, super_) {});
+}
+
 MathQuill.noConflict = function() {
   window.MathQuill = origMathQuill;
   return MathQuill;
@@ -207,6 +212,8 @@ preInterVerMathQuill.prototype = MathQuill.prototype;
 
 preInterVerMathQuill.interfaceVersion = function(v) {
   if (v !== 1) throw 'Only interface version 1 supported. You specified: ' + v;
+  // added to expose some internals for learning the source code
+  window.CreateNode = CreateNode;
   return window.MathQuill = MathQuill;
 };
 

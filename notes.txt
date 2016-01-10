@@ -5,3 +5,60 @@ Bugs:
         - deleting the text it added seemed to put it in a weird state, couldn't move th cusor
         - on example page it shows the latex updating live, this was shown: \text{undefined}
         - also seems to have issues moving from the left into the text after clicking elsewhere
+
+
+Learning JS Notes:
+    - closure - a function that uses the context it was created in to access data
+      or other functions
+        - in javascript function scope is used for closures, as block scope does
+          not exist
+    - The global 'Object' is a function (remembvering that functions themselves
+      are objects, just as numbers, strings, etc.)
+        - Object.prtotype is the the root prototype
+        - can 'Object' itself be used as a prototype?
+
+
+Work on 1/9/2015
+----------------
+- brushing up on general JS concepts
+- trying to figure out what exactly P.js provides
+- debugging directly though the initialization of a mathquill element to
+  try to understand what is goin on
+- new task
+    - acting purely as a consumer of MathQuill, with it as a black box,
+      create an interface for editing an equation in a series of steps
+    - use the built in MathQuill MathField construct to allow users to
+      edit an expression and then hit a button to declare that they are
+      moving on to the next 'step'
+        - A MathField can easily be created by mathquill-ifying a span 
+          with latex in it
+    - Should be as simple as starting with a span, adding a button to export
+      the latex in the current field and create a new one below it with this
+      as the contents
+    - put these fields in a div so that the last one can always be found to
+      know where to copy from to create the next step
+    - bonus
+        - create an undo button (not for MathQuill itself, but to delete a step)
+            - save the steps in the background to allow re-do
+        - put the cursor back where it was
+- got a little distracted looking at java projects again
+    - it's hard to give up on a prototype, but the java community just isn't as
+      active
+        - and the editing experience with mathquill is just great
+        - and it has lots of tests
+        - might decide to go back to the java project someday, but for now I need
+          to move on
+
+Work on 1/10/2015
+-----------------
+- same task as before, make step by step editor by simply copying mathquill fields
+- starter task
+    - just programmaticlly generate a few MathFields, giving the latex as string
+      literals in the JS, adding spans and mathquill-ifying them
+        - time estimate 30 mins, complete time 10:30
+        - completed, 10:15
+    - create a button that will search the div for the last element, export latex from
+      it and use it to generate a new mathfield
+        - time estimate - 30 minutes, complete time 10:45
+        - 
+

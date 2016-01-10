@@ -26,6 +26,8 @@ function prayDirection(dir) {
  * jQuery features that don't work on $:
  *   - jQuery.*, like jQuery.ajax, obviously (Pjs doesn't and shouldn't
  *                                            copy constructor properties)
+ *        - TODO - look this up, I don't quite understand what it is saying
+ *                 how is the method ajax a constructor property?
  *
  *   - jQuery(function), the shortcut for `jQuery(document).ready(function)`,
  *     because `jQuery.fn.init` is idiosyncratic and Pjs doing, essentially,

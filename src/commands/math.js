@@ -346,6 +346,8 @@ var BinaryOperator = P(Symbol, function(_, super_) {
  * Children and parent of MathCommand's. Basically partitions all the
  * symbols and operators that descend (in the Math DOM tree) from
  * ancestor operators.
+ *
+ * What does this meean?
  */
 var MathBlock = P(MathElement, function(_, super_) {
   _.join = function(methodName) {

@@ -79,6 +79,26 @@ Work on 1/10/2015
         - time estimate 10 minutes, finish time - 12:05
         - actual complete time - 12:10
     - first version of the app is reasonably functional
+    - lunch break
+        - ~1 hour
+    - noticed issue with copy-paste
+        - was a problem with re-mathquillifying elements
+            - this doesn't work
+            - if I want to use mathquill methods, I need to keep track of
+              the mathquill virtual dom versions along with the ones in the DOM
+        - had to mess around with this for a while
+            - finally just decided to keep a parallel array of all of the mq
+              versions of each step as a parrallel array to the list in the DOM
+        - finished 2pm
+    - sporatically still seeing issues copying out of static math
+        - seems to just be on firefox, chrome is fine
+        - to reproduce, copy one section of static math expression and paste elsewhere
+        - try copying a new selection and it will still pate the original selection
+          copied first
+    - also needed to manually mathquillify mathquill-static-math spans
+        - old docs say this isn't necessary
+            - the new ones have an example fragment that makes it seem like this should
+              still work
     - possible next steps
         - allow for multiple problems to be completed on a single page
             - add a new problem button

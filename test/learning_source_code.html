@@ -23,6 +23,10 @@ the "next step" botton to copy your expression or equation and edit it on the ne
 <p> Undo and redo buttons can be used to edit your work.</p>
 
 <p> For faster usage, note the keyboard shortcuts given on each button </p>
+<p> For example, try typing to following expression and solving for x:
+
+<span class="mathquill-static-math" >\frac{1}{x-4}+\frac{2}{x^2-16}=\frac{3}{x+4}</span>
+
 <div id="equation-list"></div>
 <input type="submit" id="next-step" name="next step" value="next step (ctrl-e)"/>
 <input type="submit" id="undo-step" name="undo step" value="undo step (ctrl-z)"/>
@@ -35,23 +39,22 @@ MathQuill.interfaceVersion(1);
 
 // stack with the redo steps in it, use push/pop to modify
 var savedRedoSteps = Array();
+var mathQuillOpts = {
+    // for intuitive navigation of fractions
+    leftRightIntoCmdGoes: 'up',
+    autoCommands: 'pi theta sqrt sum',
+    autoSubscriptNumerals: true,
+};
 
 function focusLastStep() {
     all_spans = $('.solution-step');
-    MathQuill(all_spans[all_spans.length - 1]).focus();
+    all_spans[all_spans.length - 1].focus();
 }
 
-function makeMathFields() { 
+function mathquillLast() { 
     var all_spans = $('.solution-step');
-    var i;
-    for (i = 0; i < all_spans.length; i++) {
-        var mq = MathQuill.MathField(all_spans[i], {
-            // for intuitive navigation of fractions
-            leftRightIntoCmdGoes: 'up',
-            autoCommands: 'pi theta sqrt sum',
-            autoSubscriptNumerals: true,
-        });
-    }
+    // MathQuill-ify the last span
+    var mq = MathQuill.MathField(all_spans[all_spans.lenth - 1], mathQuillOpts);
 }
 
 function lastSpan() {
@@ -63,13 +66,13 @@ function newStep() {
     savedRedoSteps = [];
     var newLatex = MathQuill(lastSpan()).latex();
     $('#equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
-    makeMathFields();
+    mathquillLast();
     focusLastStep();
 }
 
 function addEquation(newLatex) {
     $('#equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
-    makeMathFields();
+    mathquillLast();
     focusLastStep();
 }
 
@@ -87,7 +90,6 @@ function undoLastStep() {
     $('#equation-list').get(0).removeChild(lastSpanEl);
     // remove the <br> tag
     $('#equation-list br').last().remove();
-    makeMathFields();
     focusLastStep();
 }
 
@@ -119,9 +121,12 @@ $('#undo-step').click(function() {
 $('#redo-step').click(function() {
     redoStep();
 });
-$('#equation-list').append('<span class="solution-step"></span><br>');
-makeMathFields();
-focusLastStep();
+$(function() {
+    $('#equation-list').append('<span class="solution-step"></span><br>');
+    mathquillLast();
+    focusLastStep();
+    MathQuill.StaticMath($('.mathquill-static-math')[0]);
+});
 
 </script>
 </body>

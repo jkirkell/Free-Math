@@ -56,9 +56,26 @@ Work on 1/10/2015
     - just programmaticlly generate a few MathFields, giving the latex as string
       literals in the JS, adding spans and mathquill-ifying them
         - time estimate 30 mins, complete time 10:30
-        - completed, 10:15
+        - actually completed, 10:15
     - create a button that will search the div for the last element, export latex from
       it and use it to generate a new mathfield
         - time estimate - 30 minutes, complete time 10:45
-        - completed, 10:25
-
+        - actually completed, 10:25
+    - create a keyboard shortcut that will remove the need to click the button
+        - maybe crtl-e for 'edit'?
+        - should this be attached to all of the boxes to allow inserting a step below the current?
+        - or should it just be a global key event that will always copy the last step?
+        - time estimate 30 minutes, complete time 11
+        - actually completed, 10:45
+            - just did a global event for now
+    - create a button and shortcut for undo
+        - time estimate 30 minutes, complete time 11
+        - finished, 11:15
+            - small speeling error I was staring at in the debugger for a while "why is this undefied?!?!"
+    - create redo button and keyboard shortcut
+        - completed 11:45
+    - create test video to show interface in action
+        - fixed fraction navigation, enabled atuo commands for: sqrt, sum, etc.
+        - time estimate 10 minutes, finish time - 12:05
+        - actual complete time - 12:10
+    - 

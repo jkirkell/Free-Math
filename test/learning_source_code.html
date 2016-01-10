@@ -17,37 +17,111 @@
 
 <h1><a href="http://mathquill.github.com">MathQuill</a>-based step-by-step equation editor</h1>
 
-<p>Backslash <code>\</code> and dollar <code>$</code> aren't special, <code>/</code> still works, font works:
+<p>Use the box below to write and equation. When you want to modify it to solve your math problem click
+the "next step" botton to copy your expression or equation and edit it on the next line to show your work. </p>
 
-Use the box below to write and equation. When you want to modify it to solve your math problem click
-the "next step" botton to copy your expression or equation and edit it on the next line to show your work.
+<p> Undo and redo buttons can be used to edit your work.</p>
+
+<p> For faster usage, note the keyboard shortcuts given on each button </p>
 <div id="equation-list"></div>
-<input type="submit" id="next-step" name="next step" value="next step"/>
+<input type="submit" id="next-step" name="next step" value="next step (ctrl-e)"/>
+<input type="submit" id="undo-step" name="undo step" value="undo step (ctrl-z)"/>
+<input type="submit" id="redo-step" name="redo step" value="redo step (ctrl-shift-z)"/>
 </div>
 <script type="text/javascript" src="support/jquery-1.7.2.js"></script>
 <script type="text/javascript" src="../build/mathquill-basic.js"></script>
 <script type="text/javascript">
 MathQuill.interfaceVersion(1);
+
+// stack with the redo steps in it, use push/pop to modify
+var savedRedoSteps = Array();
+
+function focusLastStep() {
+    all_spans = $('.solution-step');
+    MathQuill(all_spans[all_spans.length - 1]).focus();
+}
+
 function makeMathFields() { 
     var all_spans = $('.solution-step');
     var i;
     for (i = 0; i < all_spans.length; i++) {
         var mq = MathQuill.MathField(all_spans[i], {
+            // for intuitive navigation of fractions
+            leftRightIntoCmdGoes: 'up',
+            autoCommands: 'pi theta sqrt sum',
             autoSubscriptNumerals: true,
         });
     }
 }
 
+function lastSpan() {
+    var all_spans = $('.solution-step');
+    return all_spans[all_spans.length - 1]
+}
+
+function newStep() {
+    savedRedoSteps = [];
+    var newLatex = MathQuill(lastSpan()).latex();
+    $('#equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
+    makeMathFields();
+    focusLastStep();
+}
+
+function addEquation(newLatex) {
+    $('#equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
+    makeMathFields();
+    focusLastStep();
+}
+
+function redoStep() {
+    if (savedRedoSteps.length == 0) return;  
+    addEquation(savedRedoSteps.pop());
+}
+
+function undoLastStep() {
+    var all_spans = $('.solution-step');
+    // do not leave users without a box to type in
+    if (all_spans.length == 1) return;
+    var lastSpanEl = lastSpan();
+    savedRedoSteps.push(MathQuill(lastSpanEl).latex());
+    $('#equation-list').get(0).removeChild(lastSpanEl);
+    // remove the <br> tag
+    $('#equation-list br').last().remove();
+    makeMathFields();
+    focusLastStep();
+}
+
+$(document).keypress(0 /* ignored */,function(e) {
+    // undo/redo, ctrl-z/ctrl-shift-z
+    if ((e.which == 122 || e.which == 90) && e.ctrlKey) {
+        if (e.shiftKey) {
+            redoStep();
+        }
+        else {
+            undoLastStep();
+        }
+    }
+
+    // 101 is the keycode for he e key, 69 for capital e
+    // I think some browsers send capital letters, so just
+    // checking for that as well
+    if ((e.which == 101 || e.which == 69) && e.ctrlKey) {
+        newStep();
+    }
+});
+
 $('#next-step').click(function() {
-        var all_spans = $('.solution-step');
-        var newLatex = MathQuill(all_spans[all_spans.length - 1]).latex();
-        $('#equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
-        makeMathFields();
-        all_spans = $('.solution-step');
-        MathQuill(all_spans[all_spans.length - 1]).focus();
+    newStep();
+});
+$('#undo-step').click(function() {
+    undoLastStep();
+});
+$('#redo-step').click(function() {
+    redoStep();
 });
 $('#equation-list').append('<span class="solution-step"></span><br>');
 makeMathFields();
+focusLastStep();
 
 </script>
 </body>

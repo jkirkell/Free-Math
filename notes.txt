@@ -60,5 +60,5 @@ Work on 1/10/2015
     - create a button that will search the div for the last element, export latex from
       it and use it to generate a new mathfield
         - time estimate - 30 minutes, complete time 10:45
-        - 
+        - completed, 10:25
 

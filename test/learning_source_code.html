@@ -19,26 +19,36 @@
 
 <p>Backslash <code>\</code> and dollar <code>$</code> aren't special, <code>/</code> still works, font works:
 
+Use the box below to write and equation. When you want to modify it to solve your math problem click
+the "next step" botton to copy your expression or equation and edit it on the next line to show your work.
 <div id="equation-list"></div>
+<input type="submit" id="next-step" name="next step" value="next step"/>
 </div>
 <script type="text/javascript" src="support/jquery-1.7.2.js"></script>
 <script type="text/javascript" src="../build/mathquill-basic.js"></script>
 <script type="text/javascript">
     MathQuill.interfaceVersion(1);
+    function makeMathFields() { 
+        var all_spans = $('.solution-step');
+        var i;
+        for (i = 0; i < all_spans.length; i++) {
+            var mq = MathQuill.MathField(all_spans[i], {
+                autoSubscriptNumerals: true,
+            });
+        }
+    }
 
-    $('#equation-list').append('<span class="solution-step">3+5</span><br>');
-    $('#equation-list').append('<span class="solution-step">3+5</span><br>');
-    $('#equation-list').append('<span class="solution-step">3+5</span><br>');
-    $('#equation-list').append('<span class="solution-step">3+5</span><br>');
-    $('#equation-list').append('<span class="solution-step">3+5</span><br>');
-
-var all_spans = $('.solution-step');
-var i;
-for (i = 0; i < all_spans.length; i++) {
-    var mq = MathQuill.MathField(all_spans[i], {
-        autoSubscriptNumerals: true,
+    $('#next-step').click(function() {
+            var all_spans = $('.solution-step');
+            var newLatex = MathQuill(all_spans[all_spans.length - 1]).latex();
+            $('#equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
+            makeMathFields();
+            all_spans = $('.solution-step');
+            MathQuill(all_spans[all_spans.length - 1]).focus();
     });
-}
+    $('#equation-list').append('<span class="solution-step"></span><br>');
+    makeMathFields();
+
 </script>
 </body>
 </html>

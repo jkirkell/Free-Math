@@ -78,4 +78,14 @@ Work on 1/10/2015
         - fixed fraction navigation, enabled atuo commands for: sqrt, sum, etc.
         - time estimate 10 minutes, finish time - 12:05
         - actual complete time - 12:10
-    - 
+    - first version of the app is reasonably functional
+    - possible next steps
+        - allow for multiple problems to be completed on a single page
+            - add a new problem button
+            - remove use of globals
+            - need to save an undo/redo history for each problem
+            - keyboard shortcuts would need to be context specific
+        - create save/load functionality
+        - create basic teacher grading overview page loading a list of student "docs"
+        - enable users to split the solution path
+            - to solve for multiple answers

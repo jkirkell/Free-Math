@@ -37,7 +37,10 @@ the "next step" botton to copy your expression or equation and edit it on the ne
 <p> For faster usage, note the keyboard shortcuts given on each button </p>
 <p> For example, try typing to following expression and solving for x:
 
-<span class="mathquill-static-math" >\frac{1}{x-4}+\frac{2}{x^2-16}=\frac{3}{x+4}</span>
+<span class="mathquill-static-math" >\frac{1}{x-4}+\frac{2}{x^2-16}=\frac{3}{x+4}</span><br>
+
+Assignment Name <input type="text" id="assignment-name-text" name="assignment name" value="Untitled Assignment"/>
+<input type="submit" id="save-assignment" name="save assignment" value="save assignment"/> </br>
 
 <div id="assignment-container" style="width:100%"> <!-- container for several problems, each with step-by-step work-->
 
@@ -48,6 +51,8 @@ the "next step" botton to copy your expression or equation and edit it on the ne
 </h3>
 </div>
 <script type="text/javascript" src="support/jquery-1.7.2.js"></script>
+<script type="text/javascript" src="../Blob.js/Blob.js"></script>
+<script type="text/javascript" src="../FileSaver.js/FileSaver.js"></script>
 <script type="text/javascript" src="../build/mathquill-basic.js"></script>
 <script type="text/javascript">
 MathQuill.interfaceVersion(1);
@@ -60,6 +65,22 @@ var mathQuillOpts = {
     autoCommands: 'pi theta sqrt sum',
     autoSubscriptNumerals: true,
 };
+
+function serializeAssignment() {
+    var outputProblems = [];
+    problems.forEach(function(problem, index, array) {
+        outputProblems.push( {
+            problemNumber : problem.problemNumber(),
+            steps : problem.latexForAllSteps()
+        }); 
+    });
+    return outputProblems;
+}
+
+function saveAssignment() {
+    var blob = new Blob([JSON.stringify(serializeAssignment())], {type: "text/plain;charset=utf-8"});
+    saveAs(blob, $('#assignment-name-text').val() + '.math'); 
+}
 
 function createShortcutKeyHandler(problemWrapper) {
     return function(e) {
@@ -84,7 +105,7 @@ function createShortcutKeyHandler(problemWrapper) {
 
 var newProblemHtml = 
 '<div class="problem-container" style="float:none;overflow: hidden"> <!-- container for nav an equation list -->' +
-'<div>Problem number <input type="text"/></div>' +
+'<div>Problem number <input type="text" class="problem-number"/></div>' +
 '<div style="float:left"><!-- container for buttons -->' +
 '<p> Actions </p>' +
 '<input type="submit" class="next-step" name="next step" value="next step (ctrl-e)"/> <br>' +
@@ -100,7 +121,7 @@ var newProblemHtml =
 
 function newProblem() {
     var newProblemDiv = $(newProblemHtml);
-    $('#assignment-container').after(newProblemDiv);
+    $('#assignment-container').append(newProblemDiv);
     // object to hold background state as well as DOM references for the
     // new problem
     var newProblemWrapper = (function() {
@@ -117,6 +138,18 @@ function newProblem() {
                 all_spans = problemWrapperDiv.find('.solution-step');
                 if (currentMqSteps.length != all_spans.length) alert("internal error, mathquill steps not consistent with DOM");
                 currentMqSteps[all_spans.length - 1].focus();
+            },
+            // TODO - more efficient, just set this once in the object whenever the text field is modified
+            problemNumber : function() {
+                var problemNumberText = problemWrapperDiv.find('.problem-number');
+                return problemNumberText.val();
+            },
+            latexForAllSteps : function() {
+                var allSteps = [];
+                currentMqSteps.forEach(function(mathField, index, array) {
+                    allSteps.push(mathField.latex());
+                });
+                return allSteps;
             },
 
             mathquillLast : function() { 
@@ -190,6 +223,9 @@ $(function() {
     MathQuill.StaticMath($('.mathquill-static-math')[0]);
     $('#new-problem').click(function() {
         newProblem();
+    });
+    $('#save-assignment').click(function() {
+        saveAssignment();
     });
 });
 

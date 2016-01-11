@@ -126,6 +126,19 @@ Work on 1/10/2015
                     - insert as a span
                     - mathquill it, save the mathquill object to a list of all current mq objects
                       inside of the object representing this problem
+    - fixing keyboard shortcuts with multiple problems
+        - took a little long, eventaully got it to work attaching the key listener
+          to the div for a given problem rather than the individual text boxes
+        - finish time 7:30
+    - save functionality
+        - offline save, no server
+        - http://eligrey.com/demos/FileSaver.js/
+        - total expected time 30 mins, expected completion 9:00
+        
+    - load save file
+    - teacher grading
+        - https://stuk.github.io/jszip/
+     
     - possible next steps
         - allow for multiple problems to be completed on a single page
             - add a new problem button
@@ -136,3 +149,4 @@ Work on 1/10/2015
         - create basic teacher grading overview page loading a list of student "docs"
         - enable users to split the solution path
             - to solve for multiple answers
+        - set up real environment for managin depedencies indepent of the app

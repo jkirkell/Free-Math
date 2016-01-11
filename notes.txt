@@ -106,6 +106,9 @@ Work on 1/10/2015
     - next task, button to generate new expression work spaces
         - remove globals, etc. described below
         - time estimate 30 minutes, expected complete time 3:45
+        - took a bit longer than expected
+            - had a few distractions
+            - actual finsish time 6:10
         - strategy
             - all problem workspaces will be generated with jquery
                 - the append method returns the dom element, I want to store this along

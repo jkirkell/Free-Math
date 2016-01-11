@@ -8,6 +8,13 @@
 
 <link rel="stylesheet" type="text/css" href="support/home.css">
 <link rel="stylesheet" type="text/css" href="../build/mathquill.css">
+<style>
+div.problem-container{
+    background-color:#DDEDFC;
+    margin: 15px 15px 15px 15px;
+}
+
+</style>
 
 </head>
 <body>
@@ -27,31 +34,20 @@ the "next step" botton to copy your expression or equation and edit it on the ne
 
 <span class="mathquill-static-math" >\frac{1}{x-4}+\frac{2}{x^2-16}=\frac{3}{x+4}</span>
 
-<div> <!-- container for nav an equation list -->
+<div id="assignment-container" style="width:100%"> <!-- container for several problems, each with step-by-step work-->
 
-<div style="float:left"><!-- container for buttons -->
-<p> Actions </p>
-<input type="submit" id="next-step" name="next step" value="next step (ctrl-e)"/> <br>
-<input type="submit" id="undo-step" name="undo step" value="undo step (ctrl-z)"/> <br>
-<input type="submit" id="redo-step" name="redo step" value="redo step (ctrl-shift-z)"/> </br>
-</div>
-<!-- div to store the steps in the solution -->
-<div style="float:left" id="equation-list">
-<p> List of expressions </p>
-<span class="solution-step"></span><br>
-</div>
-
-</div> <!-- end of one problem container -->
+</div> <!-- end of assignment container -->
+<h3>
+<br/>
+<input type="submit" id="new-problem" name="new problem" value="new problem"/> </br>
+</h3>
 </div>
 <script type="text/javascript" src="support/jquery-1.7.2.js"></script>
 <script type="text/javascript" src="../build/mathquill-basic.js"></script>
 <script type="text/javascript">
 MathQuill.interfaceVersion(1);
 
-// stack with the redo steps in it, use push/pop to modify
-var savedRedoSteps = Array();
-
-var currentMqSteps = Array();
+var problems = Array();
 
 var mathQuillOpts = {
     // for intuitive navigation of fractions
@@ -59,56 +55,6 @@ var mathQuillOpts = {
     autoCommands: 'pi theta sqrt sum',
     autoSubscriptNumerals: true,
 };
-
-function focusLastStep() {
-    all_spans = $('.solution-step');
-    if (currentMqSteps.length != all_spans.length) alert("internal error, mathquill steps not consistent with DOM");
-    currentMqSteps[all_spans.length - 1].focus();
-}
-
-function mathquillLast() { 
-    var all_spans = $('.solution-step');
-    var mq = MathQuill.MathField(all_spans[all_spans.length - 1],mathQuillOpts);
-    currentMqSteps.push(mq);
-    mq.reflow();
-}
-
-function lastSpan() {
-    var all_spans = $('.solution-step');
-    return all_spans[all_spans.length - 1]
-}
-
-function newStep() {
-    savedRedoSteps = [];
-    var newLatex = currentMqSteps[currentMqSteps.length - 1].latex();
-    $('#equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
-    mathquillLast();
-    focusLastStep();
-}
-
-function addEquation(newLatex) {
-    $('#equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
-    mathquillLast();
-    focusLastStep();
-}
-
-function redoStep() {
-    if (savedRedoSteps.length == 0) return;  
-    addEquation(savedRedoSteps.pop());
-}
-
-function undoLastStep() {
-    var all_spans = $('.solution-step');
-    // do not leave users without a box to type in
-    if (all_spans.length == 1) return;
-    var lastSpanEl = lastSpan();
-    lastStepMq = currentMqSteps.pop();
-    savedRedoSteps.push(lastStepMq.latex());
-    $('#equation-list').get(0).removeChild(lastSpanEl);
-    // remove the <br> tag
-    $('#equation-list br').last().remove();
-    focusLastStep();
-}
 
 $(document).keypress(0 /* ignored */,function(e) {
     // undo/redo, ctrl-z/ctrl-shift-z
@@ -129,20 +75,112 @@ $(document).keypress(0 /* ignored */,function(e) {
     }
 });
 
-$('#next-step').click(function() {
-    newStep();
-});
-$('#undo-step').click(function() {
-    undoLastStep();
-});
-$('#redo-step').click(function() {
-    redoStep();
-});
+var newProblemHtml = 
+'<div class="problem-container" style="float:none;overflow: hidden"> <!-- container for nav an equation list -->' +
+'<div>Problem number <input type="text"/></div>' +
+'<div style="float:left"><!-- container for buttons -->' +
+'<p> Actions </p>' +
+'<input type="submit" class="next-step" name="next step" value="next step (ctrl-e)"/> <br>' +
+'<input type="submit" class="undo-step" name="undo step" value="undo step (ctrl-z)"/> <br>' +
+'<input type="submit" class="redo-step" name="redo step" value="redo step (ctrl-shift-z)"/> </br>' +
+'</div>' +
+'<!-- div to store the steps in the solution -->' +
+'<div style="float:left" class="equation-list">' +
+'<p> List of expressions </p>' +
+'<span class="solution-step"></span><br>' +
+'</div>' + 
+'</div> <!-- end of one problem container -->';
+
+function newProblem() {
+    var newProblemDiv = $(newProblemHtml);
+    $('#assignment-container').after(newProblemDiv);
+    // object to hold background state as well as DOM references for the
+    // new problem
+    var newProblemWrapper = (function() {
+        // stack with the redo steps in it, use push/pop to modify
+        var savedRedoSteps = [];
+        // hold references to the mathquill objects for each step
+        // (it is not possible to re-mathquillify a DOM element, so
+        // they must be tracked after creation to use mathquill methods)
+        var currentMqSteps = [];
+        var problemWrapperDiv = newProblemDiv;
+        
+        return { 
+            focusLastStep : function() {
+                all_spans = problemWrapperDiv.find('.solution-step');
+                if (currentMqSteps.length != all_spans.length) alert("internal error, mathquill steps not consistent with DOM");
+                currentMqSteps[all_spans.length - 1].focus();
+            },
+
+            mathquillLast : function() { 
+                var all_spans = problemWrapperDiv.find('.solution-step');
+                var mq = MathQuill.MathField(all_spans[all_spans.length - 1],mathQuillOpts);
+                currentMqSteps.push(mq);
+                mq.reflow();
+            },
+
+            lastSpan : function() {
+                var all_spans = problemWrapperDiv.find('.solution-step');
+                return all_spans[all_spans.length - 1]
+            },
+
+            newStep : function() {
+                savedRedoSteps = [];
+                var newLatex = currentMqSteps[currentMqSteps.length - 1].latex();
+                problemWrapperDiv.find('.equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
+                this.mathquillLast();
+                this.focusLastStep();
+            },
+
+            addEquation : function(newLatex) {
+                problemWrapperDiv.find('.equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
+                this.mathquillLast();
+                this.focusLastStep();
+            },
+
+            redoStep : function() {
+                if (savedRedoSteps.length == 0) {
+                    // hitting the button make the text field lose focus
+                    this.focusLastStep();
+                    return;
+                }
+                this.addEquation(savedRedoSteps.pop());
+            },
+
+            undoLastStep :  function () {
+                var all_spans = problemWrapperDiv.find('.solution-step');
+                // do not leave users without a box to type in
+                if (all_spans.length == 1) return;
+                var lastSpanEl = this.lastSpan();
+                lastStepMq = currentMqSteps.pop();
+                savedRedoSteps.push(lastStepMq.latex());
+                problemWrapperDiv.find('.equation-list').get(0).removeChild(lastSpanEl);
+                // remove the <br> tag
+                problemWrapperDiv.find('.equation-list br').last().remove();
+                this.focusLastStep();
+            }
+        }
+    }());
+    problems.push(newProblemWrapper);    
+    newProblemDiv.find('.next-step').click(function() {
+        newProblemWrapper.newStep();
+    });
+    newProblemDiv.find('.undo-step').click(function() {
+        newProblemWrapper.undoLastStep();
+    });
+    newProblemDiv.find('.redo-step').click(function() {
+        newProblemWrapper.redoStep();
+    });
+    newProblemWrapper.mathquillLast();
+    newProblemWrapper.focusLastStep();
+}
+
 $(function() {
-    //$('#equation-list').append('<span class="solution-step"></span><br>');
-    mathquillLast();
-    focusLastStep();
+    newProblem();
     MathQuill.StaticMath($('.mathquill-static-math')[0]);
+    $('#new-problem').click(function() {
+        newProblem();
+    });
 });
 
 </script>

@@ -61,24 +61,26 @@ var mathQuillOpts = {
     autoSubscriptNumerals: true,
 };
 
-$(document).keypress(0 /* ignored */,function(e) {
-    // undo/redo, ctrl-z/ctrl-shift-z
-    if ((e.which == 122 || e.which == 90) && e.ctrlKey) {
-        if (e.shiftKey) {
-            redoStep();
+function createShortcutKeyHandler(problemWrapper) {
+    return function(e) {
+        // undo/redo, ctrl-z/ctrl-shift-z
+        if ((e.which == 122 || e.which == 90) && e.ctrlKey) {
+            if (e.shiftKey) {
+                problemWrapper.redoStep();
+            }
+            else {
+                problemWrapper.undoLastStep();
+            }
         }
-        else {
-            undoLastStep();
-        }
-    }
 
-    // 101 is the keycode for he e key, 69 for capital e
-    // I think some browsers send capital letters, so just
-    // checking for that as well
-    if ((e.which == 101 || e.which == 69) && e.ctrlKey) {
-        newStep();
+        // 101 is the keycode for he e key, 69 for capital e
+        // I think some browsers send capital letters, so just
+        // checking for that as well
+        if ((e.which == 101 || e.which == 69) && e.ctrlKey) {
+            problemWrapper.newStep();
+        }
     }
-});
+}
 
 var newProblemHtml = 
 '<div class="problem-container" style="float:none;overflow: hidden"> <!-- container for nav an equation list -->' +
@@ -132,13 +134,15 @@ function newProblem() {
             newStep : function() {
                 savedRedoSteps = [];
                 var newLatex = currentMqSteps[currentMqSteps.length - 1].latex();
-                problemWrapperDiv.find('.equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
+                var newSpan = $('<span class="solution-step">' + newLatex + '</span><br>');
+                problemWrapperDiv.find('.equation-list').append(newSpan);
                 this.mathquillLast();
                 this.focusLastStep();
             },
 
             addEquation : function(newLatex) {
-                problemWrapperDiv.find('.equation-list').append('<span class="solution-step">' + newLatex + '</span><br>');
+                var newSpan = $('<span class="solution-step">' + newLatex + '</span><br>');
+                problemWrapperDiv.find('.equation-list').append(newSpan);
                 this.mathquillLast();
                 this.focusLastStep();
             },
@@ -167,6 +171,7 @@ function newProblem() {
         }
     }());
     problems.push(newProblemWrapper);    
+    $(newProblemDiv).keydown(0 /* ignored */, createShortcutKeyHandler(newProblemWrapper));
     newProblemDiv.find('.next-step').click(function() {
         newProblemWrapper.newStep();
     });

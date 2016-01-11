@@ -97,14 +97,17 @@ function openAssignment(serializedDoc) {
         return; 
     }
     $('#assignment-container').empty();
+    problems = Array();
     newAssignment();
     var assignment = JSON.parse(serializedDoc);
     assignment.forEach(function(problem, index, array) {
-        newProblem();
-        var newProblemData = problems[problems.length - 1];
-        newProblemData.setProblemNumber(problem.problemNumber);
+        newProblem(false);
+        var newProblemWrapper = problems[problems.length - 1];
+        newProblemWrapper.setProblemNumber(problem.problemNumber);
         problem.steps.forEach(function(step, stepIndex, stepArray) {
-           newProblemData.addEquation(step);
+            setTimeout(function() {
+                newProblemWrapper.addEquation(step);
+            }, 50);
         });
     });
 }
@@ -161,11 +164,10 @@ var newProblemHtml =
 '<!-- div to store the steps in the solution -->' +
 '<div style="float:left" class="equation-list">' +
 '<p> List of expressions </p>' +
-'<span class="solution-step"></span><br>' +
 '</div>' + 
 '</div> <!-- end of one problem container -->';
 
-function newProblem() {
+function newProblem(insertEmptyStep) {
     var newProblemDiv = $(newProblemHtml);
     $('#assignment-container').append(newProblemDiv);
     // object to hold background state as well as DOM references for the
@@ -253,7 +255,13 @@ function newProblem() {
             }
         }
     }());
-    problems.push(newProblemWrapper);    
+    problems.push(newProblemWrapper);
+    if (insertEmptyStep) {
+        setTimeout(function() {
+            newProblemWrapper.addEquation('');
+            newProblemWrapper.focusLastStep();
+        }, 50);
+    }
     $(newProblemDiv).keydown(0 /* ignored */, createShortcutKeyHandler(newProblemWrapper));
     newProblemDiv.find('.next-step').click(function() {
         newProblemWrapper.newStep();
@@ -264,16 +272,14 @@ function newProblem() {
     newProblemDiv.find('.redo-step').click(function() {
         newProblemWrapper.redoStep();
     });
-    newProblemWrapper.mathquillLast();
-    newProblemWrapper.focusLastStep();
 }
 
 $(function() {
     newAssignment();
-    newProblem();
+    newProblem(true);
     MathQuill.StaticMath($('.mathquill-static-math')[0]);
     $('#new-problem').click(function() {
-        newProblem();
+        newProblem(true);
     });
     $('#save-assignment').click(function() {
         saveAssignment();

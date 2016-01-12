@@ -136,7 +136,22 @@ Work on 1/10/2015
         - total expected time 30 mins, expected completion 9:00
         
     - load save file
+        - done
+        - needed to put in a timeout hack to fix multiple MathFields being selected
+          when I generated then programmatically and called focus on each as they 
+          were added (reusing code from the buttons/key events)
     - teacher grading
+        - time estimate, 40 mins, expected completion 8:00
+        - make 3 student assignments, zip them manually
+        - create teacher grading page, similar to student assignment page
+            - teachers can enter problem numbers next to expressions representing final answers
+              for problems
+            - they can omit problem numbers where manual grading is needed
+                - will be more useful once students can do things other than manipulate equations
+                    - type text
+                    - draw diagrams
+                    - draw/manipulate graphs
+                    - create/fill in tables
         - https://stuk.github.io/jszip/
      
     - possible next steps

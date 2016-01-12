@@ -25,6 +25,39 @@ function newAssignment(assignmentName) {
     });
 }
 
+function studentSubmissionsZip(evt) {
+
+    var f = evt.target.files[0]; 
+
+    if (f) {
+        var r = new FileReader();
+        r.onload = function(e) { 
+            var content = e.target.result;
+
+            var new_zip = new JSZip();
+            // more files !
+            new_zip.load(content);
+
+            // you now have every files contained in the loaded zip
+            for (file in new_zip.files) { 
+                // don't get properties from prototype
+                if (new_zip.files.hasOwnProperty(file)) {
+                    // extra directory added when zipping files on mac
+                    // TODO - check for other things to filter out from zip
+                    // files created on other platforms
+                    if (file.indexOf("__MACOSX") > -1) continue;
+                    console.log(file);
+                    if (new_zip.file(file) == null) continue; 
+                    console.log(new_zip.file(file).asText()); // "Hello World\n"
+                }
+            }
+        }
+        r.readAsArrayBuffer(f);
+    } else { 
+        alert("Failed to load file");
+    }
+}
+
 // http://www.htmlgoodies.com/beyond/javascript/read-text-files-using-the-javascript-filereader.html
 function readSingleFile(evt) {
     //Retrieve the first (and only!) File from the FileList object

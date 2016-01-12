@@ -46,6 +46,8 @@ the "next step" botton to copy your expression or equation and edit it on the ne
 
 <span class="mathquill-static-math" >\frac{1}{x-4}+\frac{2}{x^2-16}=\frac{3}{x+4}</span><br>
 
+Open Student Assignments <input type="file" id="open-student-submissions-input" /> <br/><br/>
+
 Open Assignment <input type="file" id="open-file-input" /> <br/><br/>
 
 <div id="assignment-container"> <!-- container for several problems, each with step-by-step work-->
@@ -57,6 +59,7 @@ Open Assignment <input type="file" id="open-file-input" /> <br/><br/>
 <script type="text/javascript" src="../blob_js.js"></script>
 <script type="text/javascript" src="../filesaver_js.js"></script>
 <script type="text/javascript" src="../build/mathquill-basic.js"></script>
+<script type="text/javascript" src="../Stuk-jszip-82ceacc/dist/jszip.js"></script>
 <script type="text/javascript" src="assignment.js"></script>
 <script type="text/javascript" src="problem.js"></script>
 <script type="text/javascript">
@@ -69,6 +72,7 @@ $(function() {
         newProblem(true);
     });
     $('#open-file-input').change(readSingleFile);
+    $('#open-student-submissions-input').change(studentSubmissionsZip);
 });
 
 </script>

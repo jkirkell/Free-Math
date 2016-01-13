@@ -25,6 +25,52 @@ function newAssignment(assignmentName) {
     });
 }
 
+function collectAnswerKey() {
+    // read current assignment content and use as answer key for now
+    // will want a custom experience for teachers later
+}
+
+function generateTeacherOverview(allStudentWork) {
+    $('#assignment-container').empty();
+    // clear global list of problems
+    problems = Array();
+
+    var newProblemSummaryHtml = 
+    '<div class="problem-summary-container" style="float:none;overflow: hidden"></div>';
+
+    var newProblemHtml = 
+    '<div class="problem-container" style="float:none;overflow: hidden"> <!-- container for nav an equation list -->' +
+        '<div style="float:left" class="equation-list"></div>' + 
+    '</div>';
+
+    aggregatedWorkForEachProblem = [];
+    allStudentWork.forEach(function(assignInfo, index, array) {
+        assignInfo.assignment.problems.forEach(function(problem, index, array) {
+            workList = aggregatedWorkForEachProblem[problem.problemNumber];
+            workList = ( typeof workList != 'undefined' && workList instanceof Array ) ? workList : [];
+            workList.push({studentFile : assignInfo.filename, steps : problem.steps});
+            aggregatedWorkForEachProblem[problem.problemNumber] = workList;
+        });
+    });
+    // TODO - look at result to pull out problems that don't have matching problem numbers (very few
+    // problems end up in one of the lists) and give teachers the opportunity to rearrange them
+    aggregatedWorkForEachProblem.forEach(function(problemSummary, index, array) {
+        var newProblemDiv = $(newProblemSummaryHtml);
+        $('#assignment-container').append(newProblemDiv);
+        newProblemDiv.append('<p>Problem number ' + index + '</p>');
+        problemSummary.forEach(function(studentWork, index, array) {
+            var studentWorkDiv = $(newProblemHtml);
+            newProblemDiv.append(studentWorkDiv);
+            studentWork.steps.forEach(function(studentWorkStep, index, array) {
+                var newSpan = $('<span class="solution-step">' + studentWorkStep + '</span><br>');
+                studentWorkDiv.append(newSpan);
+                var mq = MathQuill.StaticMath(newSpan, mathQuillOpts);
+                mq.reflow();
+            });
+        });
+    });
+}
+
 function studentSubmissionsZip(evt) {
 
     var f = evt.target.files[0]; 
@@ -38,6 +84,8 @@ function studentSubmissionsZip(evt) {
             // more files !
             new_zip.load(content);
 
+            var allStudentWork = [];
+
             // you now have every files contained in the loaded zip
             for (file in new_zip.files) { 
                 // don't get properties from prototype
@@ -45,12 +93,16 @@ function studentSubmissionsZip(evt) {
                     // extra directory added when zipping files on mac
                     // TODO - check for other things to filter out from zip
                     // files created on other platforms
-                    if (file.indexOf("__MACOSX") > -1) continue;
-                    console.log(file);
+                    if (file.indexOf("__MACOSX") > -1 || file.indexOf(".DS_Store") > -1) continue;
+                    // filter out directories which are part of this list
                     if (new_zip.file(file) == null) continue; 
-                    console.log(new_zip.file(file).asText()); // "Hello World\n"
+                    var fileContents = new_zip.file(file).asText();
+                    // how is this behaviring differrntly than JSOn.parse()?!?!
+                    assignmentData = $.parseJSON(fileContents);
+                    allStudentWork.push({filename : file, assignment : assignmentData});
                 }
             }
+            generateTeacherOverview(allStudentWork);
         }
         r.readAsArrayBuffer(f);
     } else { 
@@ -83,7 +135,7 @@ function openAssignment(serializedDoc, filename) {
     var assignment = JSON.parse(serializedDoc);
     problems = Array();
     newAssignment(filename.replace(/\.[^/.]+$/, ""));
-    assignment.forEach(function(problem, index, array) {
+    assignment.problems.forEach(function(problem, index, array) {
         newProblem(false);
         var newProblemWrapper = problems[problems.length - 1];
         newProblemWrapper.setProblemNumber(problem.problemNumber);
@@ -103,7 +155,9 @@ function serializeAssignment() {
             steps : problem.latexForAllSteps()
         }); 
     });
-    return outputProblems;
+    // return an object wrapping the problems list, to enable doc-wide settings
+    // to be stored eventaully
+    return { problems: outputProblems };
 }
 
 function saveAssignment() {

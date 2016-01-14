@@ -78,10 +78,11 @@ function generateTeacherOverview(allStudentWork) {
             var studentWorkDiv = $(newProblemHtml);
             newProblemDiv.append(studentWorkDiv);
             studentWork.steps.forEach(function(studentWorkStep, index, array) {
-                var newSpan = $('<span class="solution-step">' + studentWorkStep + '</span><br>');
-                studentWorkDiv.append(newSpan);
-                var mq = MathQuill.StaticMath(newSpan, mathQuillOpts);
-                mq.reflow();
+                setTimeout(function() {
+                    var newSpan = $('<span class="solution-step">' + studentWorkStep + '</span><br>');
+                    studentWorkDiv.append(newSpan);
+                    var mq = MathQuill.MathField(studentWorkDiv.find('.solution-step'), mathQuillOpts);
+                }, 50);
             });
         });
     });

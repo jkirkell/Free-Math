@@ -55,7 +55,7 @@ function generateTeacherOverview(allStudentWork) {
     '<div class="problem-summary-container" style="float:none;overflow: hidden"></div>';
 
     var newProblemHtml = 
-    '<div class="problem-container" style="float:none;overflow: hidden"> <!-- container for nav an equation list -->' +
+    '<div class="student-work" style="float:left"> <!-- container for nav an equation list -->' +
         '<div style="float:left" class="equation-list"></div>' + 
     '</div>';
 

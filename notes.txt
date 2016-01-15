@@ -174,6 +174,42 @@ Work on 1/10/2015
     - time estimate, basic answer check
         - single answer for now, need to decide on student experience for muliple answers
         - 15 mins, expected finish 6:45
+    - caught up trying to get static math expressions rendered in a loop after
+      reading and re-arranging the student work
+
+-----------------
+1/13/2015
+-----------------
+- teacher grading page
+    - didn't get much done, spent a little time still trying to generate the most basic
+      teacher overview page
+    - eventually just changed the student work for a single problem (across all stuedents)
+      to look like a single assignment with many different problems (the individual student
+      assignment format) and used the existing method to open it as a single assignment
+        - code currently aassumes there is only one assignment, so even if this is how
+          it is done eventaully, a container to put the assignment into would need
+          to be passed into the method to populate an assignment with data
+        - in the student mode, there would just be a single assignment open
+        - in teacher mode there would be a list of 'assignments' where each one
+          represents the work across all students on a single problem
+
+-------------------
+1/14/2015
+-------------------
+- try to get static math rendering to work
+    - try to remove forEach loops to see if it fixes the previous issue
+        - time estimate 15 minutes, expected complte 7:00
+    - or just include staticMath as a flag in the openAssignment() method
+    - actual finish time 7:15
+    - figured it out, stupid bug, was passing a list of jQuery elements into the
+      MathQuill methods to create StaticMath or a MathField
+- student work filtering based on answer
+    - read in doc at the time student answers are selected
+    - prompt, do you want to use the current doc as an answer key?
+        - your doc will be replaced by the student summary, reccomended that you save
+          the current doc before continuing (to make the answer key reusable)
+        - awkward user behavior, will fix soon
+    - time estimate 15 minutes, expected finish time 8:00
      
     - possible next steps
         - allow for multiple problems to be completed on a single page

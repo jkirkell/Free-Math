@@ -81,7 +81,8 @@ function generateTeacherOverview(allStudentWork) {
                 setTimeout(function() {
                     var newSpan = $('<span class="solution-step">' + studentWorkStep + '</span><br>');
                     studentWorkDiv.append(newSpan);
-                    var mq = MathQuill.MathField(studentWorkDiv.find('.solution-step'), mathQuillOpts);
+                    var steps = studentWorkDiv.find('.solution-step');
+                    var mq = MathQuill.StaticMath(steps[steps.length - 1], mathQuillOpts);
                 }, 50);
             });
         });

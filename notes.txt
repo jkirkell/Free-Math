@@ -235,7 +235,7 @@ Work on 1/10/2015
           rather than hiding by default or immediately after creation
 
 -------------------
-1/14/2015
+1/15/2015
 -------------------
 - define scope for work this weekend
     - 15 minutes, expected completion 7:15
@@ -282,6 +282,18 @@ Work on 1/10/2015
         - on mistyped scores, wil it be too anoying to go find it again?
             - definitely want problem local show/hide in this case
 - add animation to show/hide problems
+    - finished
+
+-------------------
+1/16/2015
+-------------------
+- update problem page to take advantage of MathQuill() function
+    - avoid the need to keep track of all MathQuill objects parallel
+      to the actual DOM element
+    - time estimate 15 mins, complete time 7:30
+    - completed on time
+-lastStep 
+
 - features needed for basic prototype
     - teacher grading
         - setting point values for problems
@@ -312,3 +324,20 @@ Work on 1/10/2015
         - enable users to split the solution path
             - to solve for multiple answers
         - set up real environment for managing dependencies indecent of the app
+
+        - consider allowing insertion of a step in the middle of a series of work
+         this be more useful or confusing? Students can always undo/redo their work
+        - might be easier to introduce the concept of copying several setps, either temporarily
+          or into another workspace to solve a similar process in another problem
+            - 'insert' could then become a copy later steps to temporary space, 
+              add new step, copy back
+            - even with this feature it might be worth still implementing the shortcut
+              to insert into the middle of a line of work
+            - if it's based on the current selected box, it would probably be pretty intuitive
+            - although undo-redo gets more complicated
+    - Features to add to mathquill
+        - cross-out
+        - auto-complete based on natural language search of symbol names
+        - expression manipulation functions
+            - question, is the expression tree represented in a structure that corresponds to
+              evaluation prescedence? or just one that reflects how it is displayed?

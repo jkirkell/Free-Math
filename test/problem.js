@@ -38,17 +38,12 @@ function newProblem(insertEmptyStep) {
     var newProblemWrapper = (function() {
         // stack with the redo steps in it, use push/pop to modify
         var savedRedoSteps = [];
-        // hold references to the mathquill objects for each step
-        // (it is not possible to re-mathquillify a DOM element, so
-        // they must be tracked after creation to use mathquill methods)
-        var currentMqSteps = [];
         var problemWrapperDiv = newProblemDiv;
         
         return { 
             focusLastStep : function() {
                 all_spans = problemWrapperDiv.find('.solution-step');
-                if (currentMqSteps.length != all_spans.length) alert("internal error, mathquill steps not consistent with DOM");
-                currentMqSteps[all_spans.length - 1].focus();
+                MathQuill(all_spans[all_spans.length - 1]).focus();
             },
             setProblemNumber : function(problemNumber) {
                 var problemNumberText = problemWrapperDiv.find('.problem-number');
@@ -61,8 +56,9 @@ function newProblem(insertEmptyStep) {
             },
             latexForAllSteps : function() {
                 var allSteps = [];
-                currentMqSteps.forEach(function(mathField, index, array) {
-                    allSteps.push(mathField.latex());
+                var all_spans = problemWrapperDiv.find('.solution-step');
+                all_spans.forEach(function(mathStepSpan, index, array) {
+                    allSteps.push(MathQuill(mathStepSpan).latex());
                 });
                 return allSteps;
             },
@@ -70,7 +66,6 @@ function newProblem(insertEmptyStep) {
             mathquillLast : function() { 
                 var all_spans = problemWrapperDiv.find('.solution-step');
                 var mq = MathQuill.MathField(all_spans[all_spans.length - 1],mathQuillOpts);
-                currentMqSteps.push(mq);
                 mq.reflow();
             },
 
@@ -81,7 +76,7 @@ function newProblem(insertEmptyStep) {
 
             newStep : function() {
                 savedRedoSteps = [];
-                var newLatex = currentMqSteps[currentMqSteps.length - 1].latex();
+                var newLatex = MathQuill(this.lastSpan()).latex();
                 var newSpan = $('<span class="solution-step">' + newLatex + '</span><br>');
                 problemWrapperDiv.find('.equation-list').append(newSpan);
                 this.mathquillLast();
@@ -109,8 +104,7 @@ function newProblem(insertEmptyStep) {
                 // do not leave users without a box to type in
                 if (all_spans.length == 1) return;
                 var lastSpanEl = this.lastSpan();
-                lastStepMq = currentMqSteps.pop();
-                savedRedoSteps.push(lastStepMq.latex());
+                savedRedoSteps.push(MathQuill(lastSpanEl).latex());
                 problemWrapperDiv.find('.equation-list').get(0).removeChild(lastSpanEl);
                 // remove the <br> tag
                 problemWrapperDiv.find('.equation-list br').last().remove();

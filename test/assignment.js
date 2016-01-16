@@ -62,6 +62,11 @@ function generateTeacherOverview(allStudentWork) {
     var answerKey = collectAnswerKey();
     var assignmentDiv = $('#assignment-container');
     assignmentDiv.empty(); 
+    assignmentDiv.append('<input type="checkbox" id="apply-same-grade-to-others" checked="checked">' +
+            'Apply manual grades to all students with matching answers ' +
+            '<span title="Default to applying a score you give to one student to all others who got the' + 
+            ' the same answer, you can override the score after looking at each individual student\'s work">' +
+            ' - Hover for Info</span><br><br>');
     assignmentDiv.append(
     'Show Answers that are:' + 
     '<label><input type="checkbox" id="show-incorrect" checked="checked">incorrect</label>' + 
@@ -107,6 +112,8 @@ function generateTeacherOverview(allStudentWork) {
             '- Possible points <input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
         problemSummary.forEach(function(studentWork, index, array) {
             var newProblemHtml = 
+            // TODO - update this class of answer-correct vs answer-incorrect after teacher gives a manual grade
+            // add a status for partial credit, color the div yellow in this case
             '<div class="student-work ' + 'answer-' + studentWork.autoGradeStatus + '" style="float:left"> <!-- container for nav an equation list -->' +
                 '<div style="float:left" class="equation-list"></div>' + 
             '</div>';
@@ -126,7 +133,7 @@ function generateTeacherOverview(allStudentWork) {
             } else {
                autoGradeScore = 0;
             }
-            var scoreInput = '<p>Score <input type="text" value="' + autoGradeScore + '"/>' + 
+            var scoreInput = '<p>Score <input type="text" class="problem-grade-input" value="' + autoGradeScore + '"/>' + 
                 ' out of <span class="total-problem-points">' + defaultPointsPerProblem + '</span></p>';
             studentWorkDiv.append(scoreInput);
         });
@@ -137,12 +144,31 @@ function generateTeacherOverview(allStudentWork) {
                 alert('Please enter a numeric value for possible points');
                 return;
             }
-
             $(evt.target).closest('.problem-summary-container').find('.total-problem-points').text(evt.target.value);
+
         } else {
             return false;
         }
     });
+    $('.problem-grade-input').keyup(0 /* ignored */, function(evt) {
+        if (evt.which == 13) {
+            var score = evt.target.value;
+            if (isNaN(score)) {
+                alert('Please enter a numeric value for points');
+                return;
+            }
+            // get the final answer entered for this problem, used to check against other student work
+            console.log($(evt.target).closest('.student-work').find('.solution-step').last());
+            var answer = MathQuill($(evt.target).closest('.student-work').find('.solution-step').last()[0]).latex();
+            $(evt.target).closest('.problem-summary-container').find('.student-work').each(function(index, studentWork) {
+                var currentAnswer = MathQuill($(studentWork).find('.solution-step').last()[0]).latex();
+                if (currentAnswer == answer) {
+                    $(studentWork).find('.problem-grade-input').last().val(score);
+                }
+            });
+        }
+    });
+    //apply-same-grade-to-others
     $('#show-correct').change(function() {
         $('.answer-correct').toggle(this.checked);
     });

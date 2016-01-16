@@ -239,7 +239,7 @@ Work on 1/10/2015
 -------------------
 - define scope for work this weekend
     - 15 minutes, expected completion 7:15
-- add point value to problems on teach grade page
+- add point value to problems on teacher grade page
     - default to 1 point per problem
         - maybe add a popup to ask later?
     - give a text box at the top of each problem summary showing all work
@@ -260,6 +260,12 @@ Work on 1/10/2015
           as well?
     - update 8:30
         - distracted reading a few articles, new finish time 8:40
+        - actual finish time 9:00
+- enable teachers to apply a given point value to all students who got the
+  same wrong, or not automatically graded correct answer
+    - time estimate, 15 mins, complete time 9:15
+    - actual finish time, 9:40
+- 
 - features needed for basic prototype
     - teacher grading
         - setting point values for problems

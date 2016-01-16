@@ -210,6 +210,29 @@ Work on 1/10/2015
           the current doc before continuing (to make the answer key reusable)
         - awkward user behavior, will fix soon
     - time estimate 15 minutes, expected finish time 8:00
+    - update 8:10
+        - cleaned up branch to get rid of old commits from debugging
+        - updated styles to add boarders around divs and change colors
+        - new finish time, 8:15
+        - actual finish time 8:40
+- generate divs with correct work, hide them by default
+    - color code them with classes based upon corect incorrect
+    - time estimate 20 mins, expected finish time 9:00
+    - finsh time, 9:20
+        - took a little bit to figure out the good way to do it with jquery
+        - and some time wasted chasing a class selector tha should have been an id selector
+- enable teacher feedback box, show scores on summary page
+    - allow teachers to override scores to give partial credit
+    - when partial credit is given, turn yellow
+    - if full credit is given, change status to correct, and change color
+        - don't hide immediately, use an animation to remove it
+        - this would be easier to undo with a problem local toggle to see correct work
+            - TODO 
+    - estimate 30 mins, expected finish 10 pm
+    - preempted
+        - bug, parenthesis are not showing on correct answers
+        - fixed by triggering a delayed click event on the checkbox to toggle showing correct answers
+          rather than hiding by default or immediately after creation
      
     - possible next steps
         - allow for multiple problems to be completed on a single page

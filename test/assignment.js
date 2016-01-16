@@ -44,27 +44,51 @@ function newAssignment(assignmentName) {
 function collectAnswerKey() {
     // read current assignment content and use as answer key for now
     // will want a custom experience for teachers later
+    return serializeAssignment();
 }
 
 function generateTeacherOverview(allStudentWork) {
-    $('#assignment-container').empty();
+    var confirmMessage = "Use current document as answer key and generate assignment overview?\n"
+        "Warning -  save doc now to allow you to allow reuse of answer key later";
+    if (!window.confirm(confirmMessage)) { 
+        return; 
+    }
+    answerKey = collectAnswerKey();
+    var assignmentDiv = $('#assignment-container');
+    assignmentDiv.empty(); 
+    assignmentDiv.append(
+    'Show Answers that are:' + 
+    '<label><input type="checkbox" id="show-incorrect" checked="checked">incorrect</label>' + 
+    // this is unchecked programmatically to hide all of the correct work by default
+    // there was a weird bug where parens weren't showing up with other attempts to hide
+    // it programatically
+    '<label><input type="checkbox" id="show-correct" checked="checked">correct</label><br>');
     // clear global list of problems
     problems = Array();
 
     var newProblemSummaryHtml = 
-    '<div class="problem-summary-container" style="float:none;overflow: hidden"></div>';
-
-    var newProblemHtml = 
-    '<div class="student-work" style="float:left"> <!-- container for nav an equation list -->' +
-        '<div style="float:left" class="equation-list"></div>' + 
+    '<div class="problem-summary-container" style="float:none;overflow: hidden">' + 
     '</div>';
 
+    var correctAnswers = {};
+    answerKey.problems.forEach(function(correctAnswer, index, array) {
+        // TODO - handle multiple correct answers better
+        correctAnswers[correctAnswer.problemNumber] = correctAnswer.steps;
+    });
     aggregatedWorkForEachProblem = [];
     allStudentWork.forEach(function(assignInfo, index, array) {
         assignInfo.assignment.problems.forEach(function(problem, index, array) {
             workList = aggregatedWorkForEachProblem[problem.problemNumber];
+            var autoGrade;
+            if ($.inArray(problem.steps[problem.steps.length - 1], correctAnswers[problem.problemNumber]) > -1) {
+                // answer waqs corrrect, for now skip
+                // TODO - create hidden element that can be shown when correct work requested
+                autoGrade = "correct";
+            } else {
+                autoGrade = "incorrect";
+            }
             workList = ( typeof workList != 'undefined' && workList instanceof Array ) ? workList : [];
-            workList.push({studentFile : assignInfo.filename, steps : problem.steps});
+            workList.push({studentFile : assignInfo.filename, autoGradeStatus: autoGrade, steps : problem.steps});
             aggregatedWorkForEachProblem[problem.problemNumber] = workList;
         });
     });
@@ -75,6 +99,10 @@ function generateTeacherOverview(allStudentWork) {
         $('#assignment-container').append(newProblemDiv);
         newProblemDiv.append('<p>Problem number ' + index + '</p>');
         problemSummary.forEach(function(studentWork, index, array) {
+            var newProblemHtml = 
+            '<div class="student-work ' + 'answer-' + studentWork.autoGradeStatus + '" style="float:left"> <!-- container for nav an equation list -->' +
+                '<div style="float:left" class="equation-list"></div>' + 
+            '</div>';
             var studentWorkDiv = $(newProblemHtml);
             newProblemDiv.append(studentWorkDiv);
             studentWork.steps.forEach(function(studentWorkStep, index, array) {
@@ -87,6 +115,15 @@ function generateTeacherOverview(allStudentWork) {
             });
         });
     });
+    $('#show-correct').change(function() {
+        $('.answer-correct').toggle(this.checked);
+    });
+    $('#show-incorrect').change(function() {
+        $('.answer-incorrect').toggle(this.checked);
+    });
+    setTimeout(function() {
+        $('#show-correct').trigger('click');
+    }, 50);
 }
 
 function studentSubmissionsZip(evt) {

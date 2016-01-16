@@ -47,6 +47,37 @@ function collectAnswerKey() {
     return serializeAssignment();
 }
 
+/**
+ * Requires the dom element of the text input for setting the score to be passed
+ */
+function setStudentGrade(textInput) {
+    var score = textInput.value;
+    var possiblePoints = $(textInput).closest('.problem-summary-container').find('.possible-points-input').last().val();
+    if (isNaN(score) || score < 0) {
+        alert('Please enter a numeric value for points');
+        return;
+    }
+    // get the final answer entered for this problem, used to check against other student work
+    console.log($(textInput).closest('.student-work').find('.solution-step').last());
+    // TODO - possibly file a Mathquill github issue, why do I need [0] when I've called last()?
+    var answer = MathQuill($(textInput).closest('.student-work').find('.solution-step').last()[0]).latex();
+    $(textInput).closest('.problem-summary-container').find('.student-work').each(function(index, studentWork) {
+        var currentAnswer = MathQuill($(studentWork).find('.solution-step').last()[0]).latex();
+        if (currentAnswer == answer) {
+            var work = $(studentWork);
+            work.removeClass('answer-correct').removeClass('answer-incorrect').removeClass('answer-partially-correct');
+            if (parseFloat(score) >= parseFloat(possiblePoints)) {
+                work.addClass('answer-correct');
+            } else if (score > 0) {
+                work.addClass('answer-partially-correct');
+            } else {
+                work.addClass('answer-incorrect');
+            }
+            $(studentWork).find('.problem-grade-input').last().val(score).change();
+        }
+    });
+}
+
 function generateTeacherOverview(allStudentWork) {
     var confirmMessage = "Use current document as answer key and generate assignment overview?\n"
         "Warning -  save doc now to allow you to allow reuse of answer key later";
@@ -155,32 +186,11 @@ function generateTeacherOverview(allStudentWork) {
     });
     $('.problem-grade-input').keydown(0 /* ignored */, function(evt) {
         if (evt.which == 13) {
-            var score = evt.target.value;
-            var possiblePoints = $(evt.target).closest('.problem-summary-container').find('.possible-points-input').last().val();
-            if (isNaN(score) || score < 0) {
-                alert('Please enter a numeric value for points');
-                return;
-            }
-            // get the final answer entered for this problem, used to check against other student work
-            console.log($(evt.target).closest('.student-work').find('.solution-step').last());
-            // TODO - possibly file a Mathquill github issue, why do I need [0] when I've called last()?
-            var answer = MathQuill($(evt.target).closest('.student-work').find('.solution-step').last()[0]).latex();
-            $(evt.target).closest('.problem-summary-container').find('.student-work').each(function(index, studentWork) {
-                var currentAnswer = MathQuill($(studentWork).find('.solution-step').last()[0]).latex();
-                if (currentAnswer == answer) {
-                    var work = $(studentWork);
-                    work.removeClass('answer-correct').removeClass('answer-incorrect').removeClass('answer-partially-correct');
-                    if (parseFloat(score) >= parseFloat(possiblePoints)) {
-                        work.addClass('answer-correct');
-                    } else if (score > 0) {
-                        work.addClass('answer-partially-correct');
-                    } else {
-                        work.addClass('answer-incorrect');
-                    }
-                    $(studentWork).find('.problem-grade-input').last().val(score).change();
-                }
-            });
+            setStudentGrade(evt.target);
         }
+    });
+    $('.problem-grade-input').focusout(0 /* ignored */, function(evt) {
+        setStudentGrade(evt.target);
     });
     $('.problem-grade-input').on('change input propertychange paste', function(evt) {
         /*

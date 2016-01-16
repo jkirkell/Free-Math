@@ -57,6 +57,7 @@ function newProblem(insertEmptyStep) {
             latexForAllSteps : function() {
                 var allSteps = [];
                 var all_spans = problemWrapperDiv.find('.solution-step');
+                if (! (typeof all_spans == 'Array') ) return allSteps;
                 all_spans.forEach(function(mathStepSpan, index, array) {
                     allSteps.push(MathQuill(mathStepSpan).latex());
                 });

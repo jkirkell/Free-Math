@@ -103,9 +103,16 @@ Open Assignment <input type="file" id="open-file-input" /> <br/><br/>
 <script type="text/javascript" src="../filesaver_js.js"></script>
 <script type="text/javascript" src="../build/mathquill-basic.js"></script>
 <script type="text/javascript" src="../Stuk-jszip-82ceacc/dist/jszip.js"></script>
+<script type="text/javascript" src="../platform_js/platform.js"></script>
 <script type="text/javascript" src="assignment.js"></script>
 <script type="text/javascript" src="problem.js"></script>
 <script type="text/javascript">
+
+function detectPlatform() {
+    // failing on chrome
+    //isMac = (platform.os.indexOf("OS X") > -1);
+    //return { isMac : isMac };
+}
 
 $(function() {
     newAssignment();
@@ -116,6 +123,8 @@ $(function() {
     });
     $('#open-file-input').change(readSingleFile);
     $('#open-student-submissions-input').change(studentSubmissionsZip);
+    // this is intentionally global
+    detectedBrowserAndOS = detectPlatform();
 });
 
 </script>

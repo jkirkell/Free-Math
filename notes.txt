@@ -292,7 +292,20 @@ Work on 1/10/2015
       to the actual DOM element
     - time estimate 15 mins, complete time 7:30
     - completed on time
--lastStep 
+- fix keyboard shortcuts so they work on windows
+    - change keys as needed to make sure it works across browsers
+        - detect platform and change keys accordingly (cmd instead of ctrl for mac)
+    - time estimate, 25 mins, complte time 8:00
+    - updates at 8:25
+        - got distracted
+        - didn't seem like there was a well-accepted answer in plain JS for this
+        - few stack-overflow threads on it, but all simple methods
+          were documented as deprecated by Mozilla
+        - decided to go with https://github.com/bestiejs/platform.js
+    - new finish time 8:35
+        - update at 8:40, Firefox keeps crashing, tried looking into it
+        - just going to use chrome for now
+        - new finish time, 8:50
 
 - features needed for basic prototype
     - teacher grading
@@ -319,6 +332,8 @@ Work on 1/10/2015
         - cross out selection for cancellation of terms 
             - auto remove crossed out sections on "next-step"
         - drag/drop for term rearrangement?
+    - unit and integration tests
+        
      
     - possible next steps
         - enable users to split the solution path

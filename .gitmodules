@@ -4,3 +4,6 @@
 [submodule "Blob.js"]
 	path = Blob.js
 	url = https://github.com/eligrey/Blob.js.git
+[submodule "platform_js"]
+	path = platform_js
+	url = https://github.com/bestiejs/platform.js.git

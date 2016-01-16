@@ -65,7 +65,7 @@ function generateTeacherOverview(allStudentWork) {
     assignmentDiv.append('<input type="checkbox" id="apply-same-grade-to-others" checked="checked">' +
             'Apply manual grades to all students with matching answers ' +
             '<span title="Default to applying a score you give to one student to all others who got the' + 
-            ' the same answer, you can override the score after looking at each individual student\'s work">' +
+            ' the same answer. You can override the score after looking at each individual student\'s work">' +
             ' - Hover for Info</span><br><br>');
     assignmentDiv.append(
     'Show Answers that are:' + 
@@ -140,33 +140,63 @@ function generateTeacherOverview(allStudentWork) {
     });
     $('.possible-points-input').keyup(0 /* ignored */, function(evt) {
         if (evt.which == 13) {
-            if (isNaN(evt.target.value)) {
-                alert('Please enter a numeric value for possible points');
+            var possiblePoints = evt.target.value;
+            if (isNaN(possiblePoints) || possiblePoints < 0) {
+                alert('Please enter a positive numeric value for possible points');
                 return;
             }
-            $(evt.target).closest('.problem-summary-container').find('.total-problem-points').text(evt.target.value);
+            $(evt.target).closest('.problem-summary-container').find('.total-problem-points').text(possiblePoints);
 
         } else {
             return false;
         }
     });
-    $('.problem-grade-input').keyup(0 /* ignored */, function(evt) {
+    $('.problem-grade-input').keydown(0 /* ignored */, function(evt) {
         if (evt.which == 13) {
             var score = evt.target.value;
-            if (isNaN(score)) {
+            var possiblePoints = $(evt.target).closest('.problem-summary-container').find('.possible-points-input').last().val();
+            if (isNaN(score) || score < 0) {
                 alert('Please enter a numeric value for points');
                 return;
             }
             // get the final answer entered for this problem, used to check against other student work
             console.log($(evt.target).closest('.student-work').find('.solution-step').last());
+            // TODO - possibly file a Mathquill github issue, why do I need [0] when I've called last()?
             var answer = MathQuill($(evt.target).closest('.student-work').find('.solution-step').last()[0]).latex();
             $(evt.target).closest('.problem-summary-container').find('.student-work').each(function(index, studentWork) {
                 var currentAnswer = MathQuill($(studentWork).find('.solution-step').last()[0]).latex();
                 if (currentAnswer == answer) {
-                    $(studentWork).find('.problem-grade-input').last().val(score);
+                    var work = $(studentWork);
+                    work.removeClass('answer-correct').removeClass('answer-incorrect').removeClass('answer-partially-correct');
+                    if (parseFloat(score) >= parseFloat(possiblePoints)) {
+                        work.addClass('answer-correct');
+                    } else if (score > 0) {
+                        work.addClass('answer-partially-correct');
+                    } else {
+                        work.addClass('answer-incorrect');
+                    }
+                    $(studentWork).find('.problem-grade-input').last().val(score).change();
                 }
             });
         }
+    });
+    $('.problem-grade-input').on('change input propertychange paste', function(evt) {
+        /*
+        var score = evt.target.value;
+        // TODO - standardize how to handle trimming stuff like this before comparison
+        var work = $(evt.target).closest('.student-work');
+        console.log(score);
+        console.log(possiblePoints);
+        console.log(work);
+        // TODO - decide on behavior for extra credit, should probably prompt users to make sure they meant to give it
+        if (score >= possiblePoints) {
+            work.addClass('answer-correct');
+        } else if (score > 0) {
+            work.addClass('answer-partially-correct');
+        } else {
+            work.addClass('answer-incorrect');
+        }
+        */
     });
     //apply-same-grade-to-others
     $('#show-correct').change(function() {

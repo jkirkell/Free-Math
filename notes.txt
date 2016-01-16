@@ -265,6 +265,12 @@ Work on 1/10/2015
   same wrong, or not automatically graded correct answer
     - time estimate, 15 mins, complete time 9:15
     - actual finish time, 9:40
+- change problem status based on manual grade given
+    - create new class for partially-correct, colored yellow
+    - listen for change event on text field, make sure it also updates
+      the other problems that the score propogates to
+    - time estimate 15 mins, finish time 10:00
+    - actual finsih time, 10:20
 - 
 - features needed for basic prototype
     - teacher grading

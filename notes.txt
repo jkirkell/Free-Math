@@ -233,15 +233,60 @@ Work on 1/10/2015
         - bug, parenthesis are not showing on correct answers
         - fixed by triggering a delayed click event on the checkbox to toggle showing correct answers
           rather than hiding by default or immediately after creation
+
+-------------------
+1/14/2015
+-------------------
+- define scope for work this weekend
+    - 15 minutes, expected completion 7:15
+- add point value to problems on teach grade page
+    - default to 1 point per problem
+        - maybe add a popup to ask later?
+    - give a text box at the top of each problem summary showing all work
+      to change the point value
+        - update all child elements for each students work to say
+        - points _m_ out of n
+        - m value is the partial credit given by teacher, or full credit
+          given by the computer
+    - this will help to find the problem summary container corresponding to the text box
+        - jQuery closest() method searches up the DOM tree for a given selector
+        - could also be used to refactor some of the code for problems/steps
+          on the student side
+    - estimate 20 minutes, expected complete 8:00
+    - update at 8:15, added the text boxes, got a little distracted
+        - still need to add the action of updating the possible points
+          in each individual problem
+        - should I prompt users if the partial credit scores should be scaled
+          as well?
+    - update 8:30
+        - distracted reading a few articles, new finish time 8:40
+- features needed for basic prototype
+    - teacher grading
+        - setting point values for problems
+        - text box for basic feedback
+        - cheating prevention, find similar student assignments
+        - identify problems with correct answers, but very little or no
+          work shown
+        - better comparison check for answers that accepts similar expressions
+          given some configurable constrains
+            - algebraically equivalent
+            - require standard form?
+            - look at Khan Perseus, Khan-exercises projects
+            - look at WebWork methods for grading
+    - generate grade-book "table", csv or excel file that can be opened by
+      teachers to put grades manually into their own gradebook
+        - might figure out if I can integrate directly with Moodle
+          to update the grade-book automatically
+    - generate individual student feedback docs
+    - student experience
+        - fix keyboard shortcuts
+        - apply operation (add, subtract, divide, etc.) to both sides
+        - substitute value in for variable
+        - cross out selection for cancellation of terms 
+            - auto remove crossed out sections on "next-step"
+        - drag/drop for term rearrangement?
      
     - possible next steps
-        - allow for multiple problems to be completed on a single page
-            - add a new problem button
-            - remove use of globals
-            - need to save an undo/redo history for each problem
-            - keyboard shortcuts would need to be context specific
-        - create save/load functionality
-        - create basic teacher grading overview page loading a list of student "docs"
         - enable users to split the solution path
             - to solve for multiple answers
-        - set up real environment for managin depedencies indepent of the app
+        - set up real environment for managing dependencies indecent of the app

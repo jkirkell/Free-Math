@@ -53,7 +53,13 @@ function generateTeacherOverview(allStudentWork) {
     if (!window.confirm(confirmMessage)) { 
         return; 
     }
-    answerKey = collectAnswerKey();
+    // TODO - allow teachers to set a different default value
+    // with a popup at the start of the grading experience?
+    // maybe the form for opening stuff to grade should be more
+    // involved, with a number of configuration, filled in with
+    // sensible defaults for basic users
+    var defaultPointsPerProblem = 3;
+    var answerKey = collectAnswerKey();
     var assignmentDiv = $('#assignment-container');
     assignmentDiv.empty(); 
     assignmentDiv.append(
@@ -97,7 +103,8 @@ function generateTeacherOverview(allStudentWork) {
     aggregatedWorkForEachProblem.forEach(function(problemSummary, index, array) {
         var newProblemDiv = $(newProblemSummaryHtml);
         $('#assignment-container').append(newProblemDiv);
-        newProblemDiv.append('<p>Problem number ' + index + '</p>');
+        newProblemDiv.append('<p>Problem number ' + index + '&nbsp;&nbsp; ' + 
+            '- Possible points <input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
         problemSummary.forEach(function(studentWork, index, array) {
             var newProblemHtml = 
             '<div class="student-work ' + 'answer-' + studentWork.autoGradeStatus + '" style="float:left"> <!-- container for nav an equation list -->' +
@@ -113,7 +120,28 @@ function generateTeacherOverview(allStudentWork) {
                     var mq = MathQuill.StaticMath(steps[steps.length - 1], mathQuillOpts);
                 }, 50);
             });
+            var autoGradeScore
+            if (studentWork.autoGradeStatus == "correct") {
+               autoGradeScore = defaultPointsPerProblem;
+            } else {
+               autoGradeScore = 0;
+            }
+            var scoreInput = '<p>Score <input type="text" value="' + autoGradeScore + '"/>' + 
+                ' out of <span class="total-problem-points">' + defaultPointsPerProblem + '</span></p>';
+            studentWorkDiv.append(scoreInput);
         });
+    });
+    $('.possible-points-input').keyup(0 /* ignored */, function(evt) {
+        if (evt.which == 13) {
+            if (isNaN(evt.target.value)) {
+                alert('Please enter a numeric value for possible points');
+                return;
+            }
+
+            $(evt.target).closest('.problem-summary-container').find('.total-problem-points').text(evt.target.value);
+        } else {
+            return false;
+        }
     });
     $('#show-correct').change(function() {
         $('.answer-correct').toggle(this.checked);

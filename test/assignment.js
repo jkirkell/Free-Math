@@ -68,12 +68,13 @@ function generateTeacherOverview(allStudentWork) {
             ' the same answer. You can override the score after looking at each individual student\'s work">' +
             ' - Hover for Info</span><br><br>');
     assignmentDiv.append(
-    'Show Answers that are:' + 
-    '<label><input type="checkbox" id="show-incorrect" checked="checked">incorrect</label>' + 
+    'Show Answers that are: &nbsp;' + 
+    '<label>&nbsp;<input type="checkbox" id="show-incorrect" checked="checked">incorrect</label>' + 
     // this is unchecked programmatically to hide all of the correct work by default
     // there was a weird bug where parens weren't showing up with other attempts to hide
     // it programatically
-    '<label><input type="checkbox" id="show-correct" checked="checked">correct</label><br>');
+    '<label>&nbsp;<input type="checkbox" id="show-partially-correct" checked="checked">partially correct</label>' + 
+    '<label>&nbsp;<input type="checkbox" id="show-correct" checked="checked">correct</label><br>');
     // clear global list of problems
     problems = Array();
 
@@ -109,7 +110,7 @@ function generateTeacherOverview(allStudentWork) {
         var newProblemDiv = $(newProblemSummaryHtml);
         $('#assignment-container').append(newProblemDiv);
         newProblemDiv.append('<p>Problem number ' + index + '&nbsp;&nbsp; ' + 
-            '- Possible points <input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
+            '- Possible points &nbsp;<input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
         problemSummary.forEach(function(studentWork, index, array) {
             var newProblemHtml = 
             // TODO - update this class of answer-correct vs answer-incorrect after teacher gives a manual grade
@@ -136,6 +137,7 @@ function generateTeacherOverview(allStudentWork) {
             var scoreInput = '<p>Score <input type="text" class="problem-grade-input" value="' + autoGradeScore + '"/>' + 
                 ' out of <span class="total-problem-points">' + defaultPointsPerProblem + '</span></p>';
             studentWorkDiv.append(scoreInput);
+            studentWorkDiv.append('<p>Feedback</p><div><textarea width="30" height="8"></textarea></div>');
         });
     });
     $('.possible-points-input').keyup(0 /* ignored */, function(evt) {
@@ -200,13 +202,29 @@ function generateTeacherOverview(allStudentWork) {
     });
     //apply-same-grade-to-others
     $('#show-correct').change(function() {
-        $('.answer-correct').toggle(this.checked);
+        if (! this.checked) {
+            $('.answer-correct').fadeOut();
+        } else {
+            $('.answer-correct').show();
+        }
     });
     $('#show-incorrect').change(function() {
-        $('.answer-incorrect').toggle(this.checked);
+        if (! this.checked) {
+            $('.answer-incorrect').fadeOut();
+        } else {
+            $('.answer-incorrect').show();
+        }
+    });
+    $('#show-partially-correct').change(function() {
+        if (! this.checked) { 
+            $('.answer-partially-correct').fadeOut();
+        } else {
+            $('.answer-partially-correct').show();
+        }
     });
     setTimeout(function() {
         $('#show-correct').trigger('click');
+        $('#show-partially-correct').trigger('click');
     }, 50);
 }
 

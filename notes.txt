@@ -271,7 +271,17 @@ Work on 1/10/2015
       the other problems that the score propogates to
     - time estimate 15 mins, finish time 10:00
     - actual finsih time, 10:20
-- 
+- add feedback textarea
+    - estimate 5 minutes, finsih 10:25
+    - won't worry about copying feedback to similar-answer problems for now
+    - will wait for user feedback, simple enough to add
+    - added, also implemented show/hide for partially correct answers
+        - not sure about hiding answers as soon as they are given
+          a score that puts them into a category that is currently hidden
+        - at the least need an animation to hide them gradually
+        - on mistyped scores, wil it be too anoying to go find it again?
+            - definitely want problem local show/hide in this case
+- add animation to show/hide problems
 - features needed for basic prototype
     - teacher grading
         - setting point values for problems

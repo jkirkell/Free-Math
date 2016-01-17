@@ -344,6 +344,21 @@ Work on 1/10/2015
     - time estimate 10 minutes (already have an event that is updating total points)
     - expected finish 11
     - update 11:05, added some notes below, new finish time 11:15
+    - actual finish time 11:30
+        - when grabbing a single element out of a jQuery selector list it
+          will be a raw DOM element, needs $() again to use jQuery methods
+- ordering problems based on number of students who got it wrong
+    - should any extra weight be given to problems where all of the students got
+      totally different answers?
+    - or instead where a bunch of them were wrong but got the same answer?
+    - for now just count number wrong, based on answer key, will want to ask teachers
+    - in the case where there is no answer key, might want to put the ones with common
+      answers first, to make grading the bulk of work faster
+        - but I think both orderings will be useful, if it's not too confusing should
+          probably just give users to choice of how to order work
+    - basic version counting number wrong, 15 mins, finish time 11:45
+
+
 - features needed for basic prototype
     - teacher grading
         - cheating prevention, find similar student assignments

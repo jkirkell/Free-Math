@@ -209,7 +209,23 @@ function generateTeacherOverview(allStudentWork) {
                 alert('Please enter a positive numeric value for possible points');
                 return;
             }
+            var possiblePoints = parseFloat(possiblePoints);
+            // get the old value out of one of the child elements (that we are just about to update) may be a cleaner way to do
+            // this, but it should be safe 
+            var firstPossiblePointsSpan = $(evt.target).closest('.problem-summary-container').find('.total-problem-points')[0];
+            var oldPossiblePointsText = $(firstPossiblePointsSpan).text();
+            var oldPossiblePoints = parseFloat(oldPossiblePointsText);
             $(evt.target).closest('.problem-summary-container').find('.total-problem-points').text(possiblePoints);
+            $(evt.target).closest('.problem-summary-container').find('.problem-grade-input').each(function(index, gradeInput) {
+                var currentVal = parseFloat($(gradeInput).val());
+                var newScore;
+                if (currentVal == 0) {
+                    newScore = 0; 
+                } else {
+                    newScore = parseFloat($(gradeInput).val()) + possiblePoints - oldPossiblePoints;
+                }
+                $(gradeInput).val(newScore);
+            });
 
         } else {
             return false;

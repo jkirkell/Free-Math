@@ -359,6 +359,15 @@ Work on 1/10/2015
 - counting number wrong to order in teacher summary - basic version 
     - 15 mins, finish time 11:45
     - got distracted, new finish time 11:55
+- decide what to do when a student is missing a problem
+    - could just be a loop to add answer of "" with no steps for all students
+      who are missing a given problem
+        - these would be grouped together automatically
+        - in this case should give teachers an easy option to hide one set of answers completely
+        - have special disply to say "no work or answer given" rather than rendering an empty expression
+    - related - need to allow teachers to easily re-arrange student work if their numbers are off
+        - might be able to defer, but would probably be needed in real use, that or they
+          could just tell their students to be careful about the problem numbers
 
 - features needed for basic prototype
     - teacher grading

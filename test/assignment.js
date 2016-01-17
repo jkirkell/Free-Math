@@ -145,6 +145,7 @@ function generateTeacherOverview(allStudentWork) {
 
             workList = ( typeof workList != 'undefined' && workList instanceof Array ) ? workList : [];
             workList.push({studentFile : assignInfo.filename, autoGradeStatus: autoGrade, steps : problem.steps});
+            mapFromFinalAnswersToDifferentStudentWork[studentAnswer] = workList;
             aggregatedWorkForEachProblem[problem.problemNumber] = mapFromFinalAnswersToDifferentStudentWork;
         });
     });
@@ -153,16 +154,20 @@ function generateTeacherOverview(allStudentWork) {
     aggregatedWorkForEachProblem.forEach(function(problemSummary, index, array) {
         var newProblemDiv = $(newProblemSummaryHtml);
         $('#assignment-container').append(newProblemDiv);
-        newProblemDiv.append('<p>Problem number ' + index + '&nbsp;&nbsp; ' + 
-            '- Possible points &nbsp;<input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
+        newProblemDiv.append('<h3>Problem number ' + index + '</h3><p>' + 
+            'Possible points &nbsp;<input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
         //problemSummary.forEach(function(studentWorkLeadingToOneAnswer, studentFinalAnswer, array) {
         for ( var studentFinalAnswer in problemSummary) {
             (function() {
             // skip prototype properties
-            if (problemSummary.hasOwnProperty(studentFinalAnswer)) return;
+            if (!problemSummary.hasOwnProperty(studentFinalAnswer)) return;
             var allStudentsWorkLeadingToOneAnswer = problemSummary[studentFinalAnswer];
-            var allStudentsWorkForCurrentAnswer = $('<div class="similar-student-answers"></div>');
-            newProblemDiv.append(allStudentWorkForCurrentAnswer);
+            var similarAnswersHTML = '<div class="similar-student-answers" style="float:none;overflow: hidden" >' +
+                    '<p>Student work leading to answer <span class="common-student-answer">' + studentFinalAnswer + '</span></p>';
+                    '</div>';
+            var allStudentsWorkForCurrentAnswer = $(similarAnswersHTML);
+            newProblemDiv.append(allStudentsWorkForCurrentAnswer);
+            MathQuill.StaticMath(allStudentsWorkForCurrentAnswer.find('.common-student-answer')[0]);
             allStudentsWorkLeadingToOneAnswer.forEach(function(studentWork, index, array) {
                 var newProblemHtml = 
                 // TODO - update this class of answer-correct vs answer-incorrect after teacher gives a manual grade

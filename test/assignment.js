@@ -134,10 +134,13 @@ function generateTeacherOverview(allStudentWork) {
             // once I am doing better grading basted on parsing the math, I won't be able
             // to use the answers as keys into this map
             // TODO - look up making custom map keys in JS (I know it ins't supported natively)
-            // to make a hashmap or treemap I would need to define hashing that would consider
+            // to make a hashmap I would need to define hashing that would consider
             // sufficiently similar expressions equivelent in hash value, while also customizing
             // what is allowed to be different between the expressions
-            //    - might be easiest to just do a nested loop when that comes up
+            // - similar problem with treemap, would need to define ordering that would put
+            //   similar expressions near one another
+            //    - might be easiest to just do a nested loop when that comes up, this would just
+            //      require an approximate equals method, not even a compareTo() implementation
             var mapFromFinalAnswersToDifferentStudentWork = aggregatedWorkForEachProblem[problem.problemNumber]
             mapFromFinalAnswersToDifferentStudentWork = ( typeof mapFromFinalAnswersToDifferentStudentWork != 'undefined') ? 
                     mapFromFinalAnswersToDifferentStudentWork : {};

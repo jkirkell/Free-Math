@@ -312,11 +312,41 @@ Work on 1/10/2015
       on features for today
 - finding similar answers and grouping them in teacher summary page
     - time estimate 10 minutes, finish time 4:15
+    - took longer than expected, few different issues
+    - finish time 5:15
+- update at 7:45
+    - haven't gotten very much done today
+    - still plenty of time left to work
+    - stretch goals, by 2:00 am
+        - complete the teacher grading experience 
+            - similar assignments, too little work shown
+            - sort to show problems students had the most trouble with first
+            - better comparison - basic
+                - opposite sides of equality flipped
+                - extra spaces, formattting differences for multiplication/division
+                - again look at WebWork and Khan code for more ideas
+            - generate feedback docs for students
+        - expression manipulation shortcuts, add to both sides, cross-out
+        - handle cross-platform issues, test on chrome, firefox, IE, safari
+- fix handling of change of total points on a problem to properly update states
+  of all impacted problems
+    - time estimate 15 mins, finish time 8:45
+
 - features needed for basic prototype
     - teacher grading
         - cheating prevention, find similar student assignments
         - identify problems with correct answers, but very little or no
           work shown
+        - alternate sort orderings for problems
+            - make the default show the "most misunderstood" problems first
+            - need to write a comparison function for nested problem numbers
+              so I can sort them back into the correct order
+            - as well as not rely on the order in the key or student assingments
+              to determine how they are shown
+                - some users may want the key to define ordering, but I've never
+                  seen anyone using something that wouldn't sort well
+                - hardest part with probably be resolving letters vs roman numerals
+                    - looking across problems should enable dealing with this automatically
         - better comparison check for answers that accepts similar expressions
           given some configurable constrains
             - algebraically equivalent

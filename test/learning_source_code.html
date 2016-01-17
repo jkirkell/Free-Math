@@ -126,6 +126,7 @@ $(function() {
     $('#new-problem').click(function() {
         newProblem(true);
     });
+    // TODO - change this so it doesn't try to do anything when the user hits cancel
     $('#open-file-input').change(readSingleFile);
     $('#open-student-submissions-input').change(studentSubmissionsZip);
     // this is intentionally global

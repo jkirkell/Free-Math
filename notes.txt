@@ -360,18 +360,26 @@ Work on 1/10/2015
     - 15 mins, finish time 11:45
     - got distracted, new finish time 11:55
     - actual finish time 1:00pm
-        - there is a lot of unneccessary complexity in creating the datastructure for
-          the aggreated student work
-        - I think this should be able to be encapsulated to create and obejct with a 
+        - there is a lot of unnecessary complexity in creating the data-structure for
+          the aggregated student work
+        - I think this should be able to be encapsulated to create and object with a 
           method to fetch or initialize a new list/object at some key
         - for now I at least made the variable names reasonable and got it working
-- 
+- implement undo-redo with DOM element hide/show
+    - is it feasible to store all data in the DOM?
+    - seems like a good way to avoid inconsistency
+- handle case where possible point adjustment leads to negative score
+    - good argument for proportional point adjustment upon change
+        - with a setting for rounding or using decimal values
+    - make sure to update status if whatever strategy used causes a change to another
+        - rounding up make it correct
+        - currently making it worth less points can make it 0 easily, probably not desired
 - decide what to do when a student is missing a problem
     - could just be a loop to add answer of "" with no steps for all students
       who are missing a given problem
         - these would be grouped together automatically
         - in this case should give teachers an easy option to hide one set of answers completely
-        - have special disply to say "no work or answer given" rather than rendering an empty expression
+        - have special display to say "no work or answer given" rather than rendering an empty expression
     - related - need to allow teachers to easily re-arrange student work if their numbers are off
         - might be able to defer, but would probably be needed in real use, that or they
           could just tell their students to be careful about the problem numbers

@@ -121,18 +121,31 @@ function generateTeacherOverview(allStudentWork) {
     aggregatedWorkForEachProblem = [];
     allStudentWork.forEach(function(assignInfo, index, array) {
         assignInfo.assignment.problems.forEach(function(problem, index, array) {
-            workList = aggregatedWorkForEachProblem[problem.problemNumber];
+            var studentAnswer = problem.steps[problem.steps.length - 1];
             var autoGrade;
-            if ($.inArray(problem.steps[problem.steps.length - 1], correctAnswers[problem.problemNumber]) > -1) {
-                // answer waqs corrrect, for now skip
+            if ($.inArray(studentAnswer, correctAnswers[problem.problemNumber]) > -1) {
+                // answer was corrrect, for now skip
                 // TODO - create hidden element that can be shown when correct work requested
                 autoGrade = "correct";
             } else {
                 autoGrade = "incorrect";
             }
+             
+            // once I am doing better grading basted on parsing the math, I won't be able
+            // to use the answers as keys into this map
+            // TODO - look up making custom map keys in JS (I know it ins't supported natively)
+            // to make a hashmap or treemap I would need to define hashing that would consider
+            // sufficiently similar expressions equivelent in hash value, while also customizing
+            // what is allowed to be different between the expressions
+            //    - might be easiest to just do a nested loop when that comes up
+            var mapFromFinalAnswersToDifferentStudentWork = aggregatedWorkForEachProblem[problem.problemNumber]
+            mapFromFinalAnswersToDifferentStudentWork = ( typeof mapFromFinalAnswersToDifferentStudentWork != 'undefined') ? 
+                    mapFromFinalAnswersToDifferentStudentWork : {};
+            workList = mapFromFinalAnswersToDifferentStudentWork[studentAnswer];
+
             workList = ( typeof workList != 'undefined' && workList instanceof Array ) ? workList : [];
             workList.push({studentFile : assignInfo.filename, autoGradeStatus: autoGrade, steps : problem.steps});
-            aggregatedWorkForEachProblem[problem.problemNumber] = workList;
+            aggregatedWorkForEachProblem[problem.problemNumber] = mapFromFinalAnswersToDifferentStudentWork;
         });
     });
     // TODO - look at result to pull out problems that don't have matching problem numbers (very few
@@ -142,34 +155,42 @@ function generateTeacherOverview(allStudentWork) {
         $('#assignment-container').append(newProblemDiv);
         newProblemDiv.append('<p>Problem number ' + index + '&nbsp;&nbsp; ' + 
             '- Possible points &nbsp;<input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
-        problemSummary.forEach(function(studentWork, index, array) {
-            var newProblemHtml = 
-            // TODO - update this class of answer-correct vs answer-incorrect after teacher gives a manual grade
-            // add a status for partial credit, color the div yellow in this case
-            '<div class="student-work ' + 'answer-' + studentWork.autoGradeStatus + '" style="float:left"> <!-- container for nav an equation list -->' +
-                '<div style="float:left" class="equation-list"></div>' + 
-            '</div>';
-            var studentWorkDiv = $(newProblemHtml);
-            newProblemDiv.append(studentWorkDiv);
-            studentWork.steps.forEach(function(studentWorkStep, index, array) {
-                setTimeout(function() {
-                    var newSpan = $('<span class="solution-step">' + studentWorkStep + '</span><br>');
-                    studentWorkDiv.append(newSpan);
-                    var steps = studentWorkDiv.find('.solution-step');
-                    var mq = MathQuill.StaticMath(steps[steps.length - 1], mathQuillOpts);
-                }, 50);
+        //problemSummary.forEach(function(studentWorkLeadingToOneAnswer, studentFinalAnswer, array) {
+        for ( var studentFinalAnswer in problemSummary) {
+            // skip prototype properties
+            if (problemSummary.hasOwnProperty(studentFinalAnswer)) continue;
+            var allStudentsWorkLeadingToOneAnswer = problemSummary[studentFinalAnswer];
+            var allStudentsWorkForCurrentAnswer = $('<div class="similar-student-answers"></div>');
+            newProblemDiv.append(allStudentWorkForCurrentAnswer);
+            allStudentsWorkLeadingToOneAnswer.forEach(function(studentWork, index, array) {
+                var newProblemHtml = 
+                // TODO - update this class of answer-correct vs answer-incorrect after teacher gives a manual grade
+                // add a status for partial credit, color the div yellow in this case
+                '<div class="student-work ' + 'answer-' + studentWork.autoGradeStatus + '" style="float:left"> <!-- container for nav an equation list -->' +
+                    '<div style="float:left" class="equation-list"></div>' + 
+                '</div>';
+                var studentWorkDiv = $(newProblemHtml);
+                allStudentsWorkForCurrentAnswer.append(studentWorkDiv);
+                studentWork.steps.forEach(function(studentWorkStep, index, array) {
+                    setTimeout(function() {
+                        var newSpan = $('<span class="solution-step">' + studentWorkStep + '</span><br>');
+                        studentWorkDiv.append(newSpan);
+                        var steps = studentWorkDiv.find('.solution-step');
+                        var mq = MathQuill.StaticMath(steps[steps.length - 1], mathQuillOpts);
+                    }, 50);
+                });
+                var autoGradeScore
+                if (studentWork.autoGradeStatus == "correct") {
+                   autoGradeScore = defaultPointsPerProblem;
+                } else {
+                   autoGradeScore = 0;
+                }
+                var scoreInput = '<p>Score <input type="text" class="problem-grade-input" value="' + autoGradeScore + '"/>' + 
+                    ' out of <span class="total-problem-points">' + defaultPointsPerProblem + '</span></p>';
+                studentWorkDiv.append(scoreInput);
+                studentWorkDiv.append('<p>Feedback</p><div><textarea width="30" height="8"></textarea></div>');
             });
-            var autoGradeScore
-            if (studentWork.autoGradeStatus == "correct") {
-               autoGradeScore = defaultPointsPerProblem;
-            } else {
-               autoGradeScore = 0;
-            }
-            var scoreInput = '<p>Score <input type="text" class="problem-grade-input" value="' + autoGradeScore + '"/>' + 
-                ' out of <span class="total-problem-points">' + defaultPointsPerProblem + '</span></p>';
-            studentWorkDiv.append(scoreInput);
-            studentWorkDiv.append('<p>Feedback</p><div><textarea width="30" height="8"></textarea></div>');
-        });
+        }
     });
     $('.possible-points-input').keyup(0 /* ignored */, function(evt) {
         if (evt.which == 13) {

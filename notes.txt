@@ -306,11 +306,14 @@ Work on 1/10/2015
         - update at 8:40, Firefox keeps crashing, tried looking into it
         - just going to use chrome for now
         - new finish time, 8:50
-
+- got distracted again
+    - last I was looking up compatibility between browsers for key events
+    - compatibilty stuff is a bit boring, will work on it soon but focus
+      on features for today
+- finding similar answers and grouping them in teacher summary page
+    - time estimate 10 minutes, finish time 4:15
 - features needed for basic prototype
     - teacher grading
-        - setting point values for problems
-        - text box for basic feedback
         - cheating prevention, find similar student assignments
         - identify problems with correct answers, but very little or no
           work shown
@@ -327,6 +330,7 @@ Work on 1/10/2015
     - generate individual student feedback docs
     - student experience
         - fix keyboard shortcuts
+            - later but soon
         - apply operation (add, subtract, divide, etc.) to both sides
         - substitute value in for variable
         - cross out selection for cancellation of terms 
@@ -339,7 +343,10 @@ Work on 1/10/2015
         - enable users to split the solution path
             - to solve for multiple answers
         - set up real environment for managing dependencies indecent of the app
-
+        - enable teacher feedback by clicking on a point in the students work
+            - prevents the need to describe where the error was in text
+            - search for draw line between DOM elements got me here:
+            - https://jsplumbtoolkit.com/ 
         - consider allowing insertion of a step in the middle of a series of work
          this be more useful or confusing? Students can always undo/redo their work
         - might be easier to introduce the concept of copying several setps, either temporarily

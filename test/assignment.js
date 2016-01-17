@@ -157,8 +157,9 @@ function generateTeacherOverview(allStudentWork) {
             '- Possible points &nbsp;<input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
         //problemSummary.forEach(function(studentWorkLeadingToOneAnswer, studentFinalAnswer, array) {
         for ( var studentFinalAnswer in problemSummary) {
+            (function() {
             // skip prototype properties
-            if (problemSummary.hasOwnProperty(studentFinalAnswer)) continue;
+            if (problemSummary.hasOwnProperty(studentFinalAnswer)) return;
             var allStudentsWorkLeadingToOneAnswer = problemSummary[studentFinalAnswer];
             var allStudentsWorkForCurrentAnswer = $('<div class="similar-student-answers"></div>');
             newProblemDiv.append(allStudentWorkForCurrentAnswer);
@@ -190,6 +191,7 @@ function generateTeacherOverview(allStudentWork) {
                 studentWorkDiv.append(scoreInput);
                 studentWorkDiv.append('<p>Feedback</p><div><textarea width="30" height="8"></textarea></div>');
             });
+            })();
         }
     });
     $('.possible-points-input').keyup(0 /* ignored */, function(evt) {

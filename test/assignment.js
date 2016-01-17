@@ -119,7 +119,12 @@ function generateTeacherOverview(allStudentWork) {
         correctAnswers[correctAnswer.problemNumber] = correctAnswer.steps;
     });
     // current structure
-    // [ { "x=7" : { {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} } ]
+    // { "1.a" : { "x=7" : [ {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] } }
+    // new structure
+    // { "1.a" :  {
+    //      "totalIncorrect" : 5, 
+    //      "totalMissing" : 0,
+    //      "differentStudentsAnswers" : { "x=7" : [ {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] } }
     aggregatedWorkForEachProblem = [];
     allStudentWork.forEach(function(assignInfo, index, array) {
         assignInfo.assignment.problems.forEach(function(problem, index, array) {

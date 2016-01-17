@@ -359,6 +359,13 @@ Work on 1/10/2015
 - counting number wrong to order in teacher summary - basic version 
     - 15 mins, finish time 11:45
     - got distracted, new finish time 11:55
+    - actual finish time 1:00pm
+        - there is a lot of unneccessary complexity in creating the datastructure for
+          the aggreated student work
+        - I think this should be able to be encapsulated to create and obejct with a 
+          method to fetch or initialize a new list/object at some key
+        - for now I at least made the variable names reasonable and got it working
+- 
 - decide what to do when a student is missing a problem
     - could just be a loop to add answer of "" with no steps for all students
       who are missing a given problem

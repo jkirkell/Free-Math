@@ -121,11 +121,12 @@ function generateTeacherOverview(allStudentWork) {
     // current structure
     // { "1.a" : { "x=7" : [ {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] } }
     // new structure
-    // { "1.a" :  {
+    // [ {
+    //      "problemNumber" : "1.a",
     //      "totalIncorrect" : 5, 
     //      "totalMissing" : 0,
-    //      "differentStudentsAnswers" : { "x=7" : [ {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] } }
-    aggregatedWorkForEachProblem = [];
+    //      "uniqueAnswers" : { "x=7" : [ {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] } ]
+    aggregatedWork = [];
     allStudentWork.forEach(function(assignInfo, index, array) {
         assignInfo.assignment.problems.forEach(function(problem, index, array) {
             var studentAnswer = problem.steps[problem.steps.length - 1];
@@ -149,32 +150,57 @@ function generateTeacherOverview(allStudentWork) {
             //   similar expressions near one another
             //    - might be easiest to just do a nested loop when that comes up, this would just
             //      require an approximate equals method, not even a compareTo() implementation
-            var mapFromFinalAnswersToDifferentStudentWork = aggregatedWorkForEachProblem[problem.problemNumber]
-            mapFromFinalAnswersToDifferentStudentWork = ( typeof mapFromFinalAnswersToDifferentStudentWork != 'undefined') ? 
-                    mapFromFinalAnswersToDifferentStudentWork : {};
-            workList = mapFromFinalAnswersToDifferentStudentWork[studentAnswer];
+            var problemSummary = aggregatedWork[problem.problemNumber];
+            problemSummary = (typeof problemSummary != 'undefined') ? problemSummary : {};
 
+            var uniqueAnswers = problemSummary['uniqueAnswers'];
+            uniqueAnswers = ( typeof uniqueAnswers != 'undefined') ? 
+                    uniqueAnswers : {};
+            var workList = uniqueAnswers[studentAnswer];
             workList = ( typeof workList != 'undefined' && workList instanceof Array ) ? workList : [];
+            var totalIncorrect = problemSummary['totalIncorrect'];
+            totalIncorrect = ( typeof totalIncorrect != 'undefined') ? totalIncorrect : 0;
+            if (autoGrade == "incorrect") {
+                totalIncorrect++;
+            }
             workList.push({studentFile : assignInfo.filename, autoGradeStatus: autoGrade, steps : problem.steps});
-            mapFromFinalAnswersToDifferentStudentWork[studentAnswer] = workList;
-            aggregatedWorkForEachProblem[problem.problemNumber] = mapFromFinalAnswersToDifferentStudentWork;
+            uniqueAnswers[studentAnswer] = workList;
+            problemSummary['uniqueAnswers'] = uniqueAnswers;
+            // this is currently redundant, but the next step to order all of the problems based
+            // on which ones most students go wrong with rewrite the keys to numeric ones
+            problemSummary['problemNumber'] = problem.problemNumber;
+            problemSummary['totalIncorrect'] = totalIncorrect;
+            // this is necessary because this might be the first time this problem number was seen so we just created the list
+            // if this wasn't the case, this wouldn't be necessary because objects including arrays are always passed by reference
+            aggregatedWork[problem.problemNumber] = problemSummary;
         });
     });
     // TODO - look at result to pull out problems that don't have matching problem numbers (very few
     // problems end up in one of the lists) and give teachers the opportunity to rearrange them
-    aggregatedWorkForEachProblem.forEach(function(problemSummary, index, array) {
+    aggregatedWork.sort(function(a, b) { 
+        return b.totalIncorrect - a.totalIncorrect;
+    });
+    aggregatedWork.forEach(function(problemSummary, index, array) {
         var newProblemDiv = $(newProblemSummaryHtml);
         $('#assignment-container').append(newProblemDiv);
-        newProblemDiv.append('<h3>Problem number ' + index + '</h3><p>' + 
+        newProblemDiv.append('<h3>Problem number ' + problemSummary.problemNumber + 
+            '</h3> Total incorrect answers ' + problemSummary.totalIncorrect + '<p>' + 
             'Possible points &nbsp;<input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
         //problemSummary.forEach(function(studentWorkLeadingToOneAnswer, studentFinalAnswer, array) {
-        for ( var studentFinalAnswer in problemSummary) {
+        for ( var studentFinalAnswer in problemSummary.uniqueAnswers) {
             (function() {
             // skip prototype properties
-            if (!problemSummary.hasOwnProperty(studentFinalAnswer)) return;
-            var allStudentsWorkLeadingToOneAnswer = problemSummary[studentFinalAnswer];
+            if (!problemSummary.uniqueAnswers.hasOwnProperty(studentFinalAnswer)) return;
+            var allStudentsWorkLeadingToOneAnswer = problemSummary.uniqueAnswers[studentFinalAnswer];
+            var studentCount = allStudentsWorkLeadingToOneAnswer.length;
+            if (allStudentsWorkLeadingToOneAnswer.length > 1) {
+                studentCount = studentCount + " students ";
+            } else {
+                studentCount = studentCount + " student ";
+            }
             var similarAnswersHTML = '<div class="similar-student-answers" style="float:none;overflow: hidden" >' +
-                    '<p>Student work leading to answer <span class="common-student-answer">' + studentFinalAnswer + '</span></p>';
+                    '<p>' + allStudentsWorkLeadingToOneAnswer.length + ' students with work leading to answer ' + 
+                    '<span class="common-student-answer">' + studentFinalAnswer + '</span></p>';
                     '</div>';
             var allStudentsWorkForCurrentAnswer = $(similarAnswersHTML);
             newProblemDiv.append(allStudentsWorkForCurrentAnswer);

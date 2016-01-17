@@ -118,6 +118,8 @@ function generateTeacherOverview(allStudentWork) {
         // TODO - handle multiple correct answers better
         correctAnswers[correctAnswer.problemNumber] = correctAnswer.steps;
     });
+    // current structure
+    // [ { "x=7" : { {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} } ]
     aggregatedWorkForEachProblem = [];
     allStudentWork.forEach(function(assignInfo, index, array) {
         assignInfo.assignment.problems.forEach(function(problem, index, array) {
@@ -130,8 +132,9 @@ function generateTeacherOverview(allStudentWork) {
             } else {
                 autoGrade = "incorrect";
             }
-             
-            // once I am doing better grading basted on parsing the math, I won't be able
+            
+            // TODO - move this mostly to the notes.txt doc
+            // once I am doing better grading based on parsing the math, I won't be able
             // to use the answers as keys into this map
             // TODO - look up making custom map keys in JS (I know it ins't supported natively)
             // to make a hashmap I would need to define hashing that would consider

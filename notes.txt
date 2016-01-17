@@ -356,8 +356,9 @@ Work on 1/10/2015
       answers first, to make grading the bulk of work faster
         - but I think both orderings will be useful, if it's not too confusing should
           probably just give users to choice of how to order work
-    - basic version counting number wrong, 15 mins, finish time 11:45
-
+- counting number wrong to order in teacher summary - basic version 
+    - 15 mins, finish time 11:45
+    - got distracted, new finish time 11:55
 
 - features needed for basic prototype
     - teacher grading

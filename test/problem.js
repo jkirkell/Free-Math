@@ -57,8 +57,11 @@ function newProblem(insertEmptyStep) {
             latexForAllSteps : function() {
                 var allSteps = [];
                 var all_spans = problemWrapperDiv.find('.solution-step');
-                if (! (typeof all_spans == 'Array') ) return allSteps;
-                all_spans.forEach(function(mathStepSpan, index, array) {
+                // is this actually an object with just numerical keys?
+                // it is, jQuery wraps the array to expose the find(), trigger(),
+                // each(), etc. methods
+                //if (! (typeof all_spans == 'Array') ) return allSteps;
+                all_spans.each(function(index, mathStepSpan) {
                     allSteps.push(MathQuill(mathStepSpan).latex());
                 });
                 return allSteps;

@@ -332,6 +332,18 @@ Work on 1/10/2015
   of all impacted problems
     - time estimate 15 mins, finish time 8:45
 
+-------------------
+1/17/2015
+-------------------
+- fix updating score upon change of possible points
+    - for simplicity just add the change in possible points to each value
+    - avoids rounding errors multiplying
+    - May want to find implementation of decimal type in JS to
+      preserve scores like 1.33 + 2 => 3.33
+        - for now skip it
+    - time estimate 10 minutes (already have an event that is updating total points)
+    - expected finish 11
+    - update 11:05, added some notes below, new finish time 11:15
 - features needed for basic prototype
     - teacher grading
         - cheating prevention, find similar student assignments
@@ -393,3 +405,27 @@ Work on 1/10/2015
         - expression manipulation functions
             - question, is the expression tree represented in a structure that corresponds to
               evaluation prescedence? or just one that reflects how it is displayed?
+        - faster creation of common symbols
+            - look at ubuntu Compose Key shortcuts for math symbols I used a few years ago
+            - recreating this in the browser could make power users much happier
+            - even without full support a few symbols might be very useful
+                -> to create an arrow
+
+---------------------------------------
+MathQuill features to highlight in docs
+---------------------------------------
+- wrapping an expression
+    - highlight selection, type '/' or '(' or '{' with apply the
+      parenthesis or division to the whole select
+    - rather than the usual behavior typing when selected on something
+      which is to replace it
+        - can be really useful, but when getting rid of a term and replacing it
+          with something else it can be confusing, because it acts differently than
+          a word processor
+        - would be helped by the cross out feature, which should work the same way, applying
+          over the selection
+- subscripts/superscripts
+- sqrt, abs val
+- inequalities
+- subscripted variables, just type a followed by 2 to get a_2
+    - impossible to write a polynomial term in the wrong order, cannot type a2

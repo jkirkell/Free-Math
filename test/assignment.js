@@ -78,6 +78,36 @@ function setStudentGrade(textInput) {
     });
 }
 
+function addSingleStudentsWork(studentWork, allStudentsWorkForCurrentAnswer, defaultPointsPerProblem) {
+    var newProblemHtml = 
+    // TODO - update this class of answer-correct vs answer-incorrect after teacher gives a manual grade
+    // add a status for partial credit, color the div yellow in this case
+    '<div class="student-work ' + 'answer-' + studentWork.autoGradeStatus + '" style="float:left"> <!-- container for nav an equation list -->' +
+        '<div style="float:left" class="equation-list"></div>' + 
+    '</div>';
+    var studentWorkDiv = $(newProblemHtml);
+    allStudentsWorkForCurrentAnswer.append(studentWorkDiv);
+    studentWork.steps.forEach(function(studentWorkStep, index, array) {
+        setTimeout(function() {
+            var newSpan = $('<span class="solution-step">' + studentWorkStep + '</span><br>');
+            studentWorkDiv.append(newSpan);
+            var steps = studentWorkDiv.find('.solution-step');
+            var mq = MathQuill.StaticMath(steps[steps.length - 1], mathQuillOpts);
+        }, 50);
+    });
+    var autoGradeScore
+    if (studentWork.autoGradeStatus == "correct") {
+       autoGradeScore = defaultPointsPerProblem;
+    } else {
+       autoGradeScore = 0;
+    }
+    var scoreInput = '<p>Score <input type="text" class="problem-grade-input" value="' + autoGradeScore + '"/>' + 
+        ' out of <span class="total-problem-points">' + defaultPointsPerProblem + '</span></p>';
+    studentWorkDiv.append(scoreInput);
+    studentWorkDiv.append('<p>Feedback</p><div><textarea width="30" height="8"></textarea></div>');
+}
+
+
 function generateTeacherOverview(allStudentWork) {
     var confirmMessage = "Use current document as answer key and generate assignment overview?\n"
         "Warning -  save doc now to allow you to allow reuse of answer key later";
@@ -206,32 +236,7 @@ function generateTeacherOverview(allStudentWork) {
             newProblemDiv.append(allStudentsWorkForCurrentAnswer);
             MathQuill.StaticMath(allStudentsWorkForCurrentAnswer.find('.common-student-answer')[0]);
             allStudentsWorkLeadingToOneAnswer.forEach(function(studentWork, index, array) {
-                var newProblemHtml = 
-                // TODO - update this class of answer-correct vs answer-incorrect after teacher gives a manual grade
-                // add a status for partial credit, color the div yellow in this case
-                '<div class="student-work ' + 'answer-' + studentWork.autoGradeStatus + '" style="float:left"> <!-- container for nav an equation list -->' +
-                    '<div style="float:left" class="equation-list"></div>' + 
-                '</div>';
-                var studentWorkDiv = $(newProblemHtml);
-                allStudentsWorkForCurrentAnswer.append(studentWorkDiv);
-                studentWork.steps.forEach(function(studentWorkStep, index, array) {
-                    setTimeout(function() {
-                        var newSpan = $('<span class="solution-step">' + studentWorkStep + '</span><br>');
-                        studentWorkDiv.append(newSpan);
-                        var steps = studentWorkDiv.find('.solution-step');
-                        var mq = MathQuill.StaticMath(steps[steps.length - 1], mathQuillOpts);
-                    }, 50);
-                });
-                var autoGradeScore
-                if (studentWork.autoGradeStatus == "correct") {
-                   autoGradeScore = defaultPointsPerProblem;
-                } else {
-                   autoGradeScore = 0;
-                }
-                var scoreInput = '<p>Score <input type="text" class="problem-grade-input" value="' + autoGradeScore + '"/>' + 
-                    ' out of <span class="total-problem-points">' + defaultPointsPerProblem + '</span></p>';
-                studentWorkDiv.append(scoreInput);
-                studentWorkDiv.append('<p>Feedback</p><div><textarea width="30" height="8"></textarea></div>');
+                addSingleStudentsWork(studentWork, allStudentsWorkForCurrentAnswer, defaultPointsPerProblem);
             });
             })();
         }

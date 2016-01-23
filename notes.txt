@@ -379,7 +379,11 @@ Work on 1/10/2015
 1/23/2015
 ----------------
 - review tasks left for MVP
-    - finish time 10:45, 10 minutes
+    - finish time 10:45, 10 minutes, actual finish 10:50
+- code cleanup
+    - make the loop that generates the teacher overview page reasonable
+    - time estimate 15 mins, expected finish 11:15, actual finish, 11:12
+- 
 
 - add show/hide button on the div for all student work leading to one answer
     - should probably leave the div there with the common answer and a show button

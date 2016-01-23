@@ -258,7 +258,6 @@ function generateTeacherOverview(allStudentWork) {
             'Possible points &nbsp;<input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
         //problemSummary.forEach(function(studentWorkLeadingToOneAnswer, studentFinalAnswer, array) {
         for ( var studentFinalAnswer in problemSummary.uniqueAnswers) {
-            (function() {
             // skip prototype properties
             if (!problemSummary.uniqueAnswers.hasOwnProperty(studentFinalAnswer)) return;
             var allStudentsWorkLeadingToOneAnswer = problemSummary.uniqueAnswers[studentFinalAnswer];
@@ -278,7 +277,6 @@ function generateTeacherOverview(allStudentWork) {
             allStudentsWorkLeadingToOneAnswer.forEach(function(studentWork, index, array) {
                 addSingleStudentsWork(studentWork, allStudentsWorkForCurrentAnswer, defaultPointsPerProblem);
             });
-            })();
         }
     });
     $('.possible-points-input').keyup(0 /* ignored */, function(evt) {

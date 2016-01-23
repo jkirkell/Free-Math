@@ -256,11 +256,7 @@ function generateTeacherOverview(allStudentWork) {
         newProblemDiv.append('<h3>Problem number ' + problemSummary.problemNumber + 
             '</h3> Total incorrect answers ' + problemSummary.totalIncorrect + '<p>' + 
             'Possible points &nbsp;<input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
-        //problemSummary.forEach(function(studentWorkLeadingToOneAnswer, studentFinalAnswer, array) {
-        for ( var studentFinalAnswer in problemSummary.uniqueAnswers) {
-            // skip prototype properties
-            if (!problemSummary.uniqueAnswers.hasOwnProperty(studentFinalAnswer)) return;
-            var allStudentsWorkLeadingToOneAnswer = problemSummary.uniqueAnswers[studentFinalAnswer];
+        $.each(problemSummary.uniqueAnswers, function(studentFinalAnswer, allStudentsWorkLeadingToOneAnswer) {
             var studentCount = allStudentsWorkLeadingToOneAnswer.length;
             if (allStudentsWorkLeadingToOneAnswer.length > 1) {
                 studentCount = studentCount + " students ";
@@ -277,7 +273,7 @@ function generateTeacherOverview(allStudentWork) {
             allStudentsWorkLeadingToOneAnswer.forEach(function(studentWork, index, array) {
                 addSingleStudentsWork(studentWork, allStudentsWorkForCurrentAnswer, defaultPointsPerProblem);
             });
-        }
+        });
     });
     $('.possible-points-input').keyup(0 /* ignored */, function(evt) {
         if (evt.which == 13) {

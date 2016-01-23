@@ -383,7 +383,10 @@ Work on 1/10/2015
 - code cleanup
     - make the loop that generates the teacher overview page reasonable
     - time estimate 15 mins, expected finish 11:15, actual finish, 11:12
-- 
+- continue cleaning up teacher summary generation
+    - factor out the reorganization of individual students assignments into
+      aggregated work for each problem, separated by different final answers
+    - time estimate 15 mins, complete 12:00
 
 - add show/hide button on the div for all student work leading to one answer
     - should probably leave the div there with the common answer and a show button

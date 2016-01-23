@@ -107,55 +107,20 @@ function addSingleStudentsWork(studentWork, allStudentsWorkForCurrentAnswer, def
     studentWorkDiv.append('<p>Feedback</p><div><textarea width="30" height="8"></textarea></div>');
 }
 
-
-function generateTeacherOverview(allStudentWork) {
-    var confirmMessage = "Use current document as answer key and generate assignment overview?\n"
-        "Warning -  save doc now to allow you to allow reuse of answer key later";
-    if (!window.confirm(confirmMessage)) { 
-        return; 
-    }
-    // TODO - allow teachers to set a different default value
-    // with a popup at the start of the grading experience?
-    // maybe the form for opening stuff to grade should be more
-    // involved, with a number of configuration, filled in with
-    // sensible defaults for basic users
-    var defaultPointsPerProblem = 3;
-    var answerKey = collectAnswerKey();
-    var assignmentDiv = $('#assignment-container');
-    assignmentDiv.empty(); 
-    assignmentDiv.append('<input type="checkbox" id="apply-same-grade-to-others" checked="checked">' +
-            'Apply manual grades to all students with matching answers ' +
-            '<span title="Default to applying a score you give to one student to all others who got the' + 
-            ' the same answer. You can override the score after looking at each individual student\'s work">' +
-            ' - Hover for Info</span><br><br>');
-    assignmentDiv.append(
-    'Show Answers that are: &nbsp;' + 
-    '<label>&nbsp;<input type="checkbox" id="show-incorrect" checked="checked">incorrect</label>' + 
-    // this is unchecked programmatically to hide all of the correct work by default
-    // there was a weird bug where parens weren't showing up with other attempts to hide
-    // it programatically
-    '<label>&nbsp;<input type="checkbox" id="show-partially-correct" checked="checked">partially correct</label>' + 
-    '<label>&nbsp;<input type="checkbox" id="show-correct" checked="checked">correct</label><br>');
-    // clear global list of problems
-    problems = Array();
-
-    var newProblemSummaryHtml = 
-    '<div class="problem-summary-container" style="float:none;overflow: hidden">' + 
-    '</div>';
-
-    var correctAnswers = {};
-    answerKey.problems.forEach(function(correctAnswer, index, array) {
-        // TODO - handle multiple correct answers better
-        correctAnswers[correctAnswer.problemNumber] = correctAnswer.steps;
-    });
-    // current structure
-    // { "1.a" : { "x=7" : [ {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] } }
-    // new structure
-    // [ {
-    //      "problemNumber" : "1.a",
-    //      "totalIncorrect" : 5, 
-    //      "totalMissing" : 0,
-    //      "uniqueAnswers" : { "x=7" : [ {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] } ]
+// Transforms a list of student assignments into a structure where all work for one problem
+// is stored together, separated by different final answers reached by groups of students.
+//
+// Params:
+// allStudentWork:
+// [ {problems: [{"steps" : }]]
+//
+// Returns:
+// [ {
+//      "problemNumber" : "1.a",
+//      "totalIncorrect" : 5, 
+//      "totalMissing" : 0,
+//      "uniqueAnswers" : { "x=7" : [ {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] } ]
+function aggregateStudentWork(allStudentWork, correctAnswers) {
     aggregatedWork = [];
     allStudentWork.forEach(function(assignInfo, index, array) {
         assignInfo.assignment.problems.forEach(function(problem, index, array) {
@@ -205,6 +170,51 @@ function generateTeacherOverview(allStudentWork) {
             aggregatedWork[problem.problemNumber] = problemSummary;
         });
     });
+    return aggregatedWork;
+}
+
+
+function generateTeacherOverview(allStudentWork) {
+    var confirmMessage = "Use current document as answer key and generate assignment overview?\n"
+        "Warning -  save doc now to allow you to allow reuse of answer key later";
+    if (!window.confirm(confirmMessage)) { 
+        return; 
+    }
+    // TODO - allow teachers to set a different default value
+    // with a popup at the start of the grading experience?
+    // maybe the form for opening stuff to grade should be more
+    // involved, with a number of configuration, filled in with
+    // sensible defaults for basic users
+    var defaultPointsPerProblem = 3;
+    var answerKey = collectAnswerKey();
+    var assignmentDiv = $('#assignment-container');
+    assignmentDiv.empty(); 
+    assignmentDiv.append('<input type="checkbox" id="apply-same-grade-to-others" checked="checked">' +
+            'Apply manual grades to all students with matching answers ' +
+            '<span title="Default to applying a score you give to one student to all others who got the' + 
+            ' the same answer. You can override the score after looking at each individual student\'s work">' +
+            ' - Hover for Info</span><br><br>');
+    assignmentDiv.append(
+    'Show Answers that are: &nbsp;' + 
+    '<label>&nbsp;<input type="checkbox" id="show-incorrect" checked="checked">incorrect</label>' + 
+    // this is unchecked programmatically to hide all of the correct work by default
+    // there was a weird bug where parens weren't showing up with other attempts to hide
+    // it programatically
+    '<label>&nbsp;<input type="checkbox" id="show-partially-correct" checked="checked">partially correct</label>' + 
+    '<label>&nbsp;<input type="checkbox" id="show-correct" checked="checked">correct</label><br>');
+    // clear global list of problems
+    problems = Array();
+
+    var newProblemSummaryHtml = 
+    '<div class="problem-summary-container" style="float:none;overflow: hidden">' + 
+    '</div>';
+
+    var correctAnswers = {};
+    answerKey.problems.forEach(function(correctAnswer, index, array) {
+        // TODO - handle multiple correct answers better
+        correctAnswers[correctAnswer.problemNumber] = correctAnswer.steps;
+    });
+    aggregatedWork = aggregateStudentWork(allStudentWork, correctAnswers);
     // TODO - look at result to pull out problems that don't have matching problem numbers (very few
     // problems end up in one of the lists) and give teachers the opportunity to rearrange them
     aggregatedWork.sort(function(a, b) { 

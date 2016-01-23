@@ -219,6 +219,18 @@ function addteacherSummaryPageOptions(assignmentDiv) {
     });
 }
 
+function generateSimilarStudentWorkHeader(allStudentsWorkLeadingToOneAnswer, studentFinalAnswer) {
+    var studentCount = allStudentsWorkLeadingToOneAnswer.length;
+    if (allStudentsWorkLeadingToOneAnswer.length > 1) {
+        studentCount = studentCount + ' students ';
+    } else {
+        studentCount = studentCount + ' student ';
+    }
+    return '<div class="similar-student-answers" style="float:none;overflow: hidden" >' +
+            '<p>' + studentCount + 'with work leading to answer ' + 
+            '<span class="common-student-answer">' + studentFinalAnswer + '</span></p></div>';
+}
+
 
 function generateTeacherOverview(allStudentWork) {
     var confirmMessage = "Use current document as answer key and generate assignment overview?\n"
@@ -257,16 +269,7 @@ function generateTeacherOverview(allStudentWork) {
             '</h3> Total incorrect answers ' + problemSummary.totalIncorrect + '<p>' + 
             'Possible points &nbsp;<input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');
         $.each(problemSummary.uniqueAnswers, function(studentFinalAnswer, allStudentsWorkLeadingToOneAnswer) {
-            var studentCount = allStudentsWorkLeadingToOneAnswer.length;
-            if (allStudentsWorkLeadingToOneAnswer.length > 1) {
-                studentCount = studentCount + " students ";
-            } else {
-                studentCount = studentCount + " student ";
-            }
-            var similarAnswersHTML = '<div class="similar-student-answers" style="float:none;overflow: hidden" >' +
-                    '<p>' + allStudentsWorkLeadingToOneAnswer.length + ' students with work leading to answer ' + 
-                    '<span class="common-student-answer">' + studentFinalAnswer + '</span></p>';
-                    '</div>';
+            var similarAnswersHTML = generateSimilarStudentWorkHeader(allStudentsWorkLeadingToOneAnswer, studentFinalAnswer);
             var allStudentsWorkForCurrentAnswer = $(similarAnswersHTML);
             newProblemDiv.append(allStudentsWorkForCurrentAnswer);
             MathQuill.StaticMath(allStudentsWorkForCurrentAnswer.find('.common-student-answer')[0]);

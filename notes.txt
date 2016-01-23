@@ -365,6 +365,30 @@ Work on 1/10/2015
         - I think this should be able to be encapsulated to create and object with a 
           method to fetch or initialize a new list/object at some key
         - for now I at least made the variable names reasonable and got it working
+
+----------------
+1/18/2015
+----------------
+- research, look at how the latex() method traverses the mathquill tree
+    -  20 mins, finish time 10pm
+    - debuged through one pass
+    - looks like a visitor-like pattern, will look into this more
+
+
+----------------
+1/23/2015
+----------------
+- review tasks left for MVP
+    - finish time 10:45, 10 minutes
+
+- add show/hide button on the div for all student work leading to one answer
+    - should probably leave the div there with the common answer and a show button
+    - make it easier to bring it back without going to global show/hide
+    - can this be enough for show hide at this level?
+        - currently the only action in one of these groups is to apply an grade to all
+          students
+        - probably reasonable default, but should add a "don't apply grade to other matching answers"
+          check box for teacher to override this behavior
 - implement undo-redo with DOM element hide/show
     - is it feasible to store all data in the DOM?
     - seems like a good way to avoid inconsistency
@@ -372,8 +396,11 @@ Work on 1/10/2015
     - good argument for proportional point adjustment upon change
         - with a setting for rounding or using decimal values
     - make sure to update status if whatever strategy used causes a change to another
-        - rounding up make it correct
+        - rounding up makes it correct
         - currently making it worth less points can make it 0 easily, probably not desired
+            - don't want to take away some credit from students
+            - might want to warn teachers if there are problems that would make it down
+              to 0 given a change they try to make
 - decide what to do when a student is missing a problem
     - could just be a loop to add answer of "" with no steps for all students
       who are missing a given problem
@@ -390,17 +417,16 @@ Work on 1/10/2015
         - identify problems with correct answers, but very little or no
           work shown
         - alternate sort orderings for problems
-            - make the default show the "most misunderstood" problems first
             - need to write a comparison function for nested problem numbers
               so I can sort them back into the correct order
             - as well as not rely on the order in the key or student assingments
               to determine how they are shown
-                - some users may want the key to define ordering, but I've never
+                - some users may want the answer key to define ordering, but I've never
                   seen anyone using something that wouldn't sort well
                 - hardest part with probably be resolving letters vs roman numerals
                     - looking across problems should enable dealing with this automatically
         - better comparison check for answers that accepts similar expressions
-          given some configurable constrains
+          given some configurable constraints
             - algebraically equivalent
             - require standard form?
             - look at Khan Perseus, Khan-exercises projects
@@ -424,13 +450,28 @@ Work on 1/10/2015
     - possible next steps
         - enable users to split the solution path
             - to solve for multiple answers
+        - give students other elements they can construct/manipulate other than expressions
+            - text
+            - graphs
+            - calculator
+            - geometry/physics diagrams
+            - chemical equations
         - set up real environment for managing dependencies indecent of the app
         - enable teacher feedback by clicking on a point in the students work
             - prevents the need to describe where the error was in text
             - search for draw line between DOM elements got me here:
             - https://jsplumbtoolkit.com/ 
+            - would be simpler to just correlate them with numbers
+                - would also avoid drawing a line over the student's work
+                - just have a list of ordered feedbacks, overlay on the equation where
+                  teacher clicked
+                    - could allow click and drag with semi-transparent colored highlight
+                    - allow different colors, red for mistakes, other colors can 
+                      be used for suggestions or positive feedback
+        - fix layout of student problems to pack more efficiently on teacher summary
+            - https://github.com/desandro/masonry
         - consider allowing insertion of a step in the middle of a series of work
-         this be more useful or confusing? Students can always undo/redo their work
+          this be more useful or confusing? Students can always undo/redo their work
         - might be easier to introduce the concept of copying several setps, either temporarily
           or into another workspace to solve a similar process in another problem
             - 'insert' could then become a copy later steps to temporary space, 
@@ -449,7 +490,10 @@ Work on 1/10/2015
             - look at ubuntu Compose Key shortcuts for math symbols I used a few years ago
             - recreating this in the browser could make power users much happier
             - even without full support a few symbols might be very useful
-                -> to create an arrow
+                '-' + '>' to create an arrow
+    - allow teacher to drag and drop between lists
+        - http://farhadi.ir/projects/html5sortable/ 
+        - this may not even be that useful, should be much later I think 
 
 ---------------------------------------
 MathQuill features to highlight in docs

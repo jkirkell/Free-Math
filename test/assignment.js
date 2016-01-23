@@ -318,24 +318,6 @@ function generateTeacherOverview(allStudentWork) {
     $('.problem-grade-input').focusout(0 /* ignored */, function(evt) {
         setStudentGrade(evt.target);
     });
-    $('.problem-grade-input').on('change input propertychange paste', function(evt) {
-        /*
-        var score = evt.target.value;
-        // TODO - standardize how to handle trimming stuff like this before comparison
-        var work = $(evt.target).closest('.student-work');
-        console.log(score);
-        console.log(possiblePoints);
-        console.log(work);
-        // TODO - decide on behavior for extra credit, should probably prompt users to make sure they meant to give it
-        if (score >= possiblePoints) {
-            work.addClass('answer-correct');
-        } else if (score > 0) {
-            work.addClass('answer-partially-correct');
-        } else {
-            work.addClass('answer-incorrect');
-        }
-        */
-    });
     setTimeout(function() {
         $('#show-correct').trigger('click');
         $('#show-partially-correct').trigger('click');

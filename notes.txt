@@ -386,7 +386,10 @@ Work on 1/10/2015
 - continue cleaning up teacher summary generation
     - factor out the reorganization of individual students assignments into
       aggregated work for each problem, separated by different final answers
-    - time estimate 15 mins, complete 12:00
+    - time estimate 15 mins, complete 12:00, actual finish 11:52
+- more cleanup
+    - factor out adding the global controls on the teacher summary page
+    - time estimate 5 minutes, finish 12:00, finished on time
 
 - add show/hide button on the div for all student work leading to one answer
     - should probably leave the div there with the common answer and a show button

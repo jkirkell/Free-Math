@@ -173,21 +173,13 @@ function aggregateStudentWork(allStudentWork, correctAnswers) {
     return aggregatedWork;
 }
 
+// Add global options for teacher summary page.
+//
+// - Toggle for automatically applying grades to similar student answers
+// - Checkboxes for showing correct, incorrect and partially correct work
+//
+function addteacherSummaryPageOptions(assignmentDiv) {
 
-function generateTeacherOverview(allStudentWork) {
-    var confirmMessage = "Use current document as answer key and generate assignment overview?\n"
-        "Warning -  save doc now to allow you to allow reuse of answer key later";
-    if (!window.confirm(confirmMessage)) { 
-        return; 
-    }
-    // TODO - allow teachers to set a different default value
-    // with a popup at the start of the grading experience?
-    // maybe the form for opening stuff to grade should be more
-    // involved, with a number of configuration, filled in with
-    // sensible defaults for basic users
-    var defaultPointsPerProblem = 3;
-    var answerKey = collectAnswerKey();
-    var assignmentDiv = $('#assignment-container');
     assignmentDiv.empty(); 
     assignmentDiv.append('<input type="checkbox" id="apply-same-grade-to-others" checked="checked">' +
             'Apply manual grades to all students with matching answers ' +
@@ -202,13 +194,51 @@ function generateTeacherOverview(allStudentWork) {
     // it programatically
     '<label>&nbsp;<input type="checkbox" id="show-partially-correct" checked="checked">partially correct</label>' + 
     '<label>&nbsp;<input type="checkbox" id="show-correct" checked="checked">correct</label><br>');
+
+    //apply-same-grade-to-others
+    $('#show-correct').change(function() {
+        if (! this.checked) {
+            $('.answer-correct').fadeOut();
+        } else {
+            $('.answer-correct').show();
+        }
+    });
+    $('#show-incorrect').change(function() {
+        if (! this.checked) {
+            $('.answer-incorrect').fadeOut();
+        } else {
+            $('.answer-incorrect').show();
+        }
+    });
+    $('#show-partially-correct').change(function() {
+        if (! this.checked) { 
+            $('.answer-partially-correct').fadeOut();
+        } else {
+            $('.answer-partially-correct').show();
+        }
+    });
+}
+
+
+function generateTeacherOverview(allStudentWork) {
+    var confirmMessage = "Use current document as answer key and generate assignment overview?\n"
+        "Warning -  save doc now to allow you to allow reuse of answer key later";
+    if (!window.confirm(confirmMessage)) { 
+        return; 
+    }
+    // TODO - allow teachers to set a different default value
+    // with a popup at the start of the grading experience?
+    // maybe the form for opening stuff to grade should be more
+    // involved, with a number of configuration, filled in with
+    // sensible defaults for basic users
+    var defaultPointsPerProblem = 3;
+    var answerKey = collectAnswerKey();
     // clear global list of problems
     problems = Array();
+    addteacherSummaryPageOptions($('#assignment-container'));
 
     var newProblemSummaryHtml = 
-    '<div class="problem-summary-container" style="float:none;overflow: hidden">' + 
-    '</div>';
-
+        '<div class="problem-summary-container" style="float:none;overflow: hidden"></div>';
     var correctAnswers = {};
     answerKey.problems.forEach(function(correctAnswer, index, array) {
         // TODO - handle multiple correct answers better
@@ -305,28 +335,6 @@ function generateTeacherOverview(allStudentWork) {
             work.addClass('answer-incorrect');
         }
         */
-    });
-    //apply-same-grade-to-others
-    $('#show-correct').change(function() {
-        if (! this.checked) {
-            $('.answer-correct').fadeOut();
-        } else {
-            $('.answer-correct').show();
-        }
-    });
-    $('#show-incorrect').change(function() {
-        if (! this.checked) {
-            $('.answer-incorrect').fadeOut();
-        } else {
-            $('.answer-incorrect').show();
-        }
-    });
-    $('#show-partially-correct').change(function() {
-        if (! this.checked) { 
-            $('.answer-partially-correct').fadeOut();
-        } else {
-            $('.answer-partially-correct').show();
-        }
     });
     setTimeout(function() {
         $('#show-correct').trigger('click');

@@ -47,6 +47,22 @@ function collectAnswerKey() {
     return serializeAssignment();
 }
 
+function applyGradeToStudentWork(studentWork, answer, score, possiblePoints) {
+    var currentAnswer = MathQuill($(studentWork).find('.solution-step').last()[0]).latex();
+    if (currentAnswer == answer) {
+        var work = $(studentWork);
+        work.removeClass('answer-correct').removeClass('answer-incorrect').removeClass('answer-partially-correct');
+        if (parseFloat(score) >= parseFloat(possiblePoints)) {
+            work.addClass('answer-correct');
+        } else if (score > 0) {
+            work.addClass('answer-partially-correct');
+        } else {
+            work.addClass('answer-incorrect');
+        }
+        $(studentWork).find('.problem-grade-input').last().val(score).change();
+    }
+}
+
 /**
  * Requires the dom element of the text input for setting the score to be passed
  */
@@ -57,24 +73,18 @@ function setStudentGrade(textInput) {
         alert('Please enter a numeric value for points');
         return;
     }
+    var currentStudentWork = $(textInput).closest('.student-work');
     // get the final answer entered for this problem, used to check against other student work
-    console.log($(textInput).closest('.student-work').find('.solution-step').last());
+    console.log(currentStudentWork.find('.solution-step').last());
     // TODO - possibly file a Mathquill github issue, why do I need [0] when I've called last()?
-    var answer = MathQuill($(textInput).closest('.student-work').find('.solution-step').last()[0]).latex();
-    $(textInput).closest('.problem-summary-container').find('.student-work').each(function(index, studentWork) {
-        var currentAnswer = MathQuill($(studentWork).find('.solution-step').last()[0]).latex();
-        if (currentAnswer == answer) {
-            var work = $(studentWork);
-            work.removeClass('answer-correct').removeClass('answer-incorrect').removeClass('answer-partially-correct');
-            if (parseFloat(score) >= parseFloat(possiblePoints)) {
-                work.addClass('answer-correct');
-            } else if (score > 0) {
-                work.addClass('answer-partially-correct');
-            } else {
-                work.addClass('answer-incorrect');
-            }
-            $(studentWork).find('.problem-grade-input').last().val(score).change();
-        }
+    var answer = MathQuill(currentStudentWork.find('.solution-step').last()[0]).latex();
+    var preventPropogateScore = currentStudentWork.find('.dont-apply-score-to-similar').last().is(':checked');
+    if (preventPropogateScore) {
+        applyGradeToStudentWork(currentStudentWork, answer, score, possiblePoints);
+        return;
+    }
+    $(textInput).closest('.similar-student-answers').find('.student-work').each(function(index, studentWork) {
+        applyGradeToStudentWork(studentWork, answer, score, possiblePoints);
     });
 }
 
@@ -104,6 +114,11 @@ function addSingleStudentsWork(studentWork, allStudentsWorkForCurrentAnswer, def
     var scoreInput = '<p>Score <input type="text" class="problem-grade-input" value="' + autoGradeScore + '"/>' + 
         ' out of <span class="total-problem-points">' + defaultPointsPerProblem + '</span></p>';
     studentWorkDiv.append(scoreInput);
+    studentWorkDiv.append('<label>&nbsp;<input type="checkbox" class="dont-apply-score-to-similar">Don\'t apply score to similar student work</label><br>');
+    
+    studentWorkDiv.append('<input type="submit" class="highlight-student-errors" name="highlight errors" value="highlight errors"/>');
+    studentWorkDiv.append('<input type="submit" class="highlight-student-successes" name="highlight successes" value="highlight successes"/>');
+    studentWorkDiv.append('<input type="submit" class="clear-highlights" name="clear highlights" value="clear hightlights"/>');
     studentWorkDiv.append('<p>Feedback</p><div><textarea width="30" height="8"></textarea></div>');
 }
 
@@ -314,6 +329,28 @@ function generateTeacherOverview(allStudentWork) {
     });
     $('.show-all-common-answers').click(0, function(evt) {
         $(evt.target).closest('.similar-student-answers').find('.student-work').show();
+    });
+    $('.highlight-student-errors').click(0, function(evt) {
+        var myExampleClickHandler = function (element) { 
+            $(element).addClass('error-highlight'); 
+        }
+        var myDomOutline = DomOutline({ onClick: myExampleClickHandler });
+
+        // Start outline:
+        myDomOutline.start();
+    });
+    $('.highlight-student-successes').click(0, function(evt) {
+        var myExampleClickHandler = function (element) { 
+            $(element).addClass('success-highlight'); 
+        }
+        var myDomOutline = DomOutline({ onClick: myExampleClickHandler });
+
+        // Start outline:
+        myDomOutline.start();
+    });
+    $('.clear-highlights').click(0, function(evt) {
+        $(evt.target).closest('.similar-student-answers').find('.success-highlight').removeClass('success-highlight');
+        $(evt.target).closest('.similar-student-answers').find('.error-highlight').removeClass('error-highlight');
     });
     $('.problem-grade-input').keydown(0 /* ignored */, function(evt) {
         if (evt.which == 13) {

@@ -400,14 +400,27 @@ Work on 1/10/2015
     - can this be enough for show hide at this level?
         - currently the only action in one of these groups is to apply an grade to all
           students
+            - so it might not be too important to have show/hide buttons for each
+              incorrect/correct/partial
         - probably reasonable default, but should add a "don't apply grade to other matching answers"
           check box for teacher to override this behavior
     - time estimate 30 mins, including the don't apply grade to others button
-        - expected finish time 9:40
-
-- implement undo-redo with DOM element hide/show
-    - is it feasible to store all data in the DOM?
-    - seems like a good way to avoid inconsistency
+        - expected finish time 9:40, actual finish 10:00
+- allow for targeted teacher feedback
+    - want to allow for teachers to click on a portion of a students work to
+      pinpoint where they need to review their work
+    - found this library that simulates the behavior of the firebug/dev tools inspect element selection
+    - https://github.com/andrewchilds/jQuery.DomOutline 
+    - task spec
+        - add button to each student work div on teacher summary to activate targeted feedback
+        - activate DOM selection
+            - set the click event to add a class for positive/negative bckground color
+            - TODO later
+            - allow teacher to enter text specific to this highlighted section
+                - can add a list of notes below, each can be numbered
+    - total time 45 mins, expected finish 10:20, actual finish 11:00
+- persist teacher targeted highlights
+    - 
 - handle case where possible point adjustment leads to negative score
     - good argument for proportional point adjustment upon change
         - with a setting for rounding or using decimal values
@@ -416,7 +429,11 @@ Work on 1/10/2015
         - currently making it worth less points can make it 0 easily, probably not desired
             - don't want to take away some credit from students
             - might want to warn teachers if there are problems that would make it down
-              to 0 given a change they try to make
+              to 0 given a change to allowing decimal scores
+
+- implement undo-redo with DOM element hide/show
+    - is it feasible to store all data in the DOM?
+    - seems like a good way to avoid inconsistency
 - decide what to do when a student is missing a problem
     - could just be a loop to add answer of "" with no steps for all students
       who are missing a given problem

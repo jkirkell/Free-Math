@@ -374,7 +374,6 @@ Work on 1/10/2015
     - debuged through one pass
     - looks like a visitor-like pattern, will look into this more
 
-
 ----------------
 1/23/2015
 ----------------
@@ -392,6 +391,9 @@ Work on 1/10/2015
     - time estimate 5 minutes, finish 12:00, finished on time
     - took a break, actual finish time 1:45
 
+----------------
+1/23/2015
+----------------
 - add show/hide button on the div for all student work leading to one answer
     - should probably leave the div there with the common answer and a show button
     - make it easier to bring it back without going to global show/hide
@@ -400,6 +402,9 @@ Work on 1/10/2015
           students
         - probably reasonable default, but should add a "don't apply grade to other matching answers"
           check box for teacher to override this behavior
+    - time estimate 30 mins, including the don't apply grade to others button
+        - expected finish time 9:40
+
 - implement undo-redo with DOM element hide/show
     - is it feasible to store all data in the DOM?
     - seems like a good way to avoid inconsistency

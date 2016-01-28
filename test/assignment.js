@@ -227,6 +227,8 @@ function generateSimilarStudentWorkHeader(allStudentsWorkLeadingToOneAnswer, stu
         studentCount = studentCount + ' student ';
     }
     return '<div class="similar-student-answers" style="float:none;overflow: hidden" >' +
+            '<input type="submit" class="show-all-common-answers" name="show all" value="show all"/>' + 
+            '<input type="submit" class="hide-all-common-answers" name="hide all" value="hide all"/>' + 
             '<p>' + studentCount + 'with work leading to answer ' + 
             '<span class="common-student-answer">' + studentFinalAnswer + '</span></p></div>';
 }
@@ -306,6 +308,12 @@ function generateTeacherOverview(allStudentWork) {
         } else {
             return false;
         }
+    });
+    $('.hide-all-common-answers').click(0, function(evt) {
+        $(evt.target).closest('.similar-student-answers').find('.student-work').fadeOut();
+    });
+    $('.show-all-common-answers').click(0, function(evt) {
+        $(evt.target).closest('.similar-student-answers').find('.student-work').show();
     });
     $('.problem-grade-input').keydown(0 /* ignored */, function(evt) {
         if (evt.which == 13) {

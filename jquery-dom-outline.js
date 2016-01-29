@@ -106,11 +106,12 @@ var DomOutline = function (options) {
             return;
         }
         if (self.opts.filter) {
-            if (!jQuery(e.target).is(self.opts.filter)) {
+            var closestStep = jQuery(e.target).closest(self.opts.filter)[0];
+            if (!closestStep) {
                 return;
             }
         }      
-        pub.element = e.target;
+        pub.element = closestStep;
 
         var b = self.opts.borderWidth;
         var scroll_top = getScrollTop();
@@ -154,10 +155,12 @@ var DomOutline = function (options) {
                 setTimeout(function () {
                     jQuery('body').on('click.' + self.opts.namespace, function(e){
                         if (self.opts.filter) {
-                            if (!jQuery(e.target).is(self.opts.filter)) {
+                            var closestStep = jQuery(e.target).closest(self.opts.filter)[0];
+                            if (!closestStep) {
                                 return false;
                             }
                         }
+                        e.target = closestStep;
                         clickHandler.call(this, e);
                     });
                 }, 50);

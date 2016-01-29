@@ -392,7 +392,7 @@ Work on 1/10/2015
     - took a break, actual finish time 1:45
 
 ----------------
-1/23/2015
+1/27/2015
 ----------------
 - add show/hide button on the div for all student work leading to one answer
     - should probably leave the div there with the common answer and a show button
@@ -419,8 +419,27 @@ Work on 1/10/2015
             - allow teacher to enter text specific to this highlighted section
                 - can add a list of notes below, each can be numbered
     - total time 45 mins, expected finish 10:20, actual finish 11:00
+
+----------------
+1/28/2015
+----------------
 - persist teacher targeted highlights
-    - 
+    - don't know how to do this with sub-expression selections
+        - would require adding a highlight feature to mathquill, with support in the parser
+          CSS generation etc.
+    - easier solution
+        - the highlight library has the ability to limit what can be clicked by a selector
+        - I can just only allow highlighting of complete steps
+            - I can store this information alongside an equation, rather than inside of it
+        - similar teacher experience
+        - also remove the need to deal with finiky selections of subsets of equations
+            - the simple implementation required clicking on each individual digit in a number
+            - could probably improve this with the selector config, but would require more knowledge
+              of mathquill
+    - time estimate to change to only selecting whole expressions 10 mins
+    - expected finish 6:30
+- 
+
 - handle case where possible point adjustment leads to negative score
     - good argument for proportional point adjustment upon change
         - with a setting for rounding or using decimal values

@@ -331,19 +331,19 @@ function generateTeacherOverview(allStudentWork) {
         $(evt.target).closest('.similar-student-answers').find('.student-work').show();
     });
     $('.highlight-student-errors').click(0, function(evt) {
-        var myExampleClickHandler = function (element) { 
+        var errorClickHandler = function (element) { 
             $(element).addClass('error-highlight'); 
         }
-        var myDomOutline = DomOutline({ onClick: myExampleClickHandler });
+        var myDomOutline = DomOutline({ onClick: errorClickHandler, filter : ".solution-step"});
 
         // Start outline:
         myDomOutline.start();
     });
     $('.highlight-student-successes').click(0, function(evt) {
-        var myExampleClickHandler = function (element) { 
+        var successClickHandler = function (element) { 
             $(element).addClass('success-highlight'); 
         }
-        var myDomOutline = DomOutline({ onClick: myExampleClickHandler });
+        var myDomOutline = DomOutline({ onClick: successClickHandler, filter : ".solution-step"});
 
         // Start outline:
         myDomOutline.start();

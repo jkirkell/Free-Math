@@ -1,4 +1,5 @@
 /**
+ * Taken from : https://github.com/andrewchilds/jQuery.DomOutline 
  * Firebug/Web Inspector Outline Implementation using jQuery
  * Tested to work in Chrome, FF, Safari. Buggy in IE ;(
  * Andrew Childs <ac@glomerate.com>
@@ -69,7 +70,7 @@ var DomOutline = function (options) {
     }
 
     function createOutlineElements() {
-        self.elements.label = jQuery('<div></div>').addClass(self.opts.namespace + '_label').appendTo('body');
+        //self.elements.label = jQuery('<div></div>').addClass(self.opts.namespace + '_label').appendTo('body');
         self.elements.top = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
         self.elements.bottom = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
         self.elements.left = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
@@ -116,11 +117,11 @@ var DomOutline = function (options) {
         var pos = pub.element.getBoundingClientRect();
         var top = pos.top + scroll_top;
 
-        var label_text = compileLabelText(pub.element, pos.width, pos.height);
+       //var label_text = compileLabelText(pub.element, pos.width, pos.height);
         var label_top = Math.max(0, top - 20 - b, scroll_top);
         var label_left = Math.max(0, pos.left - b);
 
-        self.elements.label.css({ top: label_top, left: label_left }).text(label_text);
+        //self.elements.label.css({ top: label_top, left: label_left }).text(label_text);
         self.elements.top.css({ top: Math.max(0, top - b), left: pos.left - b, width: pos.width + b, height: b });
         self.elements.bottom.css({ top: top + pos.height, left: pos.left - b, width: pos.width + b, height: b });
         self.elements.left.css({ top: top - b, left: Math.max(0, pos.left - b), width: b, height: pos.height + b });
@@ -136,7 +137,7 @@ var DomOutline = function (options) {
     }
 
     function clickHandler(e) {
-        pub.stop();
+        //pub.stop();
         self.opts.onClick(pub.element);
 
         return false;

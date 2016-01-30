@@ -457,10 +457,44 @@ Work on 1/10/2015
         - this would depend if the content is managed in the software
           or not
         - I assume the teacher should have the book/file available to them
+
+----------------
+1/30/2015
+----------------
+- research to see if khan expression comparison for grading is open source
+    - or look at the Webwork code for this
+        - in Perl but may be able to translate into JS easily
+    - time cap 25 mins, expected finish 10:30
+        - KAS looks like it will be suitable for now
+        - the README doesn't seem to show a lot of options for disabling
+          some features
+- implement better answer comparison with KAS
+    - 15 mins, finish at 10:45
+    - update at 12:10, added their basic semantic equality check
+    - TODO - looks like perseus does have a few options for customizing
+      comparisons, should look at making these configurable
+        - https://github.com/Khan/perseus/blob/master/src/widgets/expression.jsx#L1050
+            - look for answer-option if the source changes (not much change recently)
+            - too lazy to lookup github permalink stuff
+    - currently still groups things by exact equality, see comment in source
+      about using a JSON object as a hashmap
+        - assuming their expression equality checks are always transitive, I can
+          just create equivalence classes with a list of lists and just traverse
+          the list, adding a new class to the end if it is not equal to any current
+          group
+        - this will be a balancing act, sometimes teachers will want to see the differences
+          to give partial credit for non-standard form equations
+            - think this is best solved by the config options mentioned above
+            - generally think anything that is considered equal by the KAS (given current
+              config to respect or ignore standard form, factored vs expanded, etc.) should
+              be grouped for making grading faster
+- require students to fill in problem numbers
+    - can prevent creating a new problem if the last one doesn't have a number yet
+    - time estimate 15 mins, finish time 2:30
+
+    
 - pitfalls left
     - too much reliance on students entering problem numbers correctly
-        - should at least make them fill in problem numbers
-        - can prevent creating a new problem if the last one doesn't have a number yet
     - on the teacher side, correcting ambiguities/different formats for problem numbers
         - start off with a page with all of the work that problem numbers that didn't match
         - would be useful to create the thing that takes an assignment description and
@@ -477,6 +511,8 @@ Work on 1/10/2015
             - student's might honestly submit very similar work even when they
               aren't cheating
             - given they all have the same interface, especially for simpler assignments
+        - actually doing the diffs
+            - https://github.com/kpdecker/jsdiff
         - for now could give a box with assignment wide-warnings
             - just open the grading page with the two (or more) similar assignments
               as the only ones shown

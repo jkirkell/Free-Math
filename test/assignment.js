@@ -49,7 +49,10 @@ function collectAnswerKey() {
 
 function applyGradeToStudentWork(studentWork, answer, score, possiblePoints) {
     var currentAnswer = MathQuill($(studentWork).find('.solution-step').last()[0]).latex();
-    if (currentAnswer == answer) {
+    // copare answers with the khan algebra system KAS
+    var expr1 = KAS.parse(currentAnswer).expr;
+    var expr2 = KAS.parse(answert).expr;
+    if (KAS.compare(expr1, expr2).equal) {
         var work = $(studentWork);
         work.removeClass('answer-correct').removeClass('answer-incorrect').removeClass('answer-partially-correct');
         if (parseFloat(score) >= parseFloat(possiblePoints)) {
@@ -137,18 +140,20 @@ function addSingleStudentsWork(studentWork, allStudentsWorkForCurrentAnswer, def
 //      "totalMissing" : 0,
 //      "uniqueAnswers" : { "x=7" : [ {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] } ]
 function aggregateStudentWork(allStudentWork, correctAnswers) {
-    aggregatedWork = [];
+    var aggregatedWork = [];
     allStudentWork.forEach(function(assignInfo, index, array) {
         assignInfo.assignment.problems.forEach(function(problem, index, array) {
             var studentAnswer = problem.steps[problem.steps.length - 1];
-            var autoGrade;
-            if ($.inArray(studentAnswer, correctAnswers[problem.problemNumber]) > -1) {
-                // answer was corrrect, for now skip
-                // TODO - create hidden element that can be shown when correct work requested
-                autoGrade = "correct";
-            } else {
-                autoGrade = "incorrect";
-            }
+            var autoGrade = "incorrect";
+            var correct = false;
+            $.each(correctAnswers[problem.problemNumber], function(index, answer) {
+                var expr1 = KAS.parse(answer).expr;
+                var expr2 = KAS.parse(studentAnswer).expr;
+                if (KAS.compare(expr1, expr2).equal) {
+                    autoGrade = "correct";
+                    return false; // early terminate loop
+                }
+            });
             
             // TODO - move this mostly to the notes.txt doc
             // once I am doing better grading based on parsing the math, I won't be able

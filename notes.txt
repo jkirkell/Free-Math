@@ -432,42 +432,90 @@ Work on 1/10/2015
         - I can just only allow highlighting of complete steps
             - I can store this information alongside an equation, rather than inside of it
         - similar teacher experience
-        - also remove the need to deal with finiky selections of subsets of equations
+        - also remove the need to deal with finicky selections of subsets of equations
             - the simple implementation required clicking on each individual digit in a number
             - could probably improve this with the selector config, but would require more knowledge
               of mathquill
     - time estimate to change to only selecting whole expressions 10 mins
-    - expected finish 6:30
-- 
+    - expected finish 6:30, actual finish time 7:00
+        - figured out how the events were being triggered I had to manually search up the DOM
+          to see if the element associated with the event matched my desired class
+        - might want to find out if there is a more efficient way to do this, because this might
+          be pretty expensive listening for events on all DOM elements
+- show student name (filename)
+    - make this optional with a global toggle
+    - time estimate 15 mins, 7:15
+    - update at 7:50, got distracted
+        - finished showing student filename
+        - need to implement show/hide
+        - estimate 5 mins, finish time 7:55, finish time 8:00
+- alyssa interface testing
+    - gave her the demo set of student work
+    - no complaints about the interface
+    - would like more info above each problem for the directions
+      that the students had when doing each problem
+        - this would depend if the content is managed in the software
+          or not
+        - I assume the teacher should have the book/file available to them
+- pitfalls left
+    - too much reliance on students entering problem numbers correctly
+        - should at least make them fill in problem numbers
+        - can prevent creating a new problem if the last one doesn't have a number yet
+    - on the teacher side, correcting ambiguities/different formats for problem numbers
+        - start off with a page with all of the work that problem numbers that didn't match
+        - would be useful to create the thing that takes an assignment description and
+          fills in all problem numbers for students
+            - 1-5, 6-18x2, 21-33 odds, 36-44 by 2
+    - decide what to do when a student is missing a problem
+        - could just be a loop to add answer of "" with no steps for all students
+          who are missing a given problem
+            - these would be grouped together automatically
+            - *done* in this case should give teachers an easy option to hide one set of answers completely
+            - have special display to say "no work or answer given" rather than rendering an empty expression
+    - students submitting identical or nearly identical work
+        - need to be careful how teacher react to this feature
+            - student's might honestly submit very similar work even when they
+              aren't cheating
+            - given they all have the same interface, especially for simpler assignments
+        - for now could give a box with assignment wide-warnings
+            - just open the grading page with the two (or more) similar assignments
+              as the only ones shown
+            - area to give assignment level message, or overall assignment score
+                - decide if this work should be shown or hidden back when grading the
+                  rest of the student work
+            - give a link back to the complete class overview
+    - identify problems with correct answers, but very little or no
+      work shown
+        - might still auto-hide, but in the section where they would appear I can have
+          a link that says "3 students with correct answers but very little work shown <show work>"
+    - handle case where possible point adjustment leads to negative score
+        - good argument for proportional point adjustment upon change
+            - with a setting for rounding or using decimal values
+        - make sure to update status if whatever strategy used causes a change to another
+            - rounding up makes it correct
+            - currently making it worth less points can make it 0 easily, probably not desired
+                - don't want to take away some credit from students
+                - might want to warn teachers if there are problems that would make it down
+                  to 0 given a change to allowing decimal scores
+    - turn off highlighting steps when clicking outside of student work area
+- actually save student feedback
+    - first iteration, save to array of JSON docs
+    - next will work on generating the actual files in a ZIP
+        - what about a partially-complete grading session
+            - is there a difference between a student-submitted doc and a graded one
+            - can students re-submit assignments after grading to correct their mistakes
+    - time estimate 15 mins 
 
-- handle case where possible point adjustment leads to negative score
-    - good argument for proportional point adjustment upon change
-        - with a setting for rounding or using decimal values
-    - make sure to update status if whatever strategy used causes a change to another
-        - rounding up makes it correct
-        - currently making it worth less points can make it 0 easily, probably not desired
-            - don't want to take away some credit from students
-            - might want to warn teachers if there are problems that would make it down
-              to 0 given a change to allowing decimal scores
 
 - implement undo-redo with DOM element hide/show
     - is it feasible to store all data in the DOM?
     - seems like a good way to avoid inconsistency
-- decide what to do when a student is missing a problem
-    - could just be a loop to add answer of "" with no steps for all students
-      who are missing a given problem
-        - these would be grouped together automatically
-        - in this case should give teachers an easy option to hide one set of answers completely
-        - have special display to say "no work or answer given" rather than rendering an empty expression
     - related - need to allow teachers to easily re-arrange student work if their numbers are off
         - might be able to defer, but would probably be needed in real use, that or they
           could just tell their students to be careful about the problem numbers
 
 - features needed for basic prototype
     - teacher grading
-        - cheating prevention, find similar student assignments
-        - identify problems with correct answers, but very little or no
-          work shown
         - alternate sort orderings for problems
             - need to write a comparison function for nested problem numbers
               so I can sort them back into the correct order
@@ -487,7 +535,6 @@ Work on 1/10/2015
       teachers to put grades manually into their own gradebook
         - might figure out if I can integrate directly with Moodle
           to update the grade-book automatically
-    - generate individual student feedback docs
     - student experience
         - fix keyboard shortcuts
             - later but soon

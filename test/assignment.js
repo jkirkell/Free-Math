@@ -113,6 +113,7 @@ function addSingleStudentsWork(studentWork, allStudentsWorkForCurrentAnswer, def
     }
     var scoreInput = '<p>Score <input type="text" class="problem-grade-input" value="' + autoGradeScore + '"/>' + 
         ' out of <span class="total-problem-points">' + defaultPointsPerProblem + '</span></p>';
+    studentWorkDiv.append('<p class="student-name-label">' + removeExtension(studentWork.studentFile) + '</p>');
     studentWorkDiv.append(scoreInput);
     studentWorkDiv.append('<label>&nbsp;<input type="checkbox" class="dont-apply-score-to-similar">Don\'t apply score to similar student work</label><br>');
     
@@ -196,12 +197,16 @@ function aggregateStudentWork(allStudentWork, correctAnswers) {
 function addteacherSummaryPageOptions(assignmentDiv) {
 
     assignmentDiv.empty(); 
+    // TODO - finish impelmenting this
+    /*
     assignmentDiv.append('<input type="checkbox" id="apply-same-grade-to-others" checked="checked">' +
             'Apply manual grades to all students with matching answers ' +
             '<span title="Default to applying a score you give to one student to all others who got the' + 
             ' the same answer. You can override the score after looking at each individual student\'s work">' +
             ' - Hover for Info</span><br><br>');
+    */        
     assignmentDiv.append(
+    '<label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked">Show student names (or grade anonymously)</label><br><br>' + 
     'Show Answers that are: &nbsp;' + 
     '<label>&nbsp;<input type="checkbox" id="show-incorrect" checked="checked">incorrect</label>' + 
     // this is unchecked programmatically to hide all of the correct work by default
@@ -216,6 +221,13 @@ function addteacherSummaryPageOptions(assignmentDiv) {
             $('.answer-correct').fadeOut();
         } else {
             $('.answer-correct').show();
+        }
+    });
+    $('#show-student-names').change(function() {
+        if (! this.checked) {
+            $('.student-name-label').fadeOut();
+        } else {
+            $('.student-name-label').show();
         }
     });
     $('#show-incorrect').change(function() {
@@ -422,6 +434,14 @@ function readSingleFile(evt) {
     }
 }
 
+function removeExtension(filename) {
+    // remove preceding directory (for when filename comes out of the ZIP directory)
+    filename = filename.replace(/[^\/]*\//, "");
+    // actually remove extension
+    filename = filename.replace(/\.[^/.]+$/, "");
+    return filename;
+}
+
 function openAssignment(serializedDoc, filename) {
     if (!window.confirm("Discard your current work and open the selected document?")) { 
         return; 
@@ -429,7 +449,7 @@ function openAssignment(serializedDoc, filename) {
     $('#assignment-container').empty();
     var assignment = JSON.parse(serializedDoc);
     problems = Array();
-    newAssignment(filename.replace(/\.[^/.]+$/, ""));
+    newAssignment(removeExtension(filename));
     assignment.problems.forEach(function(problem, index, array) {
         newProblem(false);
         var newProblemWrapper = problems[problems.length - 1];

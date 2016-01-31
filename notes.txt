@@ -491,8 +491,20 @@ Work on 1/10/2015
 - require students to fill in problem numbers
     - can prevent creating a new problem if the last one doesn't have a number yet
     - time estimate 15 mins, finish time 2:30
+- starting back up at 6:45
+    - finish prevent students from leaving numbers blank, 7:00 finish time
+    - finished on time
+- decide what to do when a student is missing a problem
+    - could just be a loop to add answer of "" with no steps for all students
+      who are missing a given problem
+        - these would be grouped together automatically
+        - *done* in this case should give teachers an easy option to hide one set of answers completely
+        - have special display to say "no work or answer given" rather than rendering an empty expression
+    - time estimate 10 mins, finish time 7:10, actual finish time 8:00
+        - took a litle longer to work out how to modify the student work aggregation loop
+            - should probably work on simplifying and cleaning it up
+- 
 
-    
 - pitfalls left
     - too much reliance on students entering problem numbers correctly
     - on the teacher side, correcting ambiguities/different formats for problem numbers
@@ -500,12 +512,6 @@ Work on 1/10/2015
         - would be useful to create the thing that takes an assignment description and
           fills in all problem numbers for students
             - 1-5, 6-18x2, 21-33 odds, 36-44 by 2
-    - decide what to do when a student is missing a problem
-        - could just be a loop to add answer of "" with no steps for all students
-          who are missing a given problem
-            - these would be grouped together automatically
-            - *done* in this case should give teachers an easy option to hide one set of answers completely
-            - have special display to say "no work or answer given" rather than rendering an empty expression
     - students submitting identical or nearly identical work
         - need to be careful how teacher react to this feature
             - student's might honestly submit very similar work even when they
@@ -555,6 +561,9 @@ Work on 1/10/2015
         - alternate sort orderings for problems
             - need to write a comparison function for nested problem numbers
               so I can sort them back into the correct order
+                - string comparison would almost work, but I would need to make users
+                  zero fill their numbers
+                - not hard to parse and compare
             - as well as not rely on the order in the key or student assingments
               to determine how they are shown
                 - some users may want the answer key to define ordering, but I've never
@@ -586,11 +595,25 @@ Work on 1/10/2015
         - enable users to split the solution path
             - to solve for multiple answers
         - give students other elements they can construct/manipulate other than expressions
+            - can use the components from Khan-Perseus, they are really solid
             - text
             - graphs
+                - tools in Khan grapher are  alittle limited
+                - should look ato add arbitrary beizer curves as an option
+                - http://www.victoriakirst.com/beziertool/
+                - http://math.hws.edu/eck/cs424/notes2013/canvas/bezier.html
             - calculator
             - geometry/physics diagrams
             - chemical equations
+        - teachers are generating a lot of useful information when they give partial credit
+            - for use on several classes, it might be good to allow saving any newly accepted
+              correct, or partially correct answers into the key
+            - might be good to be able to read multiple zip files, to allow grading multiple
+              classes worth of assignments while still keeping the documents separated for uploading
+              back to the different moodle class pages
+                - should research how moodle works in regard to sharing materials/assignments/etc.
+                  between different sections of the same class
+                - do teacher currently work around shortcoming by managing multiple classes as one? 
         - set up real environment for managing dependencies indecent of the app
         - enable teacher feedback by clicking on a point in the students work
             - prevents the need to describe where the error was in text

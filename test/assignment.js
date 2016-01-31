@@ -51,7 +51,7 @@ function applyGradeToStudentWork(studentWork, answer, score, possiblePoints) {
     var currentAnswer = MathQuill($(studentWork).find('.solution-step').last()[0]).latex();
     // copare answers with the khan algebra system KAS
     var expr1 = KAS.parse(currentAnswer).expr;
-    var expr2 = KAS.parse(answert).expr;
+    var expr2 = KAS.parse(answer).expr;
     if (KAS.compare(expr1, expr2).equal) {
         var work = $(studentWork);
         work.removeClass('answer-correct').removeClass('answer-incorrect').removeClass('answer-partially-correct');
@@ -131,9 +131,10 @@ function addSingleStudentsWork(studentWork, allStudentsWorkForCurrentAnswer, def
 //
 // Params:
 // allStudentWork:
-// [ {problems: [{"steps" : }]]
+// [ {filename : "jake r.", problems: [{"steps" : }]]
 //
 // Returns:
+// TODO - this will need to be something other than an array to allow for complex problem numbers
 // [ {
 //      "problemNumber" : "1.a",
 //      "totalIncorrect" : 5, 
@@ -141,19 +142,31 @@ function addSingleStudentsWork(studentWork, allStudentsWorkForCurrentAnswer, def
 //      "uniqueAnswers" : { "x=7" : [ {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] } ]
 function aggregateStudentWork(allStudentWork, correctAnswers) {
     var aggregatedWork = [];
+    // used to simplify filling in a flag for missing work if a student does not do a problem
+    // structure: { "1.1" : { "jason" :true, "taylor" : true }
+    var studentWorkFound = {};
     allStudentWork.forEach(function(assignInfo, index, array) {
         assignInfo.assignment.problems.forEach(function(problem, index, array) {
             var studentAnswer = problem.steps[problem.steps.length - 1];
             var autoGrade = "incorrect";
             var correct = false;
-            $.each(correctAnswers[problem.problemNumber], function(index, answer) {
-                var expr1 = KAS.parse(answer).expr;
-                var expr2 = KAS.parse(studentAnswer).expr;
-                if (KAS.compare(expr1, expr2).equal) {
-                    autoGrade = "correct";
-                    return false; // early terminate loop
-                }
-            });
+            if (correctAnswers.length > 0) {
+                $.each(correctAnswers[problem.problemNumber], function(index, answer) {
+                    var expr1 = KAS.parse(answer).expr;
+                    var expr2 = KAS.parse(studentAnswer).expr;
+                    if (KAS.compare(expr1, expr2).equal) {
+                        autoGrade = "correct";
+                        return false; // early terminate loop
+                    }
+                });
+            }
+
+            // write into the abreviated list of problems completed, used below to fill in placeholder for
+            // completely absent work
+            allStudentsWhoDidThisProblem = studentWorkFound[problem.problemNumber];
+            allStudentsWhoDidThisProblem = (typeof allStudentsWhoDidThisProblem != 'undefined') ? allStudentsWhoDidThisProblem : {};
+            allStudentsWhoDidThisProblem[assignInfo.filename] = true;
+            studentWorkFound[problem.problemNumber] = allStudentsWhoDidThisProblem;
             
             // TODO - move this mostly to the notes.txt doc
             // once I am doing better grading based on parsing the math, I won't be able
@@ -165,7 +178,7 @@ function aggregateStudentWork(allStudentWork, correctAnswers) {
             // - similar problem with treemap, would need to define ordering that would put
             //   similar expressions near one another
             //    - might be easiest to just do a nested loop when that comes up, this would just
-            //      require an approximate equals method, not even a compareTo() implementation
+            //      require an approximate equals method, not even a compareTo() implementation 
             var problemSummary = aggregatedWork[problem.problemNumber];
             problemSummary = (typeof problemSummary != 'undefined') ? problemSummary : {};
 
@@ -189,6 +202,18 @@ function aggregateStudentWork(allStudentWork, correctAnswers) {
             // this is necessary because this might be the first time this problem number was seen so we just created the list
             // if this wasn't the case, this wouldn't be necessary because objects including arrays are always passed by reference
             aggregatedWork[problem.problemNumber] = problemSummary;
+        });
+    });
+    // add blank answers for any students missing problems
+    $.each(allStudentWork, function(index, assignInfo) {
+        $.each(studentWorkFound, function(problemNumber, studentsFound) {
+            if (!studentsFound[assignInfo.filename]) {
+                missingWork = aggregatedWork[problemNumber]['uniqueAnswers']['unanswered'];
+                missingWork = (typeof missingWork != 'undefined') ? missingWork : [];
+                missingWork.push(
+                        {studentFile : assignInfo.filename, autoGradeStatus: 'incorrect', steps : ['unanswered']});
+                aggregatedWork[problemNumber]['uniqueAnswers']['unanswered'] = missingWork;
+            }
         });
     });
     return aggregatedWork;
@@ -258,10 +283,14 @@ function generateSimilarStudentWorkHeader(allStudentsWorkLeadingToOneAnswer, stu
     } else {
         studentCount = studentCount + ' student ';
     }
+    var message = 'with work leading to answer ';
+    if (studentFinalAnswer === 'unanswered') {
+       message = 'with the question '; 
+    }
     return '<div class="similar-student-answers" style="float:none;overflow: hidden" >' +
             '<input type="submit" class="show-all-common-answers" name="show all" value="show all"/>' + 
             '<input type="submit" class="hide-all-common-answers" name="hide all" value="hide all"/>' + 
-            '<p>' + studentCount + 'with work leading to answer ' + 
+            '<p>' + studentCount + message +
             '<span class="common-student-answer">' + studentFinalAnswer + '</span></p></div>';
 }
 

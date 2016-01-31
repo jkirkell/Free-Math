@@ -31,6 +31,12 @@ var newProblemHtml =
 '</div> <!-- end of one problem container -->';
 
 function newProblem(insertEmptyStep) {
+    // prevent students from moving on unless the last problem has a number
+    var lastProblem = $('#assignment-container').find('.problem-container').last();
+    if(lastProblem[0] && lastProblem.find('.problem-number').last().val().trim() === '') {
+        alert('Last problem must have a number before adding a new one');
+        return;
+    }
     var newProblemDiv = $(newProblemHtml);
     $('#assignment-container').append(newProblemDiv);
     // object to hold background state as well as DOM references for the

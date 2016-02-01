@@ -503,10 +503,16 @@ Work on 1/10/2015
     - time estimate 10 mins, finish time 7:10, actual finish time 8:00
         - took a litle longer to work out how to modify the student work aggregation loop
             - should probably work on simplifying and cleaning it up
-- 
+
+---------------
+1/31/2015
+---------------
+- work starting at 10:05
+    - 
 
 - pitfalls left
     - too much reliance on students entering problem numbers correctly
+        - check to make sure their problem numbers are unique within an assignment
     - on the teacher side, correcting ambiguities/different formats for problem numbers
         - start off with a page with all of the work that problem numbers that didn't match
         - would be useful to create the thing that takes an assignment description and

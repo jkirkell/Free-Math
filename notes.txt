@@ -18,7 +18,7 @@ Learning JS Notes:
         - can 'Object' itself be used as a prototype?
 
 
-Work on 1/9/2015
+Work on 1/9/2016
 ----------------
 - brushing up on general JS concepts
 - trying to figure out what exactly P.js provides
@@ -49,7 +49,7 @@ Work on 1/9/2015
         - might decide to go back to the java project someday, but for now I need
           to move on
 
-Work on 1/10/2015
+Work on 1/10/2016
 -----------------
 - same task as before, make step by step editor by simply copying mathquill fields
 - starter task
@@ -155,7 +155,7 @@ Work on 1/10/2015
         - https://stuk.github.io/jszip/
 
 --------------
-1/12/2015
+1/12/2016
 --------------
 - finish teacher grading
     - read contents of zip files
@@ -178,7 +178,7 @@ Work on 1/10/2015
       reading and re-arranging the student work
 
 -----------------
-1/13/2015
+1/13/2016
 -----------------
 - teacher grading page
     - didn't get much done, spent a little time still trying to generate the most basic
@@ -194,7 +194,7 @@ Work on 1/10/2015
           represents the work across all students on a single problem
 
 -------------------
-1/14/2015
+1/14/2016
 -------------------
 - try to get static math rendering to work
     - try to remove forEach loops to see if it fixes the previous issue
@@ -235,7 +235,7 @@ Work on 1/10/2015
           rather than hiding by default or immediately after creation
 
 -------------------
-1/15/2015
+1/15/2016
 -------------------
 - define scope for work this weekend
     - 15 minutes, expected completion 7:15
@@ -285,7 +285,7 @@ Work on 1/10/2015
     - finished
 
 -------------------
-1/16/2015
+1/16/2016
 -------------------
 - update problem page to take advantage of MathQuill() function
     - avoid the need to keep track of all MathQuill objects parallel
@@ -333,7 +333,7 @@ Work on 1/10/2015
     - time estimate 15 mins, finish time 8:45
 
 -------------------
-1/17/2015
+1/17/2016
 -------------------
 - fix updating score upon change of possible points
     - for simplicity just add the change in possible points to each value
@@ -367,7 +367,7 @@ Work on 1/10/2015
         - for now I at least made the variable names reasonable and got it working
 
 ----------------
-1/18/2015
+1/18/2016
 ----------------
 - research, look at how the latex() method traverses the mathquill tree
     -  20 mins, finish time 10pm
@@ -375,7 +375,7 @@ Work on 1/10/2015
     - looks like a visitor-like pattern, will look into this more
 
 ----------------
-1/23/2015
+1/23/2016
 ----------------
 - review tasks left for MVP
     - finish time 10:45, 10 minutes, actual finish 10:50
@@ -392,7 +392,7 @@ Work on 1/10/2015
     - took a break, actual finish time 1:45
 
 ----------------
-1/27/2015
+1/27/2016
 ----------------
 - add show/hide button on the div for all student work leading to one answer
     - should probably leave the div there with the common answer and a show button
@@ -421,7 +421,7 @@ Work on 1/10/2015
     - total time 45 mins, expected finish 10:20, actual finish 11:00
 
 ----------------
-1/28/2015
+1/28/2016
 ----------------
 - persist teacher targeted highlights
     - don't know how to do this with sub-expression selections
@@ -459,8 +459,10 @@ Work on 1/10/2015
         - I assume the teacher should have the book/file available to them
 
 ----------------
-1/30/2015
+1/30/2016
 ----------------
+-
+
 - research to see if khan expression comparison for grading is open source
     - or look at the Webwork code for this
         - in Perl but may be able to translate into JS easily
@@ -505,10 +507,8 @@ Work on 1/10/2015
             - should probably work on simplifying and cleaning it up
 
 ---------------
-1/31/2015
+2/2/2016
 ---------------
-- work starting at 10:05
-    - 
 
 - pitfalls left
     - too much reliance on students entering problem numbers correctly

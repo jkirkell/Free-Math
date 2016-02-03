@@ -509,6 +509,26 @@ Work on 1/10/2016
 ---------------
 2/2/2016
 ---------------
+- reviewing odd answers provided in the back of "Algebra Structure and Method"
+  to find different types of answers that should be able to be graded automatically
+   - no solution, have a good standard way to represent this
+   - sets, unordered comparison of some elements in math "expressions"
+        - several answers are going to be assumed to be order insensitive
+        - should be able to change this, for questions like, list the teams in decreasing
+          order of average points per game
+    - some kind of special behavior for multiple choice
+        - this this would mostly apply to content created created by teachers in the system
+        - for creating generic answer key they can just enter the letter and the text 
+          of the answer as correct
+        - make sure all text comparison is case insensitive
+            - although case does matter for expressions
+    - figure out how to handle answers with units
+        - and compound units: m/s^2
+    - label nubmer/expression pairs
+        - apples: $5, pears: $10
+    - parsing money/times
+    - underline/highlight part of an expression
+    - 
 
 - pitfalls left
     - too much reliance on students entering problem numbers correctly

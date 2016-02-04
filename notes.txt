@@ -570,7 +570,18 @@ Work on 1/10/2016
     - work for 40 mins on this, finish time 9:20
     - update at 10:15, got distracted
         - new finish time 10:40
-- Model for Student digital notebook
+- Student digital notebook experience
+    Global App State
+    {
+        "globalOptions" : {
+            "gradeLevel" : "algebra", 
+            "customKeyshortcuts" : {},
+            "enableComposeKeys" : true,
+            "enableAutoCompleteSymbols" : true,
+            "showOnScreenKeyboard" : true
+        }
+    }
+- Model for Student assignment
     - questions
         - should configuration options be allowed to be customized for a 
           given assignment?
@@ -584,16 +595,45 @@ Work on 1/10/2016
             - accurate representation of irrational numbers is important
             - should all numbers be stored as latex and assumed they need
               to be parsed/displayed?
-    Global App State
-    {
-        "globalOptions" : {
-            "gradeLevel" : "algebra", 
-            "customKeyshortcuts" : {},
-            "enableComposeKeys" : true,
-            "enableAutoCompleteSymbols" : true,
-            "showOnScreenKeyboard" : true
-        }
-    }
+        - handling undo/redo
+            - think that problem or component local undo/redo will be needed
+            - going back to a problem, students will need to be able to edit
+              their work on a single unit, without undoing a bunch of history
+              in other problems
+            - would there even be a global undo/redo?
+                - definitely needed for bulk problem deletion
+                - or even individual problem deletion
+                - need to decide how this interacts with the component local
+                  undo/redo behaviors
+                - might be simpler to just keep track of all deleted problems
+                  in a trash bin, and allow any to be restored until the app
+                  is closed
+                - what other assignment level edits may need to be undone?
+    - actions
+        - set the filename
+        - add a new problem
+            - require previous problem have a filled in number
+        - add an answer or work component to a problem
+           - should an expression box be automatically added?
+           - yes, but it should be able to be deleted if the problem is just
+             requiring text or a graph with no equation
+        - edit a component
+            - add an undo-redo event
+            - examples
+                - add new expression step
+                - add new graph function
+                - add new graph point
+                - add table row/col
+                - edit properties of any sub-components
+                    - change equation in a step
+                    - change how function is currently graphed
+        - mark final answer
+            - will only be possible with some components, others
+              will at least initially require manual grading
+            - some compoents may allow setting multiple answers
+                - such as two different steps in an expression series
+        - save assignment
+        - load assignment
     Assignment
     {
         "filename" : "jasonA",
@@ -640,16 +680,69 @@ Work on 1/10/2016
           intentionally or accidentally, what should teacher see?
         - identify students with significantly less work than others
             - even if they got the right answer
+    - actions
+        - load student work zip
+            - load answer key, should be able to happen before or after
+              lading the work, that or they should be forced to be done together
+        - set ordering
+            - numeric order as appeared in assignment
+            - most misunderstood (most incorrect answers) first
+        - set global options
+            - allow half or other non-integer point values
+            - allow extra credit
+            - show/hide student names (for anonymous grading)
+            - answer comparison options
+                - standard form
+                - capitalization of variables matters
+                - numeric approximations allowed, sig figs
+                    - some of these might be different per-problem
+                    - should there be optional config at the top of each problem
+        - set total points for one problem
+        - scale all problems to give a desired number of total points
+          for the assignment
+        - set points for a given student answer
+            - apply to all similar answers, unless overridden by check-box
+            - update view/color of problems to reflect new status, correct, incorrect, partial
+        - highlight student errors/successes
+            - click button to activate
+            - click on part of student's work to highlight
+                - each component needs to define what sub-components can be selected
+            - escape or click outside of student work boxes to stop highlighting
+        - save graded work
+            - for distribution back to students
+            - for continuing grading session later
+            - any reason for these being different formats?
+                - should the in-progress new answer key created by the teachers manual grading
+                  be bundles with the assignments in the zip or saved separately
+                - think teachers would be okay with a separate file
+        - finding identical or very similar assignments
+        - identify problems with correct answers, but very little or no
+          work shown
+            - might still auto-hide, but in the section where they would appear I can have
+              a link that says "3 students with correct answers but very little work shown <show work>"
     Aggregated Student Work
     [ {
         "problemNumber" : "1.a",
         "totalIncorrect" : 5, 
         "totalMissing" : 0,
-        "uniqueAnswers" : { 
-            "x=7" : [ 
-            {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] 
-        } 
-    ]
+        "uniqueAnswers" : [
+            // the answers cannot actually be used as keys in a normal JSON map/object
+            //      - which is how this is implemented in the app right now
+            // comparison is going to be complex, multi-part answers, similar expressions
+            // determined to be close enough by a CAS to receive the same answer (with teacher
+            // manual review to catch undesired equivelences)
+            { 
+                // I was trying to represent different answers across students, but this list
+                // is probably going to need to be a more complex structure to allow for showing
+                // the different combinations of multi-parts student answers taht were determined
+                // to be similar enough to automatically be assigned the same grade
+                "finalAnswers" : [ "x=7", "7=x" ],
+                "studentsWork" : [ 
+                    {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]}
+                ] 
+            }
+        ]
+    }]
 
 - pitfalls left
     - too much reliance on students entering problem numbers correctly
@@ -673,10 +766,6 @@ Work on 1/10/2016
                 - decide if this work should be shown or hidden back when grading the
                   rest of the student work
             - give a link back to the complete class overview
-    - identify problems with correct answers, but very little or no
-      work shown
-        - might still auto-hide, but in the section where they would appear I can have
-          a link that says "3 students with correct answers but very little work shown <show work>"
     - handle case where possible point adjustment leads to negative score
         - good argument for proportional point adjustment upon change
             - with a setting for rounding or using decimal values

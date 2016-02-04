@@ -528,7 +528,128 @@ Work on 1/10/2016
         - apples: $5, pears: $10
     - parsing money/times
     - underline/highlight part of an expression
-    - 
+
+---------------
+2/3/2016
+---------------
+- read up a little on JS frameworks
+    - Angular vs React
+    - https://www.airpair.com/angularjs/posts/angular-vs-react-the-tie-breaker
+    - seems like React is easier to learn
+    - Angular has been around longer, more ready-made components available
+- talking to Alyssa
+    - Good for physics classes
+    - how does this work with Moodle?
+        - issues with logging out?
+        - minimal interaction with Moodle (or other CMS)
+        - students just uploading files (same as Word or powerpoint doc)
+        - teachers downloading docs (like if they were manually grading essays)
+        - there is just an automated tool for them to process the work
+    - integration with MyMathLab, Khan Academy and other managed homeworks systems
+        - this should be foremost a better notebook
+        - need to nail student editing experience or it will be useless
+        - in this case, even if students all have different generated problems,
+          removing the usefulness of the regular teacher grading screen
+            - students can still use this as an alternative to a paper notebook
+            - current web sites lack enough of an interface for students to
+              complete real problems
+            - most just have places for final answers, some have more complex answer
+              types, like the (graph, table, etc.) components in Persesus and Learnosity
+            - even using one if these systems, students could complete step-by-step work
+              in their digital notebook, flagging problems for teacher review when they
+              are stuck
+                - right now these systems often give no credit for partially
+                  completed work, in some cases penalizing multiple attempts
+                - totally backwards way to grade, disincentives exploration
+- need to separate back-end from presentation and UI events
+    - Was thinking of maybe using DOM as a data-structure, to avoid consistency issues
+    - this is not how modern JS is written
+    - take some time to design the data structures in the various experiences
+        - define all of the modifications that can be made
+        - need to define concrete Models for each of the experiences
+    - work for 40 mins on this, finish time 9:20
+    - update at 10:15, got distracted
+        - new finish time 10:40
+- Model for Student digital notebook
+    - questions
+        - should configuration options be allowed to be customized for a 
+          given assignment?
+            - teacher could send out an assignment template doc, that would 
+              include some recommended settings
+            - generally don't think disabling the calculator/graphs is that
+              useful, students are smart and can find them elsewhere, but it
+              might make teachers feel better
+        - handling expressions vs numbers
+            - should store information with no loss
+            - accurate representation of irrational numbers is important
+            - should all numbers be stored as latex and assumed they need
+              to be parsed/displayed?
+    Global App State
+    {
+        "globalOptions" : {
+            "gradeLevel" : "algebra", 
+            "customKeyshortcuts" : {},
+            "enableComposeKeys" : true,
+            "enableAutoCompleteSymbols" : true,
+            "showOnScreenKeyboard" : true
+        }
+    }
+    Assignment
+    {
+        "filename" : "jasonA",
+        "problems" : [
+            {
+                "number" : "1.a"
+                "studentWork" : [
+                    {
+                        "componentType" : "expressionSeries"
+                        "data" : { "steps" : [
+                            { "expression" : "2x=4" } ,
+                            { "expression" : "x=2", "finalAnswer" : true
+                        ]
+                    },
+                    {
+                        "componentType" : "numberLine"
+                        // see point above about numbers vs expressions, this could just
+                        // be a list of JSON numeric values
+                        "data" : { "points" : [ "2" ] }
+                    },
+                    {
+                        "componentType" : "geogebra"
+                        // some embedded components will require saving their contents to binary
+                        // need to figure out how to best store these
+                        // also need to think about API points they expose, will their events
+                        // need to trigger system changes? Undo/Redo events, auto-save, etc.
+                        "data" : { "base 64 encoded binary?" }
+                    }
+              ]
+        ]
+    }
+- Model for Teacher grading (student work summary) page
+    - few different cases
+        - answer key available
+            - teachers might want their manual grades to amend the answer key
+            - not sure if this needs to be kept separate from the original key
+        - no answer key available
+            - teachers can construct an answer key as they manually grade
+              student work, give partial credit to some answers
+    - special situations, might be different pages/models
+        - check for students submitting the same or very similar
+          work across all problems
+        - students might mistype problem numbers, skip some problems
+          intentionally or accidentally, what should teacher see?
+        - identify students with significantly less work than others
+            - even if they got the right answer
+    Aggregated Student Work
+    [ {
+        "problemNumber" : "1.a",
+        "totalIncorrect" : 5, 
+        "totalMissing" : 0,
+        "uniqueAnswers" : { 
+            "x=7" : [ 
+            {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] 
+        } 
+    ]
 
 - pitfalls left
     - too much reliance on students entering problem numbers correctly

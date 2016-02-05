@@ -744,6 +744,18 @@ Work on 1/10/2016
         ]
     }]
 
+------------------
+2/4/2016
+------------------
+- learning more about react
+    - https://www.youtube.com/watch?v=XxVg_s8xAms
+- goal, try to write a student problem solving component in react
+    - assume a single equation with multiple steps
+    - pretty much just implement the current interface
+    - at first do it without integrating with Mathquill, just make text boxes
+      with undo/redo and copy curent expression to next step
+    - total time 25 mins, finish 8:30
+
 - pitfalls left
     - too much reliance on students entering problem numbers correctly
         - check to make sure their problem numbers are unique within an assignment

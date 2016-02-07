@@ -50,6 +50,9 @@ Open Assignment <input type="file" id="open-file-input" /> <br/><br/>
 <br/>
 <input type="submit" id="new-problem" name="new problem" value="new problem"/> </br>
 </div>
+<script src="react/build/react.js"></script>
+<script src="react/build/react-dom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
 <script type="text/javascript" src="support/jquery-1.7.2.js"></script>
 <script type="text/javascript" src="../blob_js.js"></script>
 <script type="text/javascript" src="../filesaver_js.js"></script>
@@ -60,8 +63,8 @@ Open Assignment <input type="file" id="open-file-input" /> <br/><br/>
 <script type="text/javascript" src="../underscore.js"></script>
 <script type="text/javascript" src="../kas.js"></script>
 <script type="text/javascript" src="assignment.js"></script>
-<script type="text/javascript" src="problem.js"></script>
-<script type="text/javascript">
+<script type="text/babel" src="problem.js"></script>
+<script type="text/babel">
 
 function detectPlatform() {
     // failing on chrome
@@ -69,9 +72,32 @@ function detectPlatform() {
     //return { isMac : isMac };
 }
 
+var Problem = React.createClass({
+  render: function() {
+    var divStyle= {
+      float : "left"
+    }
+    return (
+      <div className="problem-container">
+        <div> Problem number <input type="text" className="problem-number"/></div>
+        <div style={divStyle}>
+          <p> Actions </p>
+            <input type="submit" className="next-step" value="next step (ctrl-e)"/> <br />
+            <input type="submit" className="undo-step" value="undo step (ctrl-z)"/> <br />
+            <input type="submit" className="redo-step" value="redo step (ctrl-shift-z)"/> <br />
+        </div>
+        {/*div to store the steps in the solution */}
+        <div style={divStyle} className="equation-list">
+          <p> List of expressions </p>
+        </div>
+      </div>
+    );
+  }
+});
 $(function() {
     newAssignment();
-    newProblem(true);
+    //newProblem(true);
+    ReactDOM.render(<Problem />, $('#new-problem')[0]);
     MathQuill.StaticMath($('.mathquill-static-math')[0]);
     $('#new-problem').click(function() {
         newProblem(true);
@@ -80,7 +106,7 @@ $(function() {
     $('#open-file-input').change(readSingleFile);
     $('#open-student-submissions-input').change(studentSubmissionsZip);
     // this is intentionally global
-    detectedBrowserAndOS = detectPlatform();
+    var detectedBrowserAndOS = detectPlatform();
 });
 
 </script>

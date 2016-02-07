@@ -15,21 +15,6 @@
     along with OpenNotebook-Web.  If not, see <http://www.gnu.org/licenses/>. 
 */
 
-var newProblemHtml = 
-'<div class="problem-container" style="float:none;overflow: hidden"> <!-- container for nav an equation list -->' +
-'<div>Problem number <input type="text" class="problem-number"/></div>' +
-'<div style="float:left"><!-- container for buttons -->' +
-'<p> Actions </p>' +
-'<input type="submit" class="next-step" name="next step" value="next step (ctrl-e)"/> <br>' +
-'<input type="submit" class="undo-step" name="undo step" value="undo step (ctrl-z)"/> <br>' +
-'<input type="submit" class="redo-step" name="redo step" value="redo step (ctrl-shift-z)"/> </br>' +
-'</div>' +
-'<!-- div to store the steps in the solution -->' +
-'<div style="float:left" class="equation-list">' +
-'<p> List of expressions </p>' +
-'</div>' + 
-'</div> <!-- end of one problem container -->';
-
 function newProblem(insertEmptyStep) {
     // prevent students from moving on unless the last problem has a number
     var lastProblem = $('#assignment-container').find('.problem-container').last();

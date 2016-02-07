@@ -756,6 +756,16 @@ Work on 1/10/2016
       with undo/redo and copy curent expression to next step
     - total time 25 mins, finish 8:30
 
+------------------
+2/6/2016
+------------------
+- learning react
+    - continuing with this tutorial
+    - https://facebook.github.io/react/docs/tutorial.html
+- rewrite single problem interface as a react component
+    - include mathquill, but check back if taking too long
+    - time estimate 30 mins, finish time 8:20
+
 - pitfalls left
     - too much reliance on students entering problem numbers correctly
         - check to make sure their problem numbers are unique within an assignment

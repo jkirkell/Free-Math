@@ -93,6 +93,8 @@ div.student-work {
 }
 
 div.problem-container {
+    float:none;
+    overflow: hidden
     border:1px solid black;
     background-color:#DDEDFC;
     margin: 15px 15px 15px 15px;

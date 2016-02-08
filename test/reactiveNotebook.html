@@ -49,23 +49,21 @@ var TodoApp = React.createClass({
   handleSubmit: function(e) {
     e.preventDefault();
     var nextItems = this.state.items.concat([{text: this.state.text, id: Date.now()}]);
-    var allItems = nextItems;
+    var allItems = nextItems.slice();
     var nextText = '';
     this.setState({items: nextItems, allItems: allItems, text: nextText});
   },
   handleUndo: function(e) {
     // no steps left to undo
     if (this.state.items.length == 0) return;
-    var shorterItemsList = this.state.items.slice(0, this.state.items.length - 1);
-    var nextText = '';
-    this.setState({items: shorterItemsList, text: nextText});
+    var poppedItem = this.state.items.pop();
+    this.setState({items: this.state.items, text: poppedItem.text});
   },
   handleRedo: function(e) {
     // no steps to redo
     if (this.state.allItems.length == this.state.items.length) return;
     var longerItemsList = this.state.allItems.slice(0, this.state.items.length + 1);
-    var nextText = '';
-    this.setState({items: longerItemsList, text: nextText});
+    this.setState({items: longerItemsList, text: ''});
   },
   render: function() {
     return (

@@ -766,6 +766,15 @@ Work on 1/10/2016
     - include mathquill, but check back if taking too long
     - time estimate 30 mins, finish time 8:20
 
+------------------
+2/7/2016
+------------------
+- work starting at 6:05pm
+- rewrite single problem interface as a react component
+    - include mathquill, but check back if taking too long
+    - time estimate 30 mins, finish time 6:35
+
+
 - pitfalls left
     - too much reliance on students entering problem numbers correctly
         - check to make sure their problem numbers are unique within an assignment

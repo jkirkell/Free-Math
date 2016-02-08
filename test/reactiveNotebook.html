@@ -29,76 +29,62 @@
     <div id="content"></div>
     <script type="text/babel">
 
-    // tutorial1.js
-    var CommentBox = React.createClass({
-      render: function() {
-        return (
-          <div className="commentBox">
-          <h1>Comments</h1>
-          <CommentList data={this.props.data}/>
-          <CommentForm />
-          </div>
-        );
-      }
-    });
-
-    var data = [
-      {id: 1, author: "Pete Hunt", text: "This is one comment"},
-      {id: 2, author: "Jordan Walke", text: "This is *another* comment"}
-    ];
-    // tutorial2.js
-    var CommentList = React.createClass({
-      render: function() {
-        var commentNodes = this.props.data.map(function(comment) {
-        return (
-          <Comment author={comment.author} key={comment.id}>
-            {comment.text}
-          </Comment>
-        );
-        });
-        return (
-          <div className="commentList">
-            {commentNodes}
-          </div>
-        );
-      }
-    });
-
-    var CommentForm = React.createClass({
-      render: function() {
-        return (
-          <div className="commentForm">
-            Hello, world! I am a CommentForm.
-          </div>
-        );
-      }
-    });
-    var Comment = React.createClass({
-      rawMarkup: function() {
-        // to prevent XSS, ask marked to sanitize the input text
-        var rawMarkup = marked(this.props.children.toString(), {sanitize: true});
-        return { __html: rawMarkup };
-      },
-
-      render: function() {
-        return (
-          <div className="comment">
-            <h2 className="commentAuthor">
-              {this.props.author}
-            </h2>
-            {/*
-            // This puts out escaped HTML tags, react defaults
-            // to trying to prevent XSS
-            marked(this.props.children.toString()) 
-            // this allows you to set the HTML, make sure to manually sanitize*/}
-            <span dangerouslySetInnerHTML={this.rawMarkup()} /> 
-          </div>
-        );
-      }
-    });
+var TodoList = React.createClass({
+  render: function() {
+    var createItem = function(item) {
+      return <li key={item.id}>{item.text}</li>;
+    };
+    return <ul>{this.props.items.map(createItem)}</ul>;
+  }
+});
+var TodoApp = React.createClass({
+  getInitialState: function() {
+    // allItems holds even the steps currently hidden because they were undone
+    // they are held in case of a redo action
+    return {items: [], allItems: [], text: ''};
+  },
+  onChange: function(e) {
+    this.setState({text: e.target.value});
+  },
+  handleSubmit: function(e) {
+    e.preventDefault();
+    var nextItems = this.state.items.concat([{text: this.state.text, id: Date.now()}]);
+    var allItems = nextItems;
+    var nextText = '';
+    this.setState({items: nextItems, allItems: allItems, text: nextText});
+  },
+  handleUndo: function(e) {
+    // no steps left to undo
+    if (this.state.items.length == 0) return;
+    var shorterItemsList = this.state.items.slice(0, this.state.items.length - 1);
+    var nextText = '';
+    this.setState({items: shorterItemsList, text: nextText});
+  },
+  handleRedo: function(e) {
+    // no steps to redo
+    if (this.state.allItems.length == this.state.items.length) return;
+    var longerItemsList = this.state.allItems.slice(0, this.state.items.length + 1);
+    var nextText = '';
+    this.setState({items: longerItemsList, text: nextText});
+  },
+  render: function() {
+    return (
+      <div>
+        <h3>TODO</h3>
+        <button onClick={this.handleUndo}>Undo</button>
+        <button onClick={this.handleRedo}>Redo</button>
+        <TodoList items={this.state.items} />
+        <form onSubmit={this.handleSubmit}>
+          <input onChange={this.onChange} value={this.state.text} />
+          <button>{'Add #' + (this.state.items.length + 1)}</button>
+        </form>
+      </div>
+    );
+  }
+});
 
     ReactDOM.render(
-      <CommentBox data={data}/>,
+      <TodoApp />,
       document.getElementById('content')
     );
     </script>

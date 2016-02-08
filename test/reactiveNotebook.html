@@ -31,24 +31,28 @@
 
 var TodoList = React.createClass({
   render: function() {
+    console.log(this.props.items);
+    var onChange = this.props.onChange;
     var createItem = function(item) {
-      return <li key={item.id}>{item.text}</li>;
+      return <span key={item.key}><input onChange={onChange} value={item.text} /><br /></span>
     };
-    return <ul>{this.props.items.map(createItem)}</ul>;
+    return <div>{this.props.items.map(createItem)}</div>;
   }
 });
 var TodoApp = React.createClass({
   getInitialState: function() {
     // allItems holds even the steps currently hidden because they were undone
     // they are held in case of a redo action
-    return {items: [], allItems: [], text: ''};
+    var emptyItem = {key : Date.now(), text : ''};
+    return {items: [emptyItem], allItems: [emptyItem], text: ''};
   },
   onChange: function(e) {
+    console.log(e);
     this.setState({text: e.target.value});
   },
   handleSubmit: function(e) {
     e.preventDefault();
-    var nextItems = this.state.items.concat([{text: this.state.text, id: Date.now()}]);
+    var nextItems = this.state.items.concat([{text: this.state.text, key: Date.now()}]);
     var allItems = nextItems.slice();
     var nextText = '';
     this.setState({items: nextItems, allItems: allItems, text: nextText});
@@ -71,9 +75,8 @@ var TodoApp = React.createClass({
         <h3>TODO</h3>
         <button onClick={this.handleUndo}>Undo</button>
         <button onClick={this.handleRedo}>Redo</button>
-        <TodoList items={this.state.items} />
+        <TodoList items={this.state.items} onChange={this.onChange}/>
         <form onSubmit={this.handleSubmit}>
-          <input onChange={this.onChange} value={this.state.text} />
           <button>{'Add #' + (this.state.items.length + 1)}</button>
         </form>
       </div>

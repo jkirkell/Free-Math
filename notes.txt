@@ -788,7 +788,24 @@ Work on 1/10/2016
         - this example should give good info
         - http://todomvc.com/examples/react/#/
         
+------------------
+2/8/2016
+------------------
+- work starting at 9:00pm
+    - finish converting problem interface to react, using the new todo list
+      example for reference
+    - got distracted only had a chance to read a little bit of the example's
+      source code
 
+------------------
+2/9/2016
+------------------
+- Work starting at 9pm
+    - finish converting problem interface to react, using the new todo list
+      example for reference
+    - first just copy down the example and nodify it so that the child todo
+      elements are always editable
+    - time estimate 15 mins, complete 9:15
 
 - pitfalls left
     - too much reliance on students entering problem numbers correctly

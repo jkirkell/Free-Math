@@ -12,29 +12,6 @@ var app = app || {};
 	var ENTER_KEY = 13;
 
 	app.TodoItem = React.createClass({
-		handleSubmit: function (event) {
-			var val = this.state.editText.trim();
-			if (val) {
-				this.props.onSave(val);
-				this.setState({editText: val});
-			} else {
-				this.props.onDestroy();
-			}
-		},
-
-		handleEdit: function () {
-			this.props.onEdit();
-			this.setState({editText: this.props.todo.title});
-		},
-
-		handleKeyDown: function (event) {
-			if (event.which === ESCAPE_KEY) {
-				this.setState({editText: this.props.todo.title});
-				this.props.onCancel(event);
-			} else if (event.which === ENTER_KEY) {
-				this.handleSubmit(event);
-			}
-		},
 
 		handleChange: function (event) {
 			if (this.props.editing) {
@@ -53,6 +30,7 @@ var app = app || {};
 		 * just use it as an example of how little code it takes to get an order
 		 * of magnitude performance improvement.
 		 */
+        /*
 		shouldComponentUpdate: function (nextProps, nextState) {
 			return (
 				nextProps.todo !== this.props.todo ||
@@ -60,6 +38,7 @@ var app = app || {};
 				nextState.editText !== this.state.editText
 			);
 		},
+        */
 
 		/**
 		 * Safely manipulate the DOM after updating the state when invoking
@@ -67,6 +46,7 @@ var app = app || {};
 		 * For more info refer to notes at https://facebook.github.io/react/docs/component-api.html#setstate
 		 * and https://facebook.github.io/react/docs/component-specs.html#updating-componentdidupdate
 		 */
+        /*
 		componentDidUpdate: function (prevProps) {
 			if (!prevProps.editing && this.props.editing) {
 				var node = React.findDOMNode(this.refs.editField);
@@ -74,6 +54,7 @@ var app = app || {};
 				node.setSelectionRange(node.value.length, node.value.length);
 			}
 		},
+        */
 
 		render: function () {
 			return (

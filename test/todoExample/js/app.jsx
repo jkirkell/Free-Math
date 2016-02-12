@@ -25,6 +25,7 @@ var app = app || {};
 			};
 		},
 
+        /*
 		componentDidMount: function () {
 			var setState = this.setState;
 			var router = Router({
@@ -34,7 +35,10 @@ var app = app || {};
 			});
 			router.init('/');
 		},
+        */
 
+        // disabling this only changes the behavior of the text field for adding
+        // a new TODO - created items are still editable
 		handleChange: function (event) {
 			this.setState({newTodo: event.target.value});
 		},
@@ -89,6 +93,8 @@ var app = app || {};
 			var main;
 			var todos = this.props.model.todos;
 
+			var shownTodos = todos;
+            /*
 			var shownTodos = todos.filter(function (todo) {
 				switch (this.state.nowShowing) {
 				case app.ACTIVE_TODOS:
@@ -99,6 +105,7 @@ var app = app || {};
 					return true;
 				}
 			}, this);
+            */
 
 			var todoItems = shownTodos.map(function (todo) {
 				return (
@@ -108,7 +115,7 @@ var app = app || {};
 						onToggle={this.toggle.bind(this, todo)}
 						onDestroy={this.destroy.bind(this, todo)}
 						onEdit={this.edit.bind(this, todo)}
-						editing={this.state.editing === todo.id}
+						editing={true}
 						onSave={this.save.bind(this, todo)}
 						onCancel={this.cancel}
 					/>

@@ -756,6 +756,57 @@ Work on 1/10/2016
       with undo/redo and copy curent expression to next step
     - total time 25 mins, finish 8:30
 
+------------------
+2/6/2016
+------------------
+- learning react
+    - continuing with this tutorial
+    - https://facebook.github.io/react/docs/tutorial.html
+- rewrite single problem interface as a react component
+    - include mathquill, but check back if taking too long
+    - time estimate 30 mins, finish time 8:20
+
+------------------
+2/7/2016
+------------------
+- work starting at 6:05pm
+- rewrite single problem interface as a react component
+    - include mathquill, but check back if taking too long
+    - time estimate 30 mins, finish time 6:35
+    - took a little longer than planned
+        - currently modifying the todo list example from React docs to add 
+          undo/redo support, as well as copy down the last line when adding
+          a new item
+    - next sub-task, don't give special status to the last item (currently
+      the new item to add), make each item a text box and allow any of them
+      to be edited
+        - make the init state have one populated item with a blank boc
+    - time estimate, 10 minutes, finish time 6:55
+    - had some issues trying to get the indeividual text boxes to change
+      the parent's state
+        - need to read up more about how this works
+        - this example should give good info
+        - http://todomvc.com/examples/react/#/
+        
+------------------
+2/8/2016
+------------------
+- work starting at 9:00pm
+    - finish converting problem interface to react, using the new todo list
+      example for reference
+    - got distracted only had a chance to read a little bit of the example's
+      source code
+
+------------------
+2/9/2016
+------------------
+- Work starting at 9pm
+    - finish converting problem interface to react, using the new todo list
+      example for reference
+    - first just copy down the example and nodify it so that the child todo
+      elements are always editable
+    - time estimate 15 mins, complete 9:15
+
 - pitfalls left
     - too much reliance on students entering problem numbers correctly
         - check to make sure their problem numbers are unique within an assignment

@@ -1,5 +1,4 @@
 html {
-  background-color: #DDF;
   height: 100%;
 }
 body {
@@ -9,9 +8,6 @@ body {
   font-family: Georgia, serif;
   color: black;
   background-color: white;
-  box-shadow: 0 0 1em black;
-  -moz-box-shadow: 0 0 1em black;
-  -webkit-box-shadow: 0 0 1em black;
 }
 #body {
   padding: 1em;
@@ -62,11 +58,11 @@ div.answer-incorrect {
 }
 
 .error-highlight{
-    background-color:#FFAACC;
+    background-color:#FF99CC;
 }
 
 .success-highlight{
-    background-color:#AAFFBB;
+    background-color:#99FFBB;
 }
 
 div.answer-partially-correct {
@@ -75,6 +71,14 @@ div.answer-partially-correct {
 
 div.answer-correct {
     background-color:#D0FFC9;
+}
+
+div.similar-assignment-filters {
+    border:1px solid black;
+    margin: 15px 15px 15px 15px;
+    padding: 15px 15px 15px 15px;
+    border:1px solid black;
+    background-color:#D1EDFC;
 }
 
 div.similar-student-answers {

@@ -27,8 +27,6 @@
 <body>
 <div id="body">
 
-<a href="http://github.com/laughinghan/mathquill"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png" alt="Fork me on GitHub!"></a>
-
 <h1><a href="http://mathquill.github.com">MathQuill</a>-based step-by-step equation editor</h1>
 
 <p>Use the box below to write an equation. When you want to modify it to solve your math problem click
@@ -43,7 +41,7 @@ the "next step" button to copy your expression or equation and edit it on the ne
 
 Open Student Assignments <input type="file" id="open-student-submissions-input" /> <br/><br/>
 
-Open Assignment <input type="file" id="open-file-input" /> <br/><br/>
+Open Assignment <input type="file" id="open-file-input" /> <br/>
 
 <div id="assignment-container"> <!-- container for several problems, each with step-by-step work-->
 </div> <!-- end of assignment container -->
@@ -59,6 +57,7 @@ Open Assignment <input type="file" id="open-file-input" /> <br/><br/>
 <script type="text/javascript" src="../jquery-dom-outline.js"></script>
 <script type="text/javascript" src="../underscore.js"></script>
 <script type="text/javascript" src="../kas.js"></script>
+<script type="text/javascript" src="../diff.js"></script>
 <script type="text/javascript" src="assignment.js"></script>
 <script type="text/javascript" src="problem.js"></script>
 <script type="text/javascript">

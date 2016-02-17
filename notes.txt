@@ -807,6 +807,83 @@ Work on 1/10/2016
       elements are always editable
     - time estimate 15 mins, complete 9:15
 
+------------------
+2/11/2016
+------------------
+- pausing react conversion
+    - still have more to learn
+    - would like to work on features
+    - still want to prioritize restructuring to allow for unit testing
+- review outstanding tasks
+    - time estimate 10 mins, finish 9:15
+- cheating prevention, comparing student's work with diff tool
+    - simple loop based aproach
+        - make sure to stress test this for a fairly large class/assignment combo
+        - JS should be fast enough
+        - this is quadratic, where each operation is a non-trivial string diff
+        - add button to UI for each grouping of matching students
+            - allow for filtering the view to only matching students
+            - should probably add a class or something based on the file/student name
+              to make it easy to limit the view to just the list of matching students
+              without re-generating the page
+    - time estimate 20 mins, finish time 9:45
+    - update at 9:55
+        - took a little time getting the diff library, wan't a built version in the repo
+          that I saw, pulled it down from the online demo
+        - there is a JSON diffing method
+        - currently just logging the number of changes between assignment pairs
+            - need an efficient data structure to keep track of these things
+            - 2d array for the groups that match
+            - map for all of the assignements that are currently in any list
+                - assignment/student name is key, value is the numeric index in the
+                  first dimension of the 2d array of matching assignments
+            - should student docs be allowed to exist in two lists?
+                - in this case the map should be names -> list_indexes -> true
+                - maybe? some docs will not be close enough to each other, but could
+                  both be close enough to a third doc that they trigger the threshold
+                - teachers can look at the clusters for groups of friends?
+                - this still seems like a dangerous but necessary feature, have to try
+                  it out on some real classes
+        - new estimate 10:15
+            - build groups of matching docs
+            - add classes to show a single group
+
+------------------
+2/14/2016
+------------------
+- finish up cheating prevention
+    - for now I'm going to assume that groups that match should just
+      all be shown together
+        - no assignment will appear in more than one group of similar assignment
+        - even though this will mean that a comparison between any two assignments
+          in the group may not pass the threshold for similarity
+        - as students who do a few random modifications of a copied assignment
+          will be doing different changes, but they might have cheated from a common
+          student
+    - time estimiate 30 mins, finish 8:25
+        - still a 2d array, but the original structure for tracking who is in
+          a list will work, because individual assignments can no longer be in
+          multiple groups
+        - in this case the lookup map should be: names -> list_indexes
+
+------------------
+2/16/2016
+------------------
+- filter docs to those given by a particular group of similar student assignments
+    - for teachers to idenfiy student's copying each othes work
+    - estimate (if the CSS classes work as expected) 15 mins, finis time 10:20
+- 
+
+- TODO soon
+    - better answer check
+        - at least use Khan check for fully simplified answer
+    - should generate list of common related equality
+        - reordering multiplication of poynomials (x-1)(x+1) <=> (x+1)(x-1)
+            - inside of parens should be standard form? this is reasonable -> (1+x)
+        - decimal points vs fractions
+        - extra parens (x)^5, (4/5)x, (x)(x) vs x*x
+        - look at answer keys for more examples
+
 - pitfalls left
     - too much reliance on students entering problem numbers correctly
         - check to make sure their problem numbers are unique within an assignment

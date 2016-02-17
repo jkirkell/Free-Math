@@ -95,7 +95,8 @@ function addSingleStudentsWork(studentWork, allStudentsWorkForCurrentAnswer, def
     var newProblemHtml = 
     // TODO - update this class of answer-correct vs answer-incorrect after teacher gives a manual grade
     // add a status for partial credit, color the div yellow in this case
-    '<div class="student-work ' + 'answer-' + studentWork.autoGradeStatus + '" style="float:left"> <!-- container for nav an equation list -->' +
+    // TODO - sanitize filenames to remove spaces, need to make sure same logic is applied when I go to look up these classes
+    '<div class="student-work ' + 'answer-' + studentWork.autoGradeStatus + " student-filename-" + studentWork.studentFile + '" style="float:left"> <!-- container for nav an equation list -->' +
         '<div style="float:left" class="equation-list"></div>' + 
     '</div>';
     var studentWorkDiv = $(newProblemHtml);
@@ -226,7 +227,6 @@ function aggregateStudentWork(allStudentWork, correctAnswers) {
 //
 function addteacherSummaryPageOptions(assignmentDiv) {
 
-    assignmentDiv.empty(); 
     // TODO - finish impelmenting this
     /*
     assignmentDiv.append('<input type="checkbox" id="apply-same-grade-to-others" checked="checked">' +
@@ -294,13 +294,91 @@ function generateSimilarStudentWorkHeader(allStudentsWorkLeadingToOneAnswer, stu
             '<span class="common-student-answer">' + studentFinalAnswer + '</span></p></div>';
 }
 
+function findSimilarStudentAssignments(allStudentWork) {
+    // 2d array of student names whose docs were similar
+    var allSimilarityGroups = [];
+    // map form student names to hash lookup table (object) with group id's
+    var groupMemberships = {};
+    allStudentWork.forEach(function(assignment1, index, array) {
+        allStudentWork.forEach(function(assignment2, index, array) {
+            if (assignment1.filename == assignment2.filename) return;
+            var result = JsDiff.diffJson(assignment1, assignment2);
+            //console.log(result.length);
+            // TODO - better threshold
+            //      - need to make sure size of diffs is taken into acount
+            //      - students should match 95% of their assignments exactly and then
+            //        have unique work on 1 or two problem (this currently shows up as
+            //        a bunch of small diffs, and I'm only lookin at number of diffs here)
+            if (result.length < 5) {
+                // is the first assignment matched with at least one similarity group
+                var matchingGroup = groupMemberships[assignment1.filename];
+                console.log(groupMemberships);
+                if (matchingGroup >= 0) {
+                    if (groupMemberships[assignment2.filename] >= 0) return;
+                    allSimilarityGroups[matchingGroup].push(assignment2.filename);
+                    groupMemberships[assignment2.filename] = matchingGroup;
+                } else {
+                    groupMemberships[assignment1.filename] = allSimilarityGroups.length;
+                    groupMemberships[assignment2.filename] = allSimilarityGroups.length;
+                    allSimilarityGroups.push([assignment1.filename, assignment2.filename]);
+                }
+            }
+            //console.log(result);
+        });
+    });
+    return allSimilarityGroups;
+}
+
+function escapeRegExp(str) {
+        return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+}
+
+function replaceAll(str, find, replace) {
+      return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+}
+
+// for esacping dots in string with a double backslash, necessary for
+// selecting classes with query when they contain dots
+function escapeDots(str) {
+    return replaceAll(replaceAll(str, '.', '\\.'), '/', '\\/');
+}
+
+function addSimilarAssignmentControls(assignmentContainer, similarAssignments) {
+    var similarAssignmentFilters = $('<div class="similar-assignment-filters"><h3>Some students may have copied each others work.</h3></div>');
+    similarAssignments.forEach(function(similarityGroup, index, array) {
+        var similarAssignmentGroup = $("<p>A group of " + similarityGroup.length + " assignments had similar work &nbsp;</p>");
+        var viewButton = $('<input type="submit" value="View"/>');
+        similarAssignmentGroup.append(viewButton);
+        similarAssignmentFilters.append(similarAssignmentGroup);
+        viewButton.click(0, function(evt) {
+            $('.answer-correct').hide();
+            $('.answer-partially-correct').hide();
+            $('.answer-incorrect').hide();
+            similarityGroup.forEach(function(assignment, index, array) {
+                console.log('.' + escapeDots('student-filename-' + assignment));
+                $('.' + escapeDots('student-filename-' + assignment)).show();
+            });
+        });
+    });
+    assignmentContainer.append(similarAssignmentFilters);
+}
 
 function generateTeacherOverview(allStudentWork) {
     var confirmMessage = "Use current document as answer key and generate assignment overview?\n"
-        "Warning -  save doc now to allow you to allow reuse of answer key later";
+        "Warning -  save doc now to allow reuse of answer key later";
     if (!window.confirm(confirmMessage)) { 
         return; 
     }
+
+    var assignmentContainer = $('#assignment-container');
+    assignmentContainer.empty();
+    // To prevent students form just sharing their assignment files and submitting the same work
+    // each assignment is checked against the others for similarity.
+    // If two or more assignments are very similar (not sure how to set this threshold yet) then
+    // the teacher will be given the option to just view this group of assignments together
+    // so they can use their own judgment if the student's were cheating or not
+    var similarAssignments = findSimilarStudentAssignments(allStudentWork)
+    addSimilarAssignmentControls(assignmentContainer, similarAssignments);
     // TODO - allow teachers to set a different default value
     // with a popup at the start of the grading experience?
     // maybe the form for opening stuff to grade should be more
@@ -310,7 +388,7 @@ function generateTeacherOverview(allStudentWork) {
     var answerKey = collectAnswerKey();
     // clear global list of problems
     problems = Array();
-    addteacherSummaryPageOptions($('#assignment-container'));
+    addteacherSummaryPageOptions(assignmentContainer);
 
     var newProblemSummaryHtml = 
         '<div class="problem-summary-container" style="float:none;overflow: hidden"></div>';
@@ -327,7 +405,7 @@ function generateTeacherOverview(allStudentWork) {
     });
     aggregatedWork.forEach(function(problemSummary, index, array) {
         var newProblemDiv = $(newProblemSummaryHtml);
-        $('#assignment-container').append(newProblemDiv);
+        assignmentContainer.append(newProblemDiv);
         newProblemDiv.append('<h3>Problem number ' + problemSummary.problemNumber + 
             '</h3> Total incorrect answers ' + problemSummary.totalIncorrect + '<p>' + 
             'Possible points &nbsp;<input type="text" class="possible-points-input" width="4" value="' + defaultPointsPerProblem + '"/></p>');

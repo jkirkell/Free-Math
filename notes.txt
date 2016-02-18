@@ -872,7 +872,17 @@ Work on 1/10/2016
 - filter docs to those given by a particular group of similar student assignments
     - for teachers to idenfiy student's copying each othes work
     - estimate (if the CSS classes work as expected) 15 mins, finis time 10:20
-- 
+        - ended up needing to escapde . and / in the class names
+        - little extra debugging as well
+        - actual finish time 11
+- Answer key appears to be broken
+    - investigating, check back at 11:15
+    - fixed, finish time 11:20
+
+------------------
+2/17/2016
+------------------
+- Added some styles to to the filters for correct, incorrect and partially correct work
 
 - TODO soon
     - better answer check

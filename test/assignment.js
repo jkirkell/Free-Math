@@ -146,20 +146,31 @@ function aggregateStudentWork(allStudentWork, correctAnswers) {
     // used to simplify filling in a flag for missing work if a student does not do a problem
     // structure: { "1.1" : { "jason" :true, "taylor" : true }
     var studentWorkFound = {};
+    console.log(correctAnswers);
     allStudentWork.forEach(function(assignInfo, index, array) {
         assignInfo.assignment.problems.forEach(function(problem, index, array) {
+            console.log(problem);
             var studentAnswer = problem.steps[problem.steps.length - 1];
             var autoGrade = "incorrect";
             var correct = false;
-            if (correctAnswers.length > 0) {
-                $.each(correctAnswers[problem.problemNumber], function(index, answer) {
-                    var expr1 = KAS.parse(answer).expr;
-                    var expr2 = KAS.parse(studentAnswer).expr;
-                    if (KAS.compare(expr1, expr2).equal) {
-                        autoGrade = "correct";
-                        return false; // early terminate loop
-                    }
-                });
+            // TODO - fixme, correctAnswers is not an array, it is currently a map, as the keys can be
+            // non integers like 1.1 or 5.b
+            if (!$.isEmptyObject(correctAnswers)) {
+                // this problem did not appear in the answer key
+                if (!correctAnswers[problem.problemNumber]) {
+                    autoGrade = "incorrect";
+                } else {
+                    $.each(correctAnswers[problem.problemNumber], function(index, answer) {
+                        console.log(answer);
+                        console.log(studentAnswer);
+                        var expr1 = KAS.parse(answer).expr;
+                        var expr2 = KAS.parse(studentAnswer).expr;
+                        if (KAS.compare(expr1, expr2).equal) {
+                            autoGrade = "correct";
+                            return false; // early terminate loop
+                        }
+                    });
+                }
             }
 
             // write into the abreviated list of problems completed, used below to fill in placeholder for
@@ -236,14 +247,18 @@ function addteacherSummaryPageOptions(assignmentDiv) {
             ' - Hover for Info</span><br><br>');
     */        
     assignmentDiv.append(
-    '<label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked">Show student names (or grade anonymously)</label><br><br>' + 
-    'Show Answers that are: &nbsp;' + 
-    '<label>&nbsp;<input type="checkbox" id="show-incorrect" checked="checked">incorrect</label>' + 
-    // this is unchecked programmatically to hide all of the correct work by default
-    // there was a weird bug where parens weren't showing up with other attempts to hide
-    // it programatically
-    '<label>&nbsp;<input type="checkbox" id="show-partially-correct" checked="checked">partially correct</label>' + 
-    '<label>&nbsp;<input type="checkbox" id="show-correct" checked="checked">correct</label><br>');
+    '<div class="assignment-filters">' + 
+        '<div style="width:100%;overflow:hidden">' +
+            '<div style="float:left">Show Student Work that is:</div>' + 
+            '<div class="show-incorrect-div"><label><input type="checkbox" id="show-incorrect" checked="checked">incorrect</label></div>' + 
+            // this is unchecked programmatically to hide all of the correct work by default
+            // there was a weird bug where parens weren't showing up with other attempts to hide
+            // it programatically
+            '<div class="show-partially-correct-div"><label><input type="checkbox" id="show-partially-correct" checked="checked">partially correct</label></div>' + 
+            '<div class="show-correct-div"><label><input type="checkbox" id="show-correct" checked="checked">correct</label></div>' +
+        '</div>' +
+        '<div><label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked">Show student names (or grade anonymously)</label></div>' + 
+    '</div>');
 
     //apply-same-grade-to-others
     $('#show-correct').change(function() {
@@ -344,6 +359,7 @@ function escapeDots(str) {
 }
 
 function addSimilarAssignmentControls(assignmentContainer, similarAssignments) {
+    if (similarAssignments.length == 0) return;
     var similarAssignmentFilters = $('<div class="similar-assignment-filters"><h3>Some students may have copied each others work.</h3></div>');
     similarAssignments.forEach(function(similarityGroup, index, array) {
         var similarAssignmentGroup = $("<p>A group of " + similarityGroup.length + " assignments had similar work &nbsp;</p>");

@@ -73,12 +73,41 @@ div.answer-correct {
     background-color:#D0FFC9;
 }
 
+div.show-correct-div {
+    background-color:#D0FFC9;
+    border-radius: 2px;
+    float: left;
+    margin: 5px 5px 5px 5px;
+    padding: 5px 5px 5px 5px;
+}
+
+div.show-incorrect-div {
+    background-color:#FFDEDE;
+    border-radius: 2px;
+    float: left;
+    margin: 5px 5px 5px 5px;
+    padding: 5px 5px 5px 5px;
+}
+
+div.show-partially-correct-div {
+    background-color:#FFFDBF;
+    border-radius: 2px;
+    float: left;
+    margin: 5px 5px 5px 5px;
+    padding: 5px 5px 5px 5px;
+}
+
 div.similar-assignment-filters {
     border:1px solid black;
     margin: 15px 15px 15px 15px;
     padding: 15px 15px 15px 15px;
     border:1px solid black;
-    background-color:#D1EDFC;
+    background-color:#FFFDBF;
+}
+
+div.assignment-filters {
+    margin: 15px 15px 15px 15px;
+    padding: 15px 15px 15px 15px;
 }
 
 div.similar-student-answers {

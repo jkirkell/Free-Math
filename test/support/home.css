@@ -74,6 +74,7 @@ div.answer-correct {
 }
 
 div.show-correct-div {
+    border:1px solid black;
     background-color:#D0FFC9;
     border-radius: 2px;
     float: left;
@@ -82,6 +83,7 @@ div.show-correct-div {
 }
 
 div.show-incorrect-div {
+    border:1px solid black;
     background-color:#FFDEDE;
     border-radius: 2px;
     float: left;
@@ -90,6 +92,7 @@ div.show-incorrect-div {
 }
 
 div.show-partially-correct-div {
+    border:1px solid black;
     background-color:#FFFDBF;
     border-radius: 2px;
     float: left;

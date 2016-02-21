@@ -883,6 +883,9 @@ Work on 1/10/2016
 2/17/2016
 ------------------
 - Added some styles to to the filters for correct, incorrect and partially correct work
+- need to organize and test the code
+    - still not sure if React is the right way to go here, but a separated front-end and model is
+      definitely the best option
 
 - TODO soon
     - better answer check

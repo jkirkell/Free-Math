@@ -887,19 +887,44 @@ Work on 1/10/2016
     - still not sure if React is the right way to go here, but a separated front-end and model is
       definitely the best option
 
+------------------
+2/20/2016
+------------------
+- adding unit tests
+    - refactor problem component into separated data model and front-end
+
+------------------
+2/27/2016
+------------------
+- 
+
 - TODO soon
     - better answer check
         - at least use Khan check for fully simplified answer
-    - should generate list of common related equality
+        - should try to write expression comparison using basic recursion
+            - most of what I want to allow simply involved swaping the order of additions, multiplications
+              or expressions appearing on opposite sides of an equation
+    - should generate list of common related equality checks I want to implement
         - reordering multiplication of poynomials (x-1)(x+1) <=> (x+1)(x-1)
             - inside of parens should be standard form? this is reasonable -> (1+x)
+            - don't think the default should be 0 points in this case, default may be best to give full credit
         - decimal points vs fractions
         - extra parens (x)^5, (4/5)x, (x)(x) vs x*x
+        - flipping the two side of an equation
+        - alphabetical order in terms with mutliple variables 3xyz, 5zy
+        - alphabetical order of terms with the same power 3x+5a
         - look at answer keys for more examples
 
 - pitfalls left
     - too much reliance on students entering problem numbers correctly
         - check to make sure their problem numbers are unique within an assignment
+            - that they don't have 3 or the same number
+        - if a problem appears without a nubmer, or with one that doesn't match up with their peers
+          keep track of where it appeared in the assignment
+            - if it appears between two problems with correct numbers it can be shown in what should
+              be the correct position in the list, need to decide if it just gets thrown into
+              the expected group or if it appears in a "mismatched problem numbers" section where
+              the teacher has to give a number
     - on the teacher side, correcting ambiguities/different formats for problem numbers
         - start off with a page with all of the work that problem numbers that didn't match
         - would be useful to create the thing that takes an assignment description and

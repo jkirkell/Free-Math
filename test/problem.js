@@ -15,6 +15,13 @@
     along with OpenNotebook-Web.  If not, see <http://www.gnu.org/licenses/>. 
 */
 
+// {"problemNumber":"1","steps":["2x+5+x", "3x+5"]}
+//
+//
+var problemModel = {
+
+};
+
 var newProblemHtml = 
 '<div class="problem-container" style="float:none;overflow: hidden"> <!-- container for nav an equation list -->' +
 '<div>Problem number <input type="text" class="problem-number"/></div>' +

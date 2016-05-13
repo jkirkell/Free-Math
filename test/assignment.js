@@ -32,6 +32,17 @@ function newAssignment(assignmentName) {
         assignmentName = 'Untitled Assignment';
     }
     var assignmentNameHTML = 
+'<p>Use the box below to write an equation. When you want to modify it to solve your math problem click ' +
+'the "next step" button to copy your expression or equation and edit it on the next line to show your work. ' +
+'This tool is designed to take care of some of the busywork of math, which makes it easier to record all ' +
+'of your thinking without a bunch of manual copying.</p>' +
+
+//<!-- p> Undo and redo buttons can be used to edit your work.</p -->
+//<!-- p> For faster usage, note the keyboard shortcuts given on each button </p -->
+'<p> For example, try typing to following expression and simplifying it, even if you can do' +
+'parts of it in your head, use the tool to make sure you show your work. ' +
+'<span class="mathquill-static-math" >4-9\\left(\\frac{2}{3}\\right)^2+\\frac{4}{5-3\\cdot 4}</span></p>' +
+
 'Assignment Name <input type="text" id="assignment-name-text" name="assignment name" value="' + assignmentName + '"/>' + 
 '<input type="submit" id="save-assignment" name="save assignment" value="save assignment"/> </br>';
 
@@ -39,6 +50,7 @@ function newAssignment(assignmentName) {
     $('#save-assignment').click(function() {
         saveAssignment();
     });
+        var result = MathQuill.StaticMath($('.mathquill-static-math')[0]);
 }
 
 function collectAnswerKey() {

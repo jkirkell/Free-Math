@@ -896,7 +896,33 @@ Work on 1/10/2016
 ------------------
 2/27/2016
 ------------------
-- 
+
+
+------------------
+4/10/2016
+------------------
+- it's been a while...
+- in the meantime, I met Han the author of Mathquill
+    - need to follow up on this, I said I was interested in
+      contributing and it would be a good way to learn JS
+
+------------------
+4/11/2016
+------------------
+- review current features, look through the code
+    - time 10 minutes, finish 8:35
+    - notes from playing with the interface
+        - if teacher forgets to select "Don't apply score to similar student work"
+          while giving a custom score to one student (maybe because of lack of work shown)
+          they will clobber all of the other custom scores given
+            - will probably need global undo-redo for the teacher grading interface
+            - would be best not to implement hacky undo-redo this time
+                - should specify all current modification to state in a way that
+                  they are reversable
+        - automatic select all when clicking on score for editing?
+            - so teachers don't have to delete the 0 every time
+        - count of total incorrect answers at the top of a problem does not update
+          as the teacher changes scores
 
 - TODO soon
     - better answer check

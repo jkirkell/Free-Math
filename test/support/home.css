@@ -1,13 +1,35 @@
+.menuBar{
+    padding: 10px 10px 10px 10px;
+    border:1px solid black;
+    width:100%;
+    display:block;
+    position:fixed;
+    background-color: #032336;
+    color : #eeeeee;
+    top:0;
+    left:0;
+    }
+.logo{
+    float:left;
+    }
+.nav{
+    float:none;
+    margin-right:10px;}
+.nav ul li{
+    list-style:none;
+    float:left;
+    }
+
 html {
   height: 100%;
 }
 body {
   min-height: 100%;
   max-width: 95%;
-  margin: 0 auto;
   font-family: Georgia, serif;
+  margin-top:40px;
   color: black;
-  background-color: white;
+  background-color: #eeeeee;
 }
 #body {
   padding: 1em;
@@ -129,8 +151,8 @@ div.student-work {
 }
 
 div.problem-container {
-    border:1px solid black;
-    background-color:#DDEDFC;
+    /* border:1px solid black; */
+    background-color:#D2DFE6;
     margin: 15px 15px 15px 15px;
     padding: 15px 15px 15px 15px;
     box-shadow: 0 10px 6px -6px #777;
@@ -141,6 +163,6 @@ span.solution-step {
 }
 
 #assignment-container {
-    margin: 15px 15px 15px 15px;
-    padding: 15px 15px 15px 15px;
+    margin: 5px 5px 5px 5px;
+    padding: 5px 5px 5px 5px;
 }

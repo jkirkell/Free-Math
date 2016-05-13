@@ -25,6 +25,7 @@ var problemModel = {
 var newProblemHtml = 
 '<div class="problem-container" style="float:none;overflow: hidden"> <!-- container for nav an equation list -->' +
 '<div>Problem number <input type="text" class="problem-number"/></div>' +
+'<br>' +
 '<div style="float:left"><!-- container for buttons -->' +
 '<p> Actions </p>' +
 '<input type="submit" class="next-step" name="next step" value="next step (ctrl-e)"/> <br>' +
@@ -33,11 +34,11 @@ var newProblemHtml =
 '</div>' +
 '<!-- div to store the steps in the solution -->' +
 '<div style="float:left" class="equation-list">' +
-'<p> List of expressions </p>' +
+'<p> Type math here </p>' +
 '</div>' + 
 '</div> <!-- end of one problem container -->';
 
-function newProblem(insertEmptyStep) {
+function newProblem(insertEmptyStep, firstProblem = false) {
     // prevent students from moving on unless the last problem has a number
     var lastProblem = $('#assignment-container').find('.problem-container').last();
     if(lastProblem[0] && lastProblem.find('.problem-number').last().val().trim() === '') {

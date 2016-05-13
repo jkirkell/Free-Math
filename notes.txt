@@ -923,6 +923,13 @@ Work on 1/10/2016
             - so teachers don't have to delete the 0 every time
         - count of total incorrect answers at the top of a problem does not update
           as the teacher changes scores
+------------------
+4/12/2016
+------------------
+- trying to clean up the UI/styles so this could be reasonably used by a random person
+- put in a floating top menu bar
+- put in some nicer colors
+- made the into at the top shorter, removed it on the teacher page
 
 - TODO soon
     - better answer check

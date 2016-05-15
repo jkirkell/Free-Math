@@ -915,6 +915,8 @@ Work on 1/10/2016
         - if teacher forgets to select "Don't apply score to similar student work"
           while giving a custom score to one student (maybe because of lack of work shown)
           they will clobber all of the other custom scores given
+        - this might be fixed simly by providing two boxes instead of a checkbox
+                - grade for this student, grade to apply here and to similar answers
             - will probably need global undo-redo for the teacher grading interface
             - would be best not to implement hacky undo-redo this time
                 - should specify all current modification to state in a way that
@@ -923,6 +925,7 @@ Work on 1/10/2016
             - so teachers don't have to delete the 0 every time
         - count of total incorrect answers at the top of a problem does not update
           as the teacher changes scores
+
 ------------------
 4/12/2016
 ------------------
@@ -931,6 +934,87 @@ Work on 1/10/2016
 - put in some nicer colors
 - made the into at the top shorter, removed it on the teacher page
 
+------------------
+4/14/2016
+------------------
+- Goals for this weekend
+    - Reorganize code to split application logic from presentation
+    - add tests for backend
+    - if possible add test for front-end
+    - finish complete experience without new features
+        - saving docs back for upload to Moodle
+        - generate student score summary CSV file
+    - finish some docs on how to use mathquill
+        - mostly just how to make the supported symbols
+    - stretch goals
+        - keyboard for advanced symbols
+            - don't try to work on auto-complete for symbols by name unless
+              I get done with everything else
+        - improve application features
+            - better equation comparison algorithm
+                - use KAS as a starting point, simpler code than Mathquill as it
+                  does not have presentation/UI tied into the tree
+            - better cheating prevention detection
+- First task
+    - removing Mathquill from the equation, try to move the application to
+      use Redox/React with text boxes for students giving step-by-step answers
+    - go back to the videos Mike used to teach Redux
+        - create a basic app for the student experience
+        - time estimate 1 hour, finish time 12:35
+        - thing I'd like to try to do with the app rewrite
+            - I've never liked using bare strings in different places that happen to match
+              to link things together
+                - going to try to competely eliminate them in this application
+                - one sticking point is JSON literals
+                    - I'd like to refer to gobal constants, so I never mistype keys
+                      and fail to catch resulting bugs
+                - in ES5, you could not use a variable (or constant) in a key
+                    - this is solvable with ES 6
+                    - introduces constants and evaluation of keys
+                    - see here: http://stackoverflow.com/questions/4117214/using-constants-as-indices-for-javascript-associative-arrays
+                    - for now stick with ES 5
+        - regrouping at 1:30
+            - got a basic redux model and reducer function set up
+            - thought more about how to work with Mathquill
+                - I don't have to worry about the fact that it carries it's own state
+                - I can listen to edit events, or poll for changes to a given equation
+                    - on deselect, keypress, mathquill might also have an edit event
+                    - I just need to put the keys from the back-end model into the DOM
+                      do I can fire state change events
+        - work starting at 5:10
+            - got a basic data model together for the app
+            - I"m going to get a little more working end to end and then circle back to add tests
+            - use react to create a basic UI for the student experience
+            - time estimate 30 mins, finish 5:40
+    - notes from Redux videos
+        - https://egghead.io/lessons/javascript-redux-the-single-immutable-state-tree?series=getting-started-with-redux
+        - All of the state of your app is contained in a single JS object
+            - called "state" or "state tree"
+        - the state tree is read-only
+            - need to dispatch an action
+            - plain JS object that describes a minimal change of the tree
+            - needs to have a type property, reccomended to use Strings for easy serialization
+        - side note - pure functions
+            - pure functions only rely on their inputs
+            - no side effects
+            - no state
+            - does not mutate the inputs
+        - UI layer is most predicatble if it is a pure function of the app state
+            - Redux extends this to say, state mutations are pure functions that take prev state and action
+                - returns the next state
+            - This is done in a reducer function
+                - it does not modify the previous state object
+                - but you can still be fast by re-using subsets that have not been changed
+                    - this is safe because any future state changes will also be done by the
+                      the same pure function
+        - initial state
+            - by convention when passed undefined as the state the reducer should 
+              materialize the inital state
+        - Redux store binds together the 3 principles of redux
+            - current app state
+            - let's you dispatch actions
+            - when you create it you specify the reducer function
+        
 - TODO soon
     - better answer check
         - at least use Khan check for fully simplified answer

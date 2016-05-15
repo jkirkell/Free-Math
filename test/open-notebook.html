@@ -24,20 +24,92 @@
 
 <link rel="stylesheet" type="text/css" href="../build/mathquill.css">
 
+<script src="react/build/react.js"></script>
+<script src="react/build/react-dom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
 <script type="text/javascript" src="support/jquery-1.7.2.js"></script>
 <script type="text/javascript" src="../build/mathquill-basic.js"></script>
+<script type="text/javascript" src="https://npmcdn.com/redux@3.5.2/dist/redux.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.12.0/lodash.js"></script>
 <script type="text/javascript">
 
+<!-- Learning Redux -->
 
+const UNTITLED_ASSINGMENT = 'Untitled Assignment';
+
+// Application state properties
+// TODO - use these as the actual keys in object literals in the reducer
+// when I have ES6 and Babel
+
+// Redux things
+var type = 'type';
+
+// Application modes
+var APP_MODE = 'APP_MODE';
+var EDIT_ASSIGNMENT = 'EDIT_ASSIGNMENT';
+var GRADE_ASSIGNMENTS = 'GRADE_ASSIGNMENTS';
+
+// Assignment properties
+var ASSIGNMENT_NAME = 'ASSIGNMENT_NAME';
+var PROBLEMS = 'PROBLEMS';
+
+// Problem properties
+var PROBLEM_NUMBER = 'PROBLEM_NUMBER';
+var STEPS = 'STEPS';
+
+// actions
+var ADD_PROBLEM = 'ADD_PROBLEM';
+var REMOVE_PROBLEM = 'REMOVE_PROBLEM';
+var EDIT_STEP = 'EDIT_STEP';
+// TODO - decide if I want to add a feature to splice in
+// a new step partway through a current problem
+var NEW_STEP = 'NEW_STEP';
+var UNDO_STEP = 'UNDO_STEP';
+var REDO_STEP = 'REDO_STEP';
+
+function assignment(state, action) {
+    if (state === undefined) {
+        return {
+            APP_MODE : EDIT_ASSIGNMENT,
+            ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
+            PROBLEMS : [ { PROBLEM_NUMBER : "", STEPS : [] } ]
+        }
+    }
+    
+    if (action.type === ADD_PROBLEM) {
+        var new_problems = _.clone(state[PROBLEMS]);
+        new_problems.push({ PROBLEM_NUMBER : "", STEPS : [] });
+        var new_state = _.clone(state);
+        new_state[PROBLEMS] = new_problems; 
+        return new_state;
+    }
+    return state;
+}
+
+var createStore = Redux.createStore;
+var store = createStore(assignment);
+
+console.log(store.getState());
+
+function render() {
+    console.log(document);
+    document.getElementById("answer").innerHTML = JSON.stringify(store.getState());
+}
+
+store.subscribe(render);
 $(function() {
-  MathQuill.interfaceVersion(1);
-  var answerSpan = document.getElementById('answer');
-  var answerMathField = MathQuill.MathField(answerSpan);
+    render();
+    var el = document.getElementById("answer");
+    el.addEventListener('click', function() {
+        console.log('clicked');
+        store.dispatch({type : ADD_PROBLEM});
+    });
 });
 
 </script>
 </head>
 <body>
-<p><span id="answer">x=</span></p>
+<p><span id="answer"></span></p>
 </body>
 </html>

@@ -23,18 +23,44 @@
 <title>Open Notebook</title>
 
 <link rel="stylesheet" type="text/css" href="../build/mathquill.css">
+<!-- testing -->
+<script src="https://npmcdn.com/expect/umd/expect.min.js"></script>
 
+<!-- UI react-->
 <script src="react/build/react.js"></script>
 <script src="react/build/react-dom.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+<!-- input sanitiation --> 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
+
+<!-- Only use this for MathQuill! --> 
 <script type="text/javascript" src="support/jquery-1.7.2.js"></script>
+
 <script type="text/javascript" src="../build/mathquill-basic.js"></script>
+<!-- App state management -->
 <script type="text/javascript" src="https://npmcdn.com/redux@3.5.2/dist/redux.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.12.0/lodash.js"></script>
-<script type="text/javascript">
+<script type="text/babel">
 
-<!-- Learning Redux -->
+// copied from here, didn't seem worth adding a dependency, I'm sure the JS people will cure me of that eventually...
+// https://github.com/substack/deep-freeze/blob/master/index.js
+function deepFreeze (o) {
+  Object.freeze(o);
+
+  Object.getOwnPropertyNames(o).forEach(function (prop) {
+    if (o.hasOwnProperty(prop)
+    && o[prop] !== null
+    && (typeof o[prop] === "object" || typeof o[prop] === "function")
+    && !Object.isFrozen(o[prop])) {
+      deepFreeze(o[prop]);
+    }
+  });
+  
+  return o;
+};
+
+//Learning Redux
 
 const UNTITLED_ASSINGMENT = 'Untitled Assignment';
 
@@ -90,26 +116,37 @@ function assignment(state, action) {
 var createStore = Redux.createStore;
 var store = createStore(assignment);
 
-console.log(store.getState());
-
 function render() {
     console.log(document);
-    document.getElementById("answer").innerHTML = JSON.stringify(store.getState());
+    ReactDOM.render(
+        <OpenNotebook value={store.getState()} />,
+        document.getElementById('root')
+    );
 }
+
+var OpenNotebook = React.createClass({
+  render: function() {
+    console.log(this.props);
+    // TODO - figure out how to best switch between teacher and
+    // student mode rendering
+    if (this.props.value[APP_MODE] === EDIT_ASSIGNMENT) {
+        return (
+          <div className="commentBox">
+          <h1>{this.props.value[APP_MODE]}</h1>
+          </div>
+        );
+    }
+  }
+});
 
 store.subscribe(render);
 $(function() {
     render();
-    var el = document.getElementById("answer");
-    el.addEventListener('click', function() {
-        console.log('clicked');
-        store.dispatch({type : ADD_PROBLEM});
-    });
 });
 
 </script>
 </head>
 <body>
-<p><span id="answer"></span></p>
+<div id="root"></div>
 </body>
 </html>

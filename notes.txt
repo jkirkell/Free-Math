@@ -986,6 +986,9 @@ Work on 1/10/2016
             - I"m going to get a little more working end to end and then circle back to add tests
             - use react to create a basic UI for the student experience
             - time estimate 30 mins, finish 5:40
+                - watched some more videos no redux, didn't make progress here
+            - I'll fill out the rest of the actions for my basic student assignment reducer and add some tests
+                - time estimate 20 mins, finish 6:00
     - notes from Redux videos
         - https://egghead.io/lessons/javascript-redux-the-single-immutable-state-tree?series=getting-started-with-redux
         - All of the state of your app is contained in a single JS object

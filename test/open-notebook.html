@@ -23,6 +23,7 @@
 <title>Open Notebook</title>
 
 <link rel="stylesheet" type="text/css" href="../build/mathquill.css">
+<link rel="stylesheet" type="text/css" href="support/home.css">
 <!-- testing -->
 <script src="https://npmcdn.com/expect/umd/expect.min.js"></script>
 
@@ -131,9 +132,19 @@ var OpenNotebook = React.createClass({
     // student mode rendering
     if (this.props.value[APP_MODE] === EDIT_ASSIGNMENT) {
         return (
-          <div className="commentBox">
-          <h1>{this.props.value[APP_MODE]}</h1>
-          </div>
+            <div className="problem-container" style={{float:'none',overflow: 'hidden'}}>
+                <div>Problem number <input type="text" className="problem-number"/></div>
+                <br/>
+                <div style={{float:'left'}}>
+                    <p> Actions </p>
+                    <input type="submit" className="next-step" name="next step" value="next step (ctrl-e)"/> <br/>
+                    <input type="submit" className="undo-step" name="undo step" value="undo step (ctrl-z)"/> <br/>
+                    <input type="submit" className="redo-step" name="redo step" value="redo step (ctrl-shift-z)"/>
+                </div>
+                    <div style={{float:'left'}} className="equation-list">
+                    <p> Type math here </p>
+                </div>
+            </div>
         );
     }
   }

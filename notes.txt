@@ -1025,6 +1025,12 @@ Work on 1/10/2016
   at least in part
 - next I need to work on filling out the reducer and rendering for mulitple steps
     - first implement the reducer with tests
+- added a bunch of new actions to my reducer
+    - addProblem, removeProblem, renameProbelm, editStep, newStep
+    - these test currently are all written against the root reducer, I could make them shorter by
+      hitting the second or third level reducers
+        - although this wouldn't test the dispatch between the different levels
+- work on getting the existing functionality hooked up to the front-end
         
 - TODO soon
     - better answer check

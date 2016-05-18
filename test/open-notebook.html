@@ -129,11 +129,13 @@ function problem(problem, action) {
         var newNamedProb = _.clone(problem)
         newNamedProb[PROBLEM_NUMBER] = action[NEW_PROBLEM_NUMBER];
         return newNamedProb;
-    } else  if (action.type === EDIT_STEP) {
-        
-// PROBLEM_INDEX - for which problem to change
-// STEP_INDEX - index into the work steps for the given problem
-// NEW_STEP_CONTENT - string for the new expression to write in this step
+    } else if (action.type === EDIT_STEP) {
+        // TODO - I should avoid using cloneDeep, I think it migh be okay here though
+        var editedProb = _.cloneDeep(problem)
+        console.log(editedProb);
+        editedProb.STEPS[action.STEP_INDEX] = action.NEW_STEP_CONTENT;
+        console.log(editedProb);
+        return editedProb;
     } else if (action.type === NEW_STEP) {
     } else {
         return problem;
@@ -283,11 +285,33 @@ function testRenameProblem() {
     ).toEqual(expectedAssignment);
 }
 
+function testEditStep() {
+    var initialAssignment = {
+        APP_MODE : EDIT_ASSIGNMENT,
+        ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] }
+        ]
+    }
+    var expectedAssignment = {
+        APP_MODE : EDIT_ASSIGNMENT,
+        ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "5"] }
+        ]
+    }
+    deepFreeze(initialAssignment);
+    expect(
+        assignment(initialAssignment, { type : EDIT_STEP, PROBLEM_INDEX : 1, STEP_INDEX : 1, NEW_STEP_CONTENT : "5"})
+    ).toEqual(expectedAssignment);
+}
+
 // Run tests
 // TODO - seperate these from app code
 testAddProblem();
 testRemoveProblem();
 testRenameProblem();
+testEditStep();
 
 </script>
 </head>

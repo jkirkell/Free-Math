@@ -28,8 +28,8 @@
 <script src="../expect.min.js"></script>
 
 <!-- UI react-->
-<script src="react/build/react.min.js"></script>
-<script src="react/build/react-dom.min.js"></script>
+<script src="react/build/react.js"></script>
+<script src="react/build/react-dom.js"></script>
 
 <script src="../babel.min.js"></script>
 <!-- input sanitiation --> 
@@ -146,7 +146,9 @@ function problem(problem, action) {
 
 function problems(probList, action) {
     if (probList === undefined) {
-        return [ { PROBLEM_NUMBER : "", STEPS : [""] } ];
+        return [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
+                 { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2", "2"] } ];
+        //return [ { PROBLEM_NUMBER : "", STEPS : [""] } ];
     }
 
     if (action.type === ADD_PROBLEM) {
@@ -194,15 +196,11 @@ function render() {
     );
 }
 
-var OpenNotebook = React.createClass({
-  render: function() {
-    console.log(this.props);
-    // TODO - figure out how to best switch between teacher and
-    // student mode rendering
-    if (this.props.value[APP_MODE] === EDIT_ASSIGNMENT) {
+var Problem = React.createClass({
+    render: function() {
         return (
             <div className="problem-container" style={{float:'none',overflow: 'hidden'}}>
-                <div>Problem number <input type="text" className="problem-number"/></div>
+                <div>Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number"/></div>
                 <br/>
                 <div style={{float:'left'}}>
                     <p> Actions </p>
@@ -212,9 +210,54 @@ var OpenNotebook = React.createClass({
                 </div>
                     <div style={{float:'left'}} className="equation-list">
                     <p> Type math here </p>
+                    {this.props.value[STEPS].map(function(step) {
+                        return (
+                          <div><input type='text' value={step}/></div>
+                        );
+                    })}
                 </div>
             </div>
         );
+    }
+});
+
+var Assignment = React.createClass({
+    render: function() {
+      var defaultEqtn = "4-9\\left(\\frac{2}{3}\\right)^2+\\frac{4}{5-3\\cdot 4}";
+      return (
+        <div id="assignment-container">
+        <p>Open Notebook allows you to complete your math homework on your computer. The first problem has been created for you,
+           use the box below to write an equation. When you want to modify it to solve your math problem click
+           the "next step" button to copy your expression or equation and edit it on the next line to show your work.
+           This tool is designed to take care of some of the busywork of math, which makes it easier to record all
+           of your thinking without a bunch of manual copying.</p>
+
+        <p> For example, try typing to following expression and simplifying it, even if you can do
+        parts of it in your head, use the tool to make sure you show your work. {defaultEqtn}
+        <span className="mathquill-static-math" ></span></p>
+
+        Assignment Name <input type="text" id="assignment-name-text" name="assignment name" value={this.props.value[ASSIGNMENT_NAME]}/>
+        <input type="submit" id="save-assignment" name="save assignment" value="save assignment"/> <br/>
+        {this.props.value[PROBLEMS].map(function(problem) {
+            return (
+              <Problem value={problem}/>
+            );
+        })}
+        <button>Add Problem</button>
+        </div>
+      )
+    }
+});
+
+var OpenNotebook = React.createClass({
+  render: function() {
+    console.log(this.props);
+    // TODO - figure out how to best switch between teacher and
+    // student mode rendering
+    if (this.props.value[APP_MODE] === EDIT_ASSIGNMENT) {
+      return (
+        <Assignment value={this.props.value}/>
+      );
     }
   }
 });

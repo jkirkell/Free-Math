@@ -100,16 +100,20 @@ function assignment(state, action) {
         return {
             APP_MODE : EDIT_ASSIGNMENT,
             ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-            PROBLEMS : [ { PROBLEM_NUMBER : "", STEPS : [] } ]
+            PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
+                         { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] }
+            ]
         }
     }
     
     if (action.type === ADD_PROBLEM) {
         var new_problems = _.clone(state[PROBLEMS]);
-        new_problems.push({ PROBLEM_NUMBER : "", STEPS : [] });
+        new_problems.push({ PROBLEM_NUMBER : "", STEPS : [""] });
         var new_state = _.clone(state);
         new_state[PROBLEMS] = new_problems; 
         return new_state;
+    } else if (action.type === NEW_STEP) {
+
     }
     return state;
 }

@@ -95,6 +95,8 @@ var REMOVE_PROBLEM = 'REMOVE_PROBLEM';
 // problemIndex - for which problem to change
 // newProblemNumber - string with problem number, not a numberic
 //                    type because the problem might be 1.a, etc.
+var PROBLEM_INDEX = 'PROBLEM_INDEX';
+var NEW_PROBLEM_NUMBER = 'NEW_PROBLEM_NUMBER';
 var SET_PROBLEM_NUMBER = 'SET_PROBLEM_NUMBER';
 // this action expects:
 // problemIndex - for which problem to change
@@ -123,10 +125,17 @@ function problems(probList, action) {
         return _.clone(probList).concat([{ PROBLEM_NUMBER : "", STEPS : [""] }]);
     } else if (action.type === REMOVE_PROBLEM) {
         return [
-            ...probList.slice(0, action.index),
-            ...probList.slice(action.index + 1)
+            ...probList.slice(0, action.PROBLEM_INDEX),
+            ...probList.slice(action.PROBLEM_INDEX + 1)
         ];
     } else if (action.type === SET_PROBLEM_NUMBER) {
+        var newNamedProb = _.clone(probList[action.PROBLEM_INDEX])
+        newNamedProb[PROBLEM_NUMBER] = action[NEW_PROBLEM_NUMBER];
+        return [ 
+            ...probList.slice(0, action.PROBLEM_INDEX),
+            newNamedProb,
+            ...probList.slice(action.PROBLEM_INDEX + 1)
+        ]
     } else if (action.type === NEW_STEP) {
     } else {
         return probList;
@@ -226,7 +235,28 @@ function testRemoveProblem() {
     }
     deepFreeze(initialAssignment);
     expect(
-        assignment(initialAssignment, { type : REMOVE_PROBLEM, index : 1 })
+        assignment(initialAssignment, { type : REMOVE_PROBLEM, PROBLEM_INDEX : 1 })
+    ).toEqual(expectedAssignment);
+}
+
+function testRenameProblem() {
+    var initialAssignment = {
+        APP_MODE : EDIT_ASSIGNMENT,
+        ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] }
+        ]
+    }
+    var expectedAssignment = {
+        APP_MODE : EDIT_ASSIGNMENT,
+        ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
+                     { PROBLEM_NUMBER : "1.a", STEPS : ["4-2", "2"] }
+        ]
+    }
+    deepFreeze(initialAssignment);
+    expect(
+        assignment(initialAssignment, { type : SET_PROBLEM_NUMBER, PROBLEM_INDEX : 1, NEW_PROBLEM_NUMBER : "1.a"})
     ).toEqual(expectedAssignment);
 }
 
@@ -234,6 +264,7 @@ function testRemoveProblem() {
 // TODO - seperate these from app code
 testAddProblem();
 testRemoveProblem();
+testRenameProblem();
 
 </script>
 </head>

@@ -1017,6 +1017,14 @@ Work on 1/10/2016
             - current app state
             - let's you dispatch actions
             - when you create it you specify the reducer function
+
+------------------
+4/17/2016
+------------------
+- this morning I got my react based rendering for the student problem interface working
+  at least in part
+- next I need to work on filling out the reducer and rendering for mulitple steps
+    - first implement the reducer with tests
         
 - TODO soon
     - better answer check

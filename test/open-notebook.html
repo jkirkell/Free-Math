@@ -87,6 +87,8 @@ var STEPS = 'STEPS';
 
 // actions
 var ADD_PROBLEM = 'ADD_PROBLEM';
+// remove problem expects an "index" property 
+// specifying which problem to remove
 var REMOVE_PROBLEM = 'REMOVE_PROBLEM';
 var EDIT_STEP = 'EDIT_STEP';
 // TODO - decide if I want to add a feature to splice in
@@ -100,9 +102,7 @@ function assignment(state, action) {
         return {
             APP_MODE : EDIT_ASSIGNMENT,
             ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-            PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
-                         { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] }
-            ]
+            PROBLEMS : [ { PROBLEM_NUMBER : "", STEPS : [""] } ]
         }
     }
     
@@ -112,10 +112,18 @@ function assignment(state, action) {
         var new_state = _.clone(state);
         new_state[PROBLEMS] = new_problems; 
         return new_state;
+    } else if (action.type === REMOVE_PROBLEM) {
+        var new_state = _.clone(state);
+        var old_problems = new_state[PROBLEMS];
+        new_state[PROBLEMS] = old_problems
+            .slice(0, action.index)
+            .concat(old_problems.slice(action.index + 1));
+        return new_state;
     } else if (action.type === NEW_STEP) {
 
+    } else {
+        return state;
     }
-    return state;
 }
 
 var createStore = Redux.createStore;
@@ -158,6 +166,53 @@ store.subscribe(render);
 $(function() {
     render();
 });
+
+function testAddProblem() {
+    var initialAssignment = {
+        APP_MODE : EDIT_ASSIGNMENT,
+        ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] }
+        ]
+    }
+    var expectedAssignment = {
+        APP_MODE : EDIT_ASSIGNMENT,
+        ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] },
+                     { PROBLEM_NUMBER : "", STEPS : [""] }
+        ]
+        
+    }
+    deepFreeze(initialAssignment);
+    expect(
+        assignment(initialAssignment, { type : ADD_PROBLEM })
+    ).toEqual(expectedAssignment);
+}
+
+function testRemoveProblem() {
+    var initialAssignment = {
+        APP_MODE : EDIT_ASSIGNMENT,
+        ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] }
+        ]
+    }
+    var expectedAssignment = {
+        APP_MODE : EDIT_ASSIGNMENT,
+        ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] } ]
+    }
+    deepFreeze(initialAssignment);
+    expect(
+        assignment(initialAssignment, { type : REMOVE_PROBLEM, index : 1 })
+    ).toEqual(expectedAssignment);
+}
+
+// Run tests
+// TODO - seperate these from app code
+testAddProblem();
+testRemoveProblem();
 
 </script>
 </head>

@@ -100,7 +100,7 @@ var NEW_PROBLEM_NUMBER = 'NEW_PROBLEM_NUMBER';
 var SET_PROBLEM_NUMBER = 'SET_PROBLEM_NUMBER';
 
 // key used to refer to one step in a series of student work
-var STEP_INDEX = 'STEP_INDEX';
+var STEP_KEY = 'STEP_KEY';
 // key used to refer to data to place at a given step
 // currently will just be a string with latex, but may change
 // type if other metadata needs to be stored with each step
@@ -110,7 +110,7 @@ var NEW_STEP_CONTENT = 'NEW_STEP_CONTENT';
 
 // this action expects:
 // PROBLEM_INDEX - for which problem to change
-// STEP_INDEX - index into the work steps for the given problem
+// STEP_KEY - index into the work steps for the given problem
 // NEW_STEP_CONTENT - string for the new expression to write in this step
 var EDIT_STEP = 'EDIT_STEP';
 // TODO - decide if I want to add a feature to splice in
@@ -132,7 +132,7 @@ function problem(problem, action) {
     } else if (action.type === EDIT_STEP) {
         // TODO - I should avoid using cloneDeep, I think it migh be okay here though
         var editedProb = _.cloneDeep(problem)
-        editedProb.STEPS[action.STEP_INDEX] = action.NEW_STEP_CONTENT;
+        editedProb.STEPS[action.STEP_KEY] = action.NEW_STEP_CONTENT;
         return editedProb;
     } else if (action.type === NEW_STEP) {
         var editedProb = _.cloneDeep(problem)
@@ -161,11 +161,16 @@ function problems(probList, action) {
     } else if (action.type === SET_PROBLEM_NUMBER ||
                action.type === EDIT_STEP ||
                action.type === NEW_STEP) {
-        return [ 
+        console.log("SOMETHING");
+        console.log(action);
+        console.log(probList);
+        var ret = [ 
             ...probList.slice(0, action.PROBLEM_INDEX),
             problem(probList[action.PROBLEM_INDEX], action),
             ...probList.slice(action.PROBLEM_INDEX + 1)
-        ]
+        ];
+        console.log(ret);
+        return ret;
     } else {
         return probList;
     }
@@ -197,22 +202,31 @@ function render() {
 }
 
 var Problem = React.createClass({
+
+    handleStepChange: function(event) {
+      this.setState({value: event.target.value});
+    },
     render: function() {
+        var problemIndex = this.props.id;
         return (
             <div className="problem-container" style={{float:'none',overflow: 'hidden'}}>
                 <div>Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number"/></div>
                 <br/>
                 <div style={{float:'left'}}>
                     <p> Actions </p>
-                    <input type="submit" className="next-step" name="next step" value="next step (ctrl-e)"/> <br/>
+                    <input type="submit" className="next-step" name="next step" value="next step (ctrl-e)" onClick={
+                        function() { store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
                     <input type="submit" className="undo-step" name="undo step" value="undo step (ctrl-z)"/> <br/>
                     <input type="submit" className="redo-step" name="redo step" value="redo step (ctrl-shift-z)"/>
                 </div>
                     <div style={{float:'left'}} className="equation-list">
                     <p> Type math here </p>
-                    {this.props.value[STEPS].map(function(step) {
+                    {
+                        this.props.value[STEPS].map(function(step, stepIndex) {
                         return (
-                          <div><input type='text' value={step}/></div>
+                          <div key={stepIndex}><input type='text' value={step} onChange={function(evt) { 
+                            store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : problemIndex, 
+                                             STEP_KEY : stepIndex, NEW_STEP_CONTENT : evt.target.value})}} /></div>
                         );
                     })}
                 </div>
@@ -238,12 +252,12 @@ var Assignment = React.createClass({
 
         Assignment Name <input type="text" id="assignment-name-text" name="assignment name" value={this.props.value[ASSIGNMENT_NAME]}/>
         <input type="submit" id="save-assignment" name="save assignment" value="save assignment"/> <br/>
-        {this.props.value[PROBLEMS].map(function(problem) {
+        {this.props.value[PROBLEMS].map(function(problem, problemIndex) {
             return (
-              <Problem value={problem}/>
+              <Problem value={problem} key={problemIndex} id={problemIndex}/>
             );
         })}
-        <button>Add Problem</button>
+        <button onClick={function() { store.dispatch({ type : ADD_PROBLEM}); }}>Add Problem</button>
         </div>
       )
     }
@@ -347,7 +361,7 @@ function testEditStep() {
     }
     deepFreeze(initialAssignment);
     expect(
-        assignment(initialAssignment, { type : EDIT_STEP, PROBLEM_INDEX : 1, STEP_INDEX : 1, NEW_STEP_CONTENT : "5"})
+        assignment(initialAssignment, { type : EDIT_STEP, PROBLEM_INDEX : 1, STEP_KEY : 1, NEW_STEP_CONTENT : "5"})
     ).toEqual(expectedAssignment);
 }
 

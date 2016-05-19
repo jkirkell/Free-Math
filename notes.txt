@@ -1031,6 +1031,20 @@ Work on 1/10/2016
       hitting the second or third level reducers
         - although this wouldn't test the dispatch between the different levels
 - work on getting the existing functionality hooked up to the front-end
+
+------------------
+4/18/2016
+------------------
+- want to get the student assignment experience wrapped up
+    - modify identification of problems and steps to be based on
+      a generated key, rather than current position
+        - this is reccomended in the tutorials, I beleive that it will also reduce
+          the number of redraws as the UI elements after one being removed or added will
+          not need to have their event listeners updated with new indexes that will be
+          mutated when a user interacts with them
+        - not quite sure how to test this without also hooking up events
+        - first watch the redux example with a list of counters
+            - and re-read the react docs about controlled inputs
         
 - TODO soon
     - better answer check

@@ -205,7 +205,10 @@ var Problem = React.createClass({
         var problemIndex = this.props.id;
         return (
             <div className="problem-container" style={{float:'none',overflow: 'hidden'}}>
-                <div>Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number"/></div>
+                <div>Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number" onChange={
+                    function(evt) { store.dispatch({ type : SET_PROBLEM_NUMBER, PROBLEM_INDEX : problemIndex, 
+                                    NEW_PROBLEM_NUMBER : evt.target.value}) }}/> <br/>
+                </div>
                 <br/>
                 <div style={{float:'left'}}>
                     <p> Actions </p>

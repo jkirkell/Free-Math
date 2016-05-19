@@ -161,15 +161,11 @@ function problems(probList, action) {
     } else if (action.type === SET_PROBLEM_NUMBER ||
                action.type === EDIT_STEP ||
                action.type === NEW_STEP) {
-        console.log("SOMETHING");
-        console.log(action);
-        console.log(probList);
-        var ret = [ 
+        return [ 
             ...probList.slice(0, action.PROBLEM_INDEX),
             problem(probList[action.PROBLEM_INDEX], action),
             ...probList.slice(action.PROBLEM_INDEX + 1)
         ];
-        console.log(ret);
         return ret;
     } else {
         return probList;
@@ -194,7 +190,6 @@ var createStore = Redux.createStore;
 var store = createStore(assignment);
 
 function render() {
-    console.log(document);
     ReactDOM.render(
         <OpenNotebook value={store.getState()} />,
         document.getElementById('root')
@@ -265,7 +260,6 @@ var Assignment = React.createClass({
 
 var OpenNotebook = React.createClass({
   render: function() {
-    console.log(this.props);
     // TODO - figure out how to best switch between teacher and
     // student mode rendering
     if (this.props.value[APP_MODE] === EDIT_ASSIGNMENT) {

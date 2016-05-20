@@ -143,7 +143,7 @@ function problem(problem, action) {
         return editedProb;
     } else if (action.type === NEW_STEP) {
         var editedProb = _.cloneDeep(problem);
-        var oldLastStep = editedProb.STEPS[editedProb.STEPS.length - 1];
+        var oldLastStep = editedProb.STEPS[problem.LAST_SHOWN_STEP];
         editedProb[STEPS] = editedProb[STEPS].slice(0, problem.LAST_SHOWN_STEP + 1);
         editedProb[STEPS].push(oldLastStep);
         editedProb[LAST_SHOWN_STEP]++;

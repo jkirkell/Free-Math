@@ -84,6 +84,12 @@ var PROBLEMS = 'PROBLEMS';
 // Problem properties
 var PROBLEM_NUMBER = 'PROBLEM_NUMBER';
 var STEPS = 'STEPS';
+// to implement undo/redo and index for the last step
+// to show is tracked and moved up and down
+// when this is not at the end of the list and a new
+// step is added it moves to the end of the list as
+// the redo history in this case will be lost
+var LAST_SHOWN_STEP = 'LAST_SHOWN_STEP';
 
 // actions
 var ADD_PROBLEM = 'ADD_PROBLEM';
@@ -92,8 +98,8 @@ var ADD_PROBLEM = 'ADD_PROBLEM';
 var REMOVE_PROBLEM = 'REMOVE_PROBLEM';
 
 // this action expects:
-// problemIndex - for which problem to change
-// newProblemNumber - string with problem number, not a numberic
+// PROBLEM_INDEX - for which problem to change
+// NEW_PROBLEM_NUMBER - string with problem number, not a numberic
 //                    type because the problem might be 1.a, etc.
 var PROBLEM_INDEX = 'PROBLEM_INDEX';
 var NEW_PROBLEM_NUMBER = 'NEW_PROBLEM_NUMBER';
@@ -122,9 +128,10 @@ var UNDO_STEP = 'UNDO_STEP';
 // this action expects an index for which problem to change
 var REDO_STEP = 'REDO_STEP';
 
+// reducer for an individual problem
 function problem(problem, action) {
     if (problem === undefined) {
-        return { PROBLEM_NUMBER : '', STEPS : [''] };
+        return { PROBLEM_NUMBER : "", STEPS : [""], LAST_SHOWN_STEP : 0}
     } else if (action.type === SET_PROBLEM_NUMBER) {
         var newNamedProb = _.clone(problem)
         newNamedProb[PROBLEM_NUMBER] = action[NEW_PROBLEM_NUMBER];
@@ -135,20 +142,21 @@ function problem(problem, action) {
         editedProb.STEPS[action.STEP_KEY] = action.NEW_STEP_CONTENT;
         return editedProb;
     } else if (action.type === NEW_STEP) {
-        var editedProb = _.cloneDeep(problem)
+        var editedProb = _.cloneDeep(problem);
         var oldLastStep = editedProb.STEPS[editedProb.STEPS.length - 1];
-        editedProb.STEPS.push(oldLastStep);
+        editedProb[STEPS] = editedProb[STEPS].slice(0, problem.LAST_SHOWN_STEP + 1);
+        editedProb[STEPS].push(oldLastStep);
+        editedProb[LAST_SHOWN_STEP]++;
         return editedProb;
     } else {
         return problem;
     }
 }
 
+// reducer for the list of problems in an assignment
 function problems(probList, action) {
     if (probList === undefined) {
-        return [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
-                 { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2", "2"] } ];
-        //return [ { PROBLEM_NUMBER : "", STEPS : [""] } ];
+        return [ problem(undefined, action) ];
     }
 
     if (action.type === ADD_PROBLEM) {
@@ -158,6 +166,8 @@ function problems(probList, action) {
             ...probList.slice(0, action.PROBLEM_INDEX),
             ...probList.slice(action.PROBLEM_INDEX + 1)
         ];
+    // TODO - add CLONE_PROBLEM to allow for work reuse or redoing a problem while keeping
+    // the old work around for reference
     } else if (action.type === SET_PROBLEM_NUMBER ||
                action.type === EDIT_STEP ||
                action.type === NEW_STEP) {
@@ -172,6 +182,7 @@ function problems(probList, action) {
     }
 }
 
+// reducer for an overall assignment
 function assignment(state, action) {
     if (state === undefined) {
         return {
@@ -282,16 +293,16 @@ function testAddProblem() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 0 },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 0 }
         ]
     }
     var expectedAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] },
-                     { PROBLEM_NUMBER : "", STEPS : [""] }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 0 },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 0 },
+                     { PROBLEM_NUMBER : "", STEPS : [""], LAST_SHOWN_STEP : 0 }
         ]
         
     }
@@ -305,14 +316,14 @@ function testRemoveProblem() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1},
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1}
         ]
     }
     var expectedAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] } ]
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1} ]
     }
     deepFreeze(initialAssignment);
     expect(
@@ -324,15 +335,15 @@ function testRenameProblem() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1},
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1}
         ]
     }
     var expectedAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
-                     { PROBLEM_NUMBER : "1.a", STEPS : ["4-2", "2"] }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 },
+                     { PROBLEM_NUMBER : "1.a", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1 }
         ]
     }
     deepFreeze(initialAssignment);
@@ -345,15 +356,15 @@ function testEditStep() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1 }
         ]
     }
     var expectedAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "5"] }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "5"], LAST_SHOWN_STEP : 1 }
         ]
     }
     deepFreeze(initialAssignment);
@@ -366,15 +377,15 @@ function testNewStep() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"] }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1 }
         ]
     }
     var expectedAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"] },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2", "2"] }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 },
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2", "2"], LAST_SHOWN_STEP : 2 }
         ]
     }
     deepFreeze(initialAssignment);

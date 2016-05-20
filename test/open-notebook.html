@@ -148,6 +148,20 @@ function problem(problem, action) {
         editedProb[STEPS].push(oldLastStep);
         editedProb[LAST_SHOWN_STEP]++;
         return editedProb;
+    } else if (action.type === UNDO_STEP) {
+        if (problem[LAST_SHOWN_STEP] == 0) return problem;
+        else {
+            var editedProb = _.cloneDeep(problem);
+            editedProb[LAST_SHOWN_STEP]--;
+            return editedProb;
+        }
+    } else if (action.type === REDO_STEP) {
+        if (problem[LAST_SHOWN_STEP] == problem[STEPS].length - 1) return problem;
+        else {
+            var editedProb = _.cloneDeep(problem);
+            editedProb[LAST_SHOWN_STEP]++;
+            return editedProb;
+        }
     } else {
         return problem;
     }
@@ -170,6 +184,8 @@ function problems(probList, action) {
     // the old work around for reference
     } else if (action.type === SET_PROBLEM_NUMBER ||
                action.type === EDIT_STEP ||
+               action.type === UNDO_STEP ||
+               action.type === REDO_STEP ||
                action.type === NEW_STEP) {
         return [ 
             ...probList.slice(0, action.PROBLEM_INDEX),
@@ -214,6 +230,7 @@ var Problem = React.createClass({
     },
     render: function() {
         var problemIndex = this.props.id;
+        var lastShownStep = this.props.value[LAST_SHOWN_STEP];
         return (
             <div className="problem-container" style={{float:'none',overflow: 'hidden'}}>
                 <div>Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number" onChange={
@@ -225,13 +242,16 @@ var Problem = React.createClass({
                     <p> Actions </p>
                     <input type="submit" className="next-step" name="next step" value="next step (ctrl-e)" onClick={
                         function() { store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
-                    <input type="submit" className="undo-step" name="undo step" value="undo step (ctrl-z)"/> <br/>
-                    <input type="submit" className="redo-step" name="redo step" value="redo step (ctrl-shift-z)"/>
+                    <input type="submit" className="undo-step" name="undo step" value="undo step (ctrl-z)" onClick={
+                        function() { store.dispatch({ type : UNDO_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
+                    <input type="submit" className="redo-step" name="redo step" value="redo step (ctrl-shift-z)" onClick={
+                        function() { store.dispatch({ type : REDO_STEP, PROBLEM_INDEX : problemIndex}) }}/>
                 </div>
                     <div style={{float:'left'}} className="equation-list">
                     <p> Type math here </p>
                     {
                         this.props.value[STEPS].map(function(step, stepIndex) {
+                        if (stepIndex > lastShownStep) return;
                         return (
                           <div key={stepIndex}><input type='text' value={step} onChange={function(evt) { 
                             store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : problemIndex, 

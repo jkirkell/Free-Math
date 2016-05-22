@@ -1046,6 +1046,15 @@ Work on 1/10/2016
         - first watch the redux example with a list of counters
             - and re-read the react docs about controlled inputs
         
+------------------
+4/21/2016
+------------------
+- work starting at 11
+- what to prioritize
+    - finish writing some tests for the final student actions in the reducer function
+    - estimated time 15 mins, finish 11:30
+        - 
+
 - TODO soon
     - better answer check
         - at least use Khan check for fully simplified answer

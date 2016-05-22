@@ -414,6 +414,24 @@ function testNewStep() {
     ).toEqual(expectedAssignment);
 }
 
+function testUndoStep() {
+    var initialProblem = { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 };
+    var expectedProblem = { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 0 };
+    deepFreeze(initialProblem);
+    expect(
+        problem(initialProblem, { type : UNDO_STEP})
+    ).toEqual(expectedProblem);
+}
+
+function testRedoStep() {
+    var initialProblem = { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 0 };
+    var expectedProblem = { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 };
+    deepFreeze(initialProblem);
+    expect(
+        problem(initialProblem, { type : REDO_STEP})
+    ).toEqual(expectedProblem);
+}
+
 // Run tests
 // TODO - seperate these from app code
 testAddProblem();
@@ -421,6 +439,9 @@ testRemoveProblem();
 testRenameProblem();
 testEditStep();
 testNewStep();
+testUndoStep();
+testRedoStep();
+console.log("All tests complete");
 
 </script>
 </head>

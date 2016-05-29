@@ -460,6 +460,7 @@ var MathInput = React.createClass({
         // Ideally, we would be able to pass an initial value directly into
         // the constructor above
         this.mathField().latex(this.props.value);
+        this.mathField().focus();
         console.log("mathfield init");
         initialized = true;
     },

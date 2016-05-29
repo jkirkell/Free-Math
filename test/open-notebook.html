@@ -223,92 +223,6 @@ function render() {
     );
 }
 
-var Problem = React.createClass({
-
-    handleStepChange: function(event) {
-      this.setState({value: event.target.value});
-    },
-    render: function() {
-        var problemIndex = this.props.id;
-        var lastShownStep = this.props.value[LAST_SHOWN_STEP];
-        return (
-            <div className="problem-container" style={{float:'none',overflow: 'hidden'}}>
-                <div>Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number" onChange={
-                    function(evt) { store.dispatch({ type : SET_PROBLEM_NUMBER, PROBLEM_INDEX : problemIndex, 
-                                    NEW_PROBLEM_NUMBER : evt.target.value}) }}/> <br/>
-                </div>
-                <br/>
-                <div style={{float:'left'}}>
-                    <p> Actions </p>
-                    <input type="submit" className="next-step" name="next step" value="next step (ctrl-e)" onClick={
-                        function() { store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
-                    <input type="submit" className="undo-step" name="undo step" value="undo step (ctrl-z)" onClick={
-                        function() { store.dispatch({ type : UNDO_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
-                    <input type="submit" className="redo-step" name="redo step" value="redo step (ctrl-shift-z)" onClick={
-                        function() { store.dispatch({ type : REDO_STEP, PROBLEM_INDEX : problemIndex}) }}/>
-                </div>
-                    <div style={{float:'left'}} className="equation-list">
-                    <p> Type math here </p>
-                    {
-                        this.props.value[STEPS].map(function(step, stepIndex) {
-                        if (stepIndex > lastShownStep) return;
-                        return (
-                          <div key={stepIndex}><input type='text' value={step} onChange={function(evt) { 
-                            store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : problemIndex, 
-                                             STEP_KEY : stepIndex, NEW_STEP_CONTENT : evt.target.value})}} /></div>
-                        );
-                    })}
-                </div>
-            </div>
-        );
-    }
-});
-
-var Assignment = React.createClass({
-    render: function() {
-      var defaultEqtn = "4-9\\left(\\frac{2}{3}\\right)^2+\\frac{4}{5-3\\cdot 4}";
-      return (
-        <div id="assignment-container">
-        <p>Open Notebook allows you to complete your math homework on your computer. The first problem has been created for you,
-           use the box below to write an equation. When you want to modify it to solve your math problem click
-           the "next step" button to copy your expression or equation and edit it on the next line to show your work.
-           This tool is designed to take care of some of the busywork of math, which makes it easier to record all
-           of your thinking without a bunch of manual copying.</p>
-
-        <p> For example, try typing to following expression and simplifying it, even if you can do
-        parts of it in your head, use the tool to make sure you show your work. {defaultEqtn}
-        <span className="mathquill-static-math" ></span></p>
-
-        Assignment Name <input type="text" id="assignment-name-text" name="assignment name" value={this.props.value[ASSIGNMENT_NAME]}/>
-        <input type="submit" id="save-assignment" name="save assignment" value="save assignment"/> <br/>
-        {this.props.value[PROBLEMS].map(function(problem, problemIndex) {
-            return (
-              <Problem value={problem} key={problemIndex} id={problemIndex}/>
-            );
-        })}
-        <button onClick={function() { store.dispatch({ type : ADD_PROBLEM}); }}>Add Problem</button>
-        </div>
-      )
-    }
-});
-
-var OpenNotebook = React.createClass({
-  render: function() {
-    // TODO - figure out how to best switch between teacher and
-    // student mode rendering
-    if (this.props.value[APP_MODE] === EDIT_ASSIGNMENT) {
-      return (
-        <Assignment value={this.props.value}/>
-      );
-    }
-  }
-});
-
-store.subscribe(render);
-$(function() {
-    render();
-});
-
 var MathQuill = window.MathQuill;
 var PT = React.PropTypes;
 
@@ -319,28 +233,22 @@ var MathInput = React.createClass({
         onChange: PT.func.isRequired,
         convertDotToTimes: PT.bool,
         buttonsVisible: PT.oneOf(['always', 'never', 'focused']),
-        buttonSets: TexButtons.buttonSetsType.isRequired,
         labelText: React.PropTypes.string,
         onFocus: PT.func,
         onBlur: PT.func,
     },
 
     render: function() {
-        console.log("A WILD MESSAGE APPEARS! 3");
-        var className = classNames({
-            "perseus-math-input": true,
-
-            // mathquill usually adds these itself but react removes them when
-            // updating the component.
-            "mq-editable-field": true,
-            "mq-math-mode": true
-        });
+        // mathquill usually adds these itself but react removes them when
+        // updating the component.
+        var className = "perseus-math-input mq-editable-field mq-math-mode";
 
         if (this.props.className) {
             className = className + " " + this.props.className;
         }
 
         var buttons = null;
+        /*
         if (this._shouldShowButtons()) {
             buttons = <TexButtons
                 sets={this.props.buttonSets}
@@ -348,6 +256,7 @@ var MathInput = React.createClass({
                 convertDotToTimes={this.props.convertDotToTimes}
                 onInsert={this.insert} />;
         }
+        */
 
         return <div style={{display: "inline-block"}}>
             <div style={{display: 'inline-block'}}>
@@ -562,6 +471,93 @@ var MathInput = React.createClass({
         this.mathField().blur();
         this.setState({ focused: false });
     }
+});
+
+
+var Problem = React.createClass({
+
+    handleStepChange: function(event) {
+      this.setState({value: event.target.value});
+    },
+    render: function() {
+        var problemIndex = this.props.id;
+        var lastShownStep = this.props.value[LAST_SHOWN_STEP];
+        return (
+            <div className="problem-container" style={{float:'none',overflow: 'hidden'}}>
+                <div>Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number" onChange={
+                    function(evt) { store.dispatch({ type : SET_PROBLEM_NUMBER, PROBLEM_INDEX : problemIndex, 
+                                    NEW_PROBLEM_NUMBER : evt.target.value}) }}/> <br/>
+                </div>
+                <br/>
+                <div style={{float:'left'}}>
+                    <p> Actions </p>
+                    <input type="submit" className="next-step" name="next step" value="next step (ctrl-e)" onClick={
+                        function() { store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
+                    <input type="submit" className="undo-step" name="undo step" value="undo step (ctrl-z)" onClick={
+                        function() { store.dispatch({ type : UNDO_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
+                    <input type="submit" className="redo-step" name="redo step" value="redo step (ctrl-shift-z)" onClick={
+                        function() { store.dispatch({ type : REDO_STEP, PROBLEM_INDEX : problemIndex}) }}/>
+                </div>
+                    <div style={{float:'left'}} className="equation-list">
+                    <p> Type math here </p>
+                    {
+                        this.props.value[STEPS].map(function(step, stepIndex) {
+                        if (stepIndex > lastShownStep) return;
+                        return (
+                            <MathInput key={stepIndex} />
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+});
+
+var Assignment = React.createClass({
+    render: function() {
+      var defaultEqtn = "4-9\\left(\\frac{2}{3}\\right)^2+\\frac{4}{5-3\\cdot 4}";
+      return (
+        <div id="assignment-container">
+        <p>Open Notebook allows you to complete your math homework on your computer. The first problem has been created for you,
+           use the box below to write an equation. When you want to modify it to solve your math problem click
+           the "next step" button to copy your expression or equation and edit it on the next line to show your work.
+           This tool is designed to take care of some of the busywork of math, which makes it easier to record all
+           of your thinking without a bunch of manual copying.</p>
+
+        <p> For example, try typing to following expression and simplifying it, even if you can do
+        parts of it in your head, use the tool to make sure you show your work. {defaultEqtn}
+        <span className="mathquill-static-math" ></span></p>
+
+        Assignment Name <input type="text" id="assignment-name-text" name="assignment name" value={this.props.value[ASSIGNMENT_NAME]}/>
+        <input type="submit" id="save-assignment" name="save assignment" value="save assignment"/> <br/>
+        {this.props.value[PROBLEMS].map(function(problem, problemIndex) {
+            return (
+              <Problem value={problem} key={problemIndex} id={problemIndex}/>
+            );
+        })}
+        <button onClick={function() { store.dispatch({ type : ADD_PROBLEM}); }}>Add Problem</button>
+        </div>
+      )
+    }
+});
+
+var OpenNotebook = React.createClass({
+  render: function() {
+    // TODO - figure out how to best switch between teacher and
+    // student mode rendering
+    if (this.props.value[APP_MODE] === EDIT_ASSIGNMENT) {
+      return (
+        <Assignment value={this.props.value}/>
+      );
+    }
+  }
+});
+
+store.subscribe(render);
+$(function() {
+    console.log(MathQuill);
+    MathQuill.interfaceVersion(1);
+    render();
 });
 
 function testAddProblem() {

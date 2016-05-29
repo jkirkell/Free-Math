@@ -200,6 +200,7 @@ function problems(probList, action) {
 
 // reducer for an overall assignment
 function assignment(state, action) {
+    console.log(action);
     if (state === undefined) {
         return {
             APP_MODE : EDIT_ASSIGNMENT,
@@ -230,7 +231,6 @@ var PT = React.PropTypes;
 var MathInput = React.createClass({
     propTypes: {
         value: PT.string,
-        onChange: PT.func.isRequired,
         convertDotToTimes: PT.bool,
         buttonsVisible: PT.oneOf(['always', 'never', 'focused']),
         labelText: React.PropTypes.string,
@@ -365,17 +365,18 @@ var MathInput = React.createClass({
         // LaTeX commands that, when typed, are immediately replaced by the
         // appropriate symbol. This does not include ln, log, or any of the
         // trig functions; those are always interpreted as commands.
-        MathQuill.addAutoCommands("pi theta phi sqrt nthroot");
+        //MathQuill.addAutoCommands("pi theta phi sqrt nthroot");
 
         // Pop the cursor out of super/subscripts on arithmetic operators or
         // (in)equalities.
-        MathQuill.addCharsThatBreakOutOfSupSub("+-*/=<>≠≤≥");
+        // MathQuill.addCharsThatBreakOutOfSupSub("+-*/=<>≠≤≥");
 
         // Prevent excessive super/subscripts or fractions from being created
         // without operands, e.g. when somebody holds down a key
-        MathQuill.disableCharsWithoutOperand("^_/");
+        //MathQuill.disableCharsWithoutOperand("^_/");
 
         var initialized = false;
+        console.log(this)
 
         // Initialize MathQuill.MathField instance
         this.mathField({
@@ -392,14 +393,20 @@ var MathInput = React.createClass({
             // contexts). We should also limit to one consecutive space.
             spaceBehavesLikeTab: true,
 
+            // for intuitive navigation of fractions
+            leftRightIntoCmdGoes: 'up',
+            autoCommands: 'pi theta sqrt sum',
+            autoSubscriptNumerals: true,
+            charsThatBreakOutOfSupSub: '+-*/=<>≠≤≥',
+
             handlers: {
                 edited: (mathField) => {
                     // This handler is guaranteed to be called on change, but
                     // unlike React it sometimes generates false positives.
                     // One of these is on initialization (with an empty string
                     // value), so we have to guard against that below.
-                    var value = mathField.latex();
                     console.log("EDITED!");
+                    var value = mathField.latex();
 
                     // Provide a MathQuill-compatible way to generate the
                     // not-equals sign without pasting unicode or typing TeX
@@ -428,8 +435,8 @@ var MathInput = React.createClass({
                     if (initialized && this.props.value !== value) {
                         //this.props.onChange(value);
                         console.log("SETTING NEW VALUE");
-                        store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : problemIndex, 
-                                         STEP_KEY : stepIndex, NEW_STEP_CONTENT : value});
+                        store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : this.props.problemIndex, 
+                                         STEP_KEY : this.props.stepIndex, NEW_STEP_CONTENT : value});
                     }
                 },
                 enter: () => {
@@ -453,12 +460,15 @@ var MathInput = React.createClass({
         // Ideally, we would be able to pass an initial value directly into
         // the constructor above
         this.mathField().latex(this.props.value);
-
+        console.log("mathfield init");
         initialized = true;
     },
 
     componentDidUpdate: function() {
+        console.log("mathfield component did update");
         if (!_.isEqual(this.mathField().latex(), this.props.value)) {
+            console.log("mathfield component did update 2: " + this.props.value);
+            console.log(this.props);
             this.mathField().latex(this.props.value);
         }
     },
@@ -505,7 +515,7 @@ var Problem = React.createClass({
                         this.props.value[STEPS].map(function(step, stepIndex) {
                         if (stepIndex > lastShownStep) return;
                         return (
-                            <MathInput key={stepIndex} value={step}/>
+                        <MathInput key={stepIndex} stepIndex={stepIndex} problemIndex={problemIndex} value={step}/>
                         );
                     })}
                 </div>

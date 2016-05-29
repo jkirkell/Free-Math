@@ -223,7 +223,7 @@ function render() {
     );
 }
 
-var MathQuill = window.MathQuill;
+MathQuill.interfaceVersion(1);
 var PT = React.PropTypes;
 
 // A WYSIWYG math input that calls `onChange(LaTeX-string)`
@@ -258,16 +258,13 @@ var MathInput = React.createClass({
         }
         */
 
-        return <div style={{display: "inline-block"}}>
+        return <div>
             <div style={{display: 'inline-block'}}>
                 <span className={className}
                       ref="mathinput"
                       aria-label={this.props.labelText}
                       onFocus={this.handleFocus}
                       onBlur={this.handleBlur} />
-            </div>
-            <div style={{position: "relative"}}>
-                {buttons}
             </div>
         </div>;
     },
@@ -279,6 +276,7 @@ var MathInput = React.createClass({
     //   buttons div
 
     handleFocus: function() {
+        console.log("focused");
         this.setState({ focused: true });
         // TODO(joel) fix properly - we should probably allow onFocus handlers
         // to this property, but we need to work correctly with them.
@@ -321,7 +319,6 @@ var MathInput = React.createClass({
     },
 
     getDefaultProps: function() {
-        console.log("A WILD MESSAGE APPEARS!");
         return {
             value: "",
             convertDotToTimes: false,
@@ -330,7 +327,6 @@ var MathInput = React.createClass({
     },
 
     getInitialState: function() {
-        console.log("A WILD MESSAGE APPEARS! 2");
         return { focused: false };
     },
 
@@ -430,13 +426,17 @@ var MathInput = React.createClass({
                     }
 
                     if (initialized && this.props.value !== value) {
-                        this.props.onChange(value);
+                        //this.props.onChange(value);
+                        console.log("SETTING NEW VALUE");
+                        store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : problemIndex, 
+                                         STEP_KEY : stepIndex, NEW_STEP_CONTENT : value});
                     }
                 },
                 enter: () => {
                     // This handler is called when the user presses the enter
                     // key. Since this isn't an actual <input> element, we have
                     // to manually trigger the usually automatic form submit.
+                    console.log("Entered");
                     $(ReactDOM.findDOMNode(this.refs.mathinput)).submit();
                 },
                 upOutOf: (mathField) => {
@@ -444,6 +444,7 @@ var MathInput = React.createClass({
                     // arrow key, but there is nowhere in the expression to go
                     // up to (no numerator or exponent). For ease of use,
                     // interpret this as an attempt to create an exponent.
+                    console.log("Up");
                     mathField.typedText("^");
                 }
             }
@@ -504,7 +505,7 @@ var Problem = React.createClass({
                         this.props.value[STEPS].map(function(step, stepIndex) {
                         if (stepIndex > lastShownStep) return;
                         return (
-                            <MathInput key={stepIndex} />
+                            <MathInput key={stepIndex} value={step}/>
                         );
                     })}
                 </div>
@@ -555,8 +556,6 @@ var OpenNotebook = React.createClass({
 
 store.subscribe(render);
 $(function() {
-    console.log(MathQuill);
-    MathQuill.interfaceVersion(1);
     render();
 });
 

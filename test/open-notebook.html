@@ -443,8 +443,12 @@ var MathInput = React.createClass({
                     // This handler is called when the user presses the enter
                     // key. Since this isn't an actual <input> element, we have
                     // to manually trigger the usually automatic form submit.
-                    console.log("Entered");
-                    $(ReactDOM.findDOMNode(this.refs.mathinput)).submit();
+
+                    console.log("enter pressed");
+                    // Using enter for go to next step
+                    store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : this.props.problemIndex});
+
+                    //$(ReactDOM.findDOMNode(this.refs.mathinput)).submit();
                 },
                 upOutOf: (mathField) => {
                     // This handler is called when the user presses the up
@@ -537,8 +541,8 @@ var Assignment = React.createClass({
            of your thinking without a bunch of manual copying.</p>
 
         <p> For example, try typing to following expression and simplifying it, even if you can do
-        parts of it in your head, use the tool to make sure you show your work. {defaultEqtn}
-        <span className="mathquill-static-math" ></span></p>
+        parts of it in your head, use the tool to make sure you show your work. 
+        <span className="mathquill-static-math" ref="exampleStaticMath">{defaultEqtn}</span></p>
 
         Assignment Name <input type="text" id="assignment-name-text" name="assignment name" value={this.props.value[ASSIGNMENT_NAME]}/>
         <input type="submit" id="save-assignment" name="save assignment" value="save assignment"/> <br/>
@@ -550,7 +554,12 @@ var Assignment = React.createClass({
         <button onClick={function() { store.dispatch({ type : ADD_PROBLEM}); }}>Add Problem</button>
         </div>
       )
+    },
+
+    componentDidMount: function() {
+        MathQuill.StaticMath(ReactDOM.findDOMNode(this.refs.exampleStaticMath));
     }
+    ,
 });
 
 var OpenNotebook = React.createClass({

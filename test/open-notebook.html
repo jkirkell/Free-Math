@@ -507,7 +507,7 @@ var Problem = React.createClass({
                 <br/>
                 <div style={{float:'left'}}>
                     <p> Actions </p>
-                    <input type="submit" className="next-step" name="next step" value="next step (ctrl-e)" onClick={
+                    <input type="submit" className="next-step" name="next step" value="next step (enter)" onClick={
                         function() { store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
                     <input type="submit" className="undo-step" name="undo step" value="undo step (ctrl-z)" onClick={
                         function() { store.dispatch({ type : UNDO_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>

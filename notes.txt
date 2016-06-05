@@ -1053,8 +1053,40 @@ Work on 1/10/2016
 - what to prioritize
     - finish writing some tests for the final student actions in the reducer function
     - estimated time 15 mins, finish 11:30
-        - 
 
+------------------
+4/29/2016
+------------------
+- yesterday worked on getting the khan react component from their Perseus project integrated
+- finished getting it to work today
+- work starting at 4:20
+    - add saving/loading student doc
+    - time estimate 10 minutes
+        - Don't really need react for this, can just work with the store directly as it
+          is currently global
+        - probably should just do the whole UI in react to be safe
+- the single file for everything is getting to be a bit much
+    - need to separate out unit tests, get dependecy management setup reasonably to
+      allow for separateing application into separate files
+    - create a new npm project, re-organize imports and all current code into reasonable
+      locations
+        - use the same strategy as Perseus for including MathQuill, as it is not
+          packaged in npm
+        - using this tutorial:
+        - https://www.wolfe.id.au/2014/02/01/getting-a-new-node-project-started-with-npm/
+    - time estimate 30 mins
+
+------------------
+4/31/2016
+------------------
+- add save/load functionality to react based rewrite of app
+    - add back UI element for top bar
+    - time estimate 10 minutes, finish 10:55
+        - for now it's there, not quite sure how to make React render it as a floating
+          bar, which being contained inside of the root div
+        - it might have to exist outside of react completely right now, but it can still
+          issue redux actions in response to input
+    
 - TODO soon
     - better answer check
         - at least use Khan check for fully simplified answer

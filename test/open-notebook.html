@@ -91,6 +91,12 @@ var STEPS = 'STEPS';
 // the redo history in this case will be lost
 var LAST_SHOWN_STEP = 'LAST_SHOWN_STEP';
 
+// editing assignmnt mode actions
+var SET_ASSIGNMENT_NAME = 'SET_ASSIGNMENT_NAME';
+// used to swap out the entire content of the document, for opening
+// a document from a file
+var SET_ASSIGNMENT_CONTENT = 'SET_ASSIGNMENT_CONTENT';
+
 // actions
 var ADD_PROBLEM = 'ADD_PROBLEM';
 // remove problem expects an "index" property 
@@ -127,6 +133,65 @@ var NEW_STEP = 'NEW_STEP';
 var UNDO_STEP = 'UNDO_STEP';
 // this action expects an index for which problem to change
 var REDO_STEP = 'REDO_STEP';
+
+// read a file from the local disk, pass an onChange event from a "file" input type
+// http://www.htmlgoodies.com/beyond/javascript/read-text-files-using-the-javascript-filereader.html
+function readSingleFile(evt) {
+    //Retrieve the first (and only!) File from the FileList object
+    var f = evt.target.files[0]; 
+
+    if (f) {
+        var r = new FileReader();
+        r.onload = function(e) { 
+            var contents = e.target.result;
+            openAssignment(contents, f.name);  
+        }
+        r.readAsText(f);
+    } else { 
+        alert("Failed to load file");
+    }
+}
+
+function openAssignment(serializedDoc, filename) {
+    if (!window.confirm("Discard your current work and open the selected document?")) { 
+        return; 
+    }
+    var newDoc = JSON.parse(serializedDoc);
+    // compatibility for old files, need to convert the old proerty names as
+    // well as add the LAST_SHOWN_STEP
+    var newDoc = convertToCurrentFormat(newDoc);
+    store.dispatch({type : SET_ASSIGNMENT_CONTENT, PROBLEMS : newDoc[PROBLEMS]});
+    store.dispatch({type : SET_ASSIGNMENT_NAME, ASSIGNMENT_NAME : removeExtension(filename)});
+}
+
+function removeExtension(filename) {
+    // remove preceding directory (for when filename comes out of the ZIP directory)
+    filename = filename.replace(/[^\/]*\//, "");
+    // actually remove extension
+    filename = filename.replace(/\.[^/.]+$/, "");
+    return filename;
+}
+
+function convertToCurrentFormat(possiblyOldDoc) {
+    console.log(possiblyOldDoc);
+    if (!possiblyOldDoc.hasOwnProperty('problems')) {
+        console.log('new doc found');
+        return possiblyOldDoc;
+    }
+
+    possiblyOldDoc.problems.forEach(function (problem) {
+        if (problem.problemNumber !== undefined) {
+            var newSteps = problem.steps;
+            problem[STEPS] = newSteps;
+            problem[LAST_SHOWN_STEP] = newSteps.length - 1;
+            problem[PROBLEM_NUMBER] = problem.problemNumber;
+            delete problem.steps;
+            delete problem.problemNumber;
+        }
+    });
+    possiblyOldDoc[PROBLEMS] = possiblyOldDoc.problems;
+    return possiblyOldDoc;
+}
 
 // reducer for an individual problem
 function problem(problem, action) {
@@ -206,7 +271,17 @@ function assignment(state, action) {
             APP_MODE : EDIT_ASSIGNMENT,
             ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
             PROBLEMS : problems(undefined, action)
-        }
+        };
+    } else if (action.type === SET_ASSIGNMENT_NAME) {
+        state = _.cloneDeep(state);
+        state.ASSIGNMENT_NAME = action.ASSIGNMENT_NAME;
+        return state;
+    } else if (action.type === SET_ASSIGNMENT_CONTENT) {
+        state = _.cloneDeep(state);
+        state.PROBLEMS = action.PROBLEMS;
+        console.log('new state');
+        console.log(state);
+        return state;
     } else {
         var new_state = _.clone(state);
         new_state[PROBLEMS] = problems(new_state[PROBLEMS], action); 
@@ -531,6 +606,8 @@ var Problem = React.createClass({
 
 var Assignment = React.createClass({
     render: function() {
+      console.log('rendering...'); 
+      console.log(this.props.value);
       var defaultEqtn = "4-9\\left(\\frac{2}{3}\\right)^2+\\frac{4}{5-3\\cdot 4}";
       return (
         <div id="assignment-container">
@@ -577,6 +654,8 @@ var OpenNotebook = React.createClass({
 store.subscribe(render);
 $(function() {
     render();
+    $('#open-file-input').change(readSingleFile);
+    //$('#open-student-submissions-input').change(studentSubmissionsZip);
 });
 
 function testAddProblem() {
@@ -716,6 +795,15 @@ console.log("All tests complete");
 </script>
 </head>
 <body>
+<!-- this is not currently rendered by React, not sure how to make that work as it will be inside of the root div-->
+<div class="menuBar">
+    <!-- img class="logo" src="logo.jpg"/ -->
+    <div class="nav"> 
+        <b>Open Notebook</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        Open Assignment <input type="file" id="open-file-input"/> 
+        Grade Student Assignments <input type="file" id="open-student-submissions-input" />
+    </div>
+</div>
 <div id="root"></div>
 </body>
 </html>

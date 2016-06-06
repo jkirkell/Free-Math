@@ -35,6 +35,9 @@
 <!-- input sanitiation --> 
 <!-- script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script -->
 
+<!-- saving to local disk -->
+<script type="text/javascript" src="../filesaver_js.js"></script>
+
 <!-- Only use this for MathQuill! --> 
 <script type="text/javascript" src="support/jquery-1.7.2.js"></script>
 
@@ -133,6 +136,11 @@ var NEW_STEP = 'NEW_STEP';
 var UNDO_STEP = 'UNDO_STEP';
 // this action expects an index for which problem to change
 var REDO_STEP = 'REDO_STEP';
+
+function saveAssignment() {
+    var blob = new Blob([JSON.stringify({ PROBLEMS : store.getState()[PROBLEMS]})], {type: "text/plain;charset=utf-8"});
+    saveAs(blob, store.getState()[ASSIGNMENT_NAME] + '.math'); 
+}
 
 // read a file from the local disk, pass an onChange event from a "file" input type
 // http://www.htmlgoodies.com/beyond/javascript/read-text-files-using-the-javascript-filereader.html
@@ -622,7 +630,8 @@ var Assignment = React.createClass({
         <span className="mathquill-static-math" ref="exampleStaticMath">{defaultEqtn}</span></p>
 
         Assignment Name <input type="text" id="assignment-name-text" name="assignment name" value={this.props.value[ASSIGNMENT_NAME]}/>
-        <input type="submit" id="save-assignment" name="save assignment" value="save assignment"/> <br/>
+        <input type="submit" id="save-assignment" name="save assignment" value="save assignment" onClick={
+                        function() { saveAssignment() }} /> <br/>
         {this.props.value[PROBLEMS].map(function(problem, problemIndex) {
             return (
               <Problem value={problem} key={problemIndex} id={problemIndex}/>

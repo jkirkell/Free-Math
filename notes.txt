@@ -1019,7 +1019,7 @@ Work on 1/10/2016
             - when you create it you specify the reducer function
 
 ------------------
-4/17/2016
+5/17/2016
 ------------------
 - this morning I got my react based rendering for the student problem interface working
   at least in part
@@ -1033,7 +1033,7 @@ Work on 1/10/2016
 - work on getting the existing functionality hooked up to the front-end
 
 ------------------
-4/18/2016
+5/18/2016
 ------------------
 - want to get the student assignment experience wrapped up
     - modify identification of problems and steps to be based on
@@ -1047,7 +1047,7 @@ Work on 1/10/2016
             - and re-read the react docs about controlled inputs
         
 ------------------
-4/21/2016
+5/21/2016
 ------------------
 - work starting at 11
 - what to prioritize
@@ -1055,7 +1055,7 @@ Work on 1/10/2016
     - estimated time 15 mins, finish 11:30
 
 ------------------
-4/29/2016
+5/29/2016
 ------------------
 - yesterday worked on getting the khan react component from their Perseus project integrated
 - finished getting it to work today
@@ -1077,7 +1077,7 @@ Work on 1/10/2016
     - time estimate 30 mins
 
 ------------------
-4/31/2016
+5/31/2016
 ------------------
 - add save/load functionality to react based rewrite of app
     - add back UI element for top bar
@@ -1086,7 +1086,20 @@ Work on 1/10/2016
           bar, which being contained inside of the root div
         - it might have to exist outside of react completely right now, but it can still
           issue redux actions in response to input
-    
+
+------------------
+6/5/2014
+------------------
+- got document loading working in the rewritten version of the app
+    - couldn't get the CSS working with the frozen top menu bar inside
+      of the root react div
+        - so the UI and events for the open assignment button are managed outside
+          of react
+- need to implement save, should be really simple, just going to serialize the problems
+  as they are represented in the Redux store
+    - time estimate 5 minutes, finish 7:20
+    - finished 7:25 
+- 
 - TODO soon
     - better answer check
         - at least use Khan check for fully simplified answer

@@ -105,6 +105,7 @@ var ADD_PROBLEM = 'ADD_PROBLEM';
 // remove problem expects an "index" property 
 // specifying which problem to remove
 var REMOVE_PROBLEM = 'REMOVE_PROBLEM';
+var CLONE_PROBLEM = 'CLONE_PROBLEM';
 
 // this action expects:
 // PROBLEM_INDEX - for which problem to change
@@ -253,8 +254,14 @@ function problems(probList, action) {
             ...probList.slice(0, action.PROBLEM_INDEX),
             ...probList.slice(action.PROBLEM_INDEX + 1)
         ];
-    // TODO - add CLONE_PROBLEM to allow for work reuse or redoing a problem while keeping
-    // the old work around for reference
+    } else if (action.type === CLONE_PROBLEM) {
+        var newProb = _.cloneDeep(probList[action.PROBLEM_INDEX]);
+        newProb[PROBLEM_NUMBER] += ' - copy'; 
+        return [
+            ...probList.slice(0, action.PROBLEM_INDEX + 1),
+            newProb,
+            ...probList.slice(action.PROBLEM_INDEX + 1)
+        ];
     } else if (action.type === SET_PROBLEM_NUMBER ||
                action.type === EDIT_STEP ||
                action.type === UNDO_STEP ||
@@ -583,11 +590,17 @@ var Problem = React.createClass({
         var lastShownStep = this.props.value[LAST_SHOWN_STEP];
         return (
             <div className="problem-container" style={{float:'none',overflow: 'hidden'}}>
-                <div>Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number" onChange={
+                <div>
+                    <input type="submit" className="next-step" name="next step" value="x" title="Delete problem" onClick={
+                    function() { if (!window.confirm("Delete problem?")) { return; }
+                                 store.dispatch({ type : REMOVE_PROBLEM, PROBLEM_INDEX : problemIndex}) }}/>&nbsp;&nbsp;
+                    Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number" onChange={
                     function(evt) { store.dispatch({ type : SET_PROBLEM_NUMBER, PROBLEM_INDEX : problemIndex, 
-                                    NEW_PROBLEM_NUMBER : evt.target.value}) }}/> <br/>
+                                    NEW_PROBLEM_NUMBER : evt.target.value}) }}/> &nbsp;&nbsp;&nbsp;
+                    <input type="submit" className="next-step" name="next step" value="Clone Problem" 
+                                    title="Make a copy of this work, useful if you need to refernce it while trying another solution path." onClick={
+                    function() { store.dispatch({ type : CLONE_PROBLEM, PROBLEM_INDEX : problemIndex}) }}/>
                 </div>
-                <br/>
                 <div style={{float:'left'}}>
                     <p> Actions </p>
                     <input type="submit" className="next-step" name="next step" value="next step (enter)" onClick={
@@ -707,6 +720,28 @@ function testRemoveProblem() {
     expect(
         assignment(initialAssignment, { type : REMOVE_PROBLEM, PROBLEM_INDEX : 1 })
     ).toEqual(expectedAssignment);
+    }
+
+function testCloneProblem() {
+    var initialAssignment = {
+        APP_MODE : EDIT_ASSIGNMENT,
+        ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1},
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1}
+        ]
+    }
+    var expectedAssignment = {
+        APP_MODE : EDIT_ASSIGNMENT,
+        ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1},
+                     { PROBLEM_NUMBER : "1 - copy", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1},
+                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1}
+        ]
+    }
+    deepFreeze(initialAssignment);
+    expect(
+        assignment(initialAssignment, { type : CLONE_PROBLEM, PROBLEM_INDEX : 0 })
+    ).toEqual(expectedAssignment);
 }
 
 function testRenameProblem() {
@@ -794,6 +829,7 @@ function testRedoStep() {
 // TODO - seperate these from app code
 testAddProblem();
 testRemoveProblem();
+testCloneProblem();
 testRenameProblem();
 testEditStep();
 testNewStep();

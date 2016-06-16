@@ -1146,6 +1146,9 @@ Work on 1/10/2016
             - consider making deselect a noop
                 - pressing enter key can apply to all ungraded
                 - there will be buttons for "just this one", "apply to all ungraded", "apply to all"
+- modify zip file read and aggregateStudentWork functionality to populate new model structure
+    - time estimate 20 mins, finish 11
+
 
 - TODO soon
     - better answer check

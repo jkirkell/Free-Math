@@ -1088,7 +1088,7 @@ Work on 1/10/2016
           issue redux actions in response to input
 
 ------------------
-6/5/2014
+6/5/2016
 ------------------
 - got document loading working in the rewritten version of the app
     - couldn't get the CSS working with the frozen top menu bar inside
@@ -1099,7 +1099,54 @@ Work on 1/10/2016
   as they are represented in the Redux store
     - time estimate 5 minutes, finish 7:20
     - finished 7:25 
-- 
+- implement delete problem
+    - time estimate 15 minutes, finish 7:45 make sure to write a test, also add confirmation dialog
+    - forgot I implemented this in the store, and have a unit tests
+    - just need UI for it, new estimate 5 minutes, finish 7:35
+        - finished, including basic confirm dialog
+- clone problem?
+    - probably useful for saving/referencing your incorrect work while trying to work on a different solution
+    - implement in store, time estimate with test 10 minutes, finish 7:45
+    - finished 7:50, including button
+- only thing left in the student experience is keyboard shortcuts for undo/redo
+    - going to remove the shortcut text for now, I'll look at the best option for this
+        - need different key combo for mac, might want to tie into browser level undo/redo
+- working on reactifiying the teacher interface
+    - start with the model first design the actions/reducers
+    - time for specifying the data model 20 mins, finish 9:05
+        - open question, need to figure out how I want to handle fractional point values
+            - teachers will want to use them, and expect them to add up correctly
+            - could just use floating point with rounding on aggregation, should be fine
+              in most cases
+            - would be simpler to just make everything integer based
+                - if I make the default total points per problem 6 teachers could give
+                  1/2, 1/3, 2/3 credit for problems easily
+                - defaulting to 3 is probably bad because it disallows half credit
+                - think about using 4 or 6 as default
+        - allowing multiple answers will be important, try to impelment parsing a comma
+          separated list of expressions, otherwise will need to implement tagging mutliple
+          final answers
+
+------------------
+6/15/2016
+------------------
+- working on teacher experience
+    - defining model
+    - need to do more design on how the different filters can be combined
+        - don't think the correct/incorrect work filter seems very useful when
+          looking at similar assignments to identify students that may have copied
+          each other's work
+    - improvement for the "apply grade to similar answers" feature
+        - I still think that the default should be apply to all
+        - but if manual grades have been given to some work, this is currently a
+          distructive operation
+            - I can make the default behavior "apply to other similar ungraded answers"
+            - there can also be a "force this score for all students in this answer group"
+            - and a "apply to only this student"
+            - consider making deselect a noop
+                - pressing enter key can apply to all ungraded
+                - there will be buttons for "just this one", "apply to all ungraded", "apply to all"
+
 - TODO soon
     - better answer check
         - at least use Khan check for fully simplified answer

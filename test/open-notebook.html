@@ -80,6 +80,26 @@ var APP_MODE = 'APP_MODE';
 var EDIT_ASSIGNMENT = 'EDIT_ASSIGNMENT';
 var GRADE_ASSIGNMENTS = 'GRADE_ASSIGNMENTS';
 
+// CURRENT_FILTERS : { CORRECTNESS : [ "INCORRECT", "PARTIALLY_CORRECT", "INCORRECT"], ANONYMOUS : true/false }
+// SIMILAR_ASSIGNMENT_SETS : [ [ "jason", "emma", "matt"], ["jim", "tim"] ],
+// STUDENT_WORK : [ {
+//      "PROBLEM_NUMBER" : "1.a",
+//      "POSSIBLE_POINTS : 3,
+//      "UNIQUE_ANSWERS" : [ { ANSWER : "x=7", FILTER : "SHOW_ALL"/"SHOW_NONE", STUDENT_WORK : [ {STUDENT_FILE : "jason", AUTOMATICALLY_ASSIGNED_GRADE : 3, 
+//                             STEPS : [ { CONTENT : "2x=14"},{ CONTENT : "x=7", HIGHLIGHT : SUCCESS ]} ] } } ]
+// Properties for GRADE_ASSIGNMENTS mode, don't store calcuated values in the state
+// the UI includes "total incorrect answers", just calculate this during render, also don't store correct/incorrect
+// handle this in render based on comparison between score and possible points
+// SIMILAR_ASSIGNMENT_SETS are used to try to automate the task of identifying if students are copying
+// each others work, currently it is based on a simple diff, there is not automatic penalty, these are assumed
+// to always require teacher review and they can decide if it is a false positive and appropriate action
+// the ANONYMOUS filter allows teachers to hide/show student names, both modes are useful in different scenarios
+var STUDENT_FILE = 'STUDENT_FILE';
+var UNIQUE_ANSWERS = 'UNIQUE_ANSWERS';
+var AUTOMATICALLY_ASSIGNED_GRADE = 'AUTOMATICALLY_ASSIGNED_GRADE';
+var PROBLEM_SCORE = 'PROBLEM_SCORE';
+var SUCCESS_HIGHLIGHTS = 'SUCCESS_HIGHLIGHTS';
+
 // Assignment properties
 var ASSIGNMENT_NAME = 'ASSIGNMENT_NAME';
 var PROBLEMS = 'PROBLEMS';

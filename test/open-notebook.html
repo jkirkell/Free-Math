@@ -37,6 +37,8 @@
 
 <!-- saving to local disk -->
 <script type="text/javascript" src="../filesaver_js.js"></script>
+<!-- reading ZIP files -->
+<script type="text/javascript" src="../Stuk-jszip-82ceacc/dist/jszip.js"></script>
 
 <!-- Only use this for MathQuill! --> 
 <script type="text/javascript" src="support/jquery-1.7.2.js"></script>
@@ -80,7 +82,9 @@ var APP_MODE = 'APP_MODE';
 var EDIT_ASSIGNMENT = 'EDIT_ASSIGNMENT';
 var GRADE_ASSIGNMENTS = 'GRADE_ASSIGNMENTS';
 
-// CURRENT_FILTERS : { CORRECTNESS : [ "INCORRECT", "PARTIALLY_CORRECT", "INCORRECT"], ANONYMOUS : true/false }
+// Object model for teacher grading experience
+// SIMILAR_ASSIGNMENT_GROUP_INDEX indexes into the SIMILAR_ASSIGNMENT_SETS list, the view will be limited to only those students
+// CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : 1, CORRECTNESS : [ "INCORRECT", "PARTIALLY_CORRECT", "INCORRECT"], ANONYMOUS : true/false }
 // SIMILAR_ASSIGNMENT_SETS : [ [ "jason", "emma", "matt"], ["jim", "tim"] ],
 // STUDENT_WORK : [ {
 //      "PROBLEM_NUMBER" : "1.a",
@@ -96,10 +100,29 @@ var GRADE_ASSIGNMENTS = 'GRADE_ASSIGNMENTS';
 // the ANONYMOUS filter allows teachers to hide/show student names, both modes are useful in different scenarios
 // filter on individaul answer groups overrides the global filters
 var STUDENT_FILE = 'STUDENT_FILE';
+var ASSIGNMENT = 'ASSIGNMENT';
 var UNIQUE_ANSWERS = 'UNIQUE_ANSWERS';
 var AUTOMATICALLY_ASSIGNED_GRADE = 'AUTOMATICALLY_ASSIGNED_GRADE';
 var PROBLEM_SCORE = 'PROBLEM_SCORE';
 var SUCCESS_HIGHLIGHTS = 'SUCCESS_HIGHLIGHTS';
+
+// answer key properties
+var GRADE_STRATEGY = "GRADE_STRATEGY";
+var ALL_ANSWERS_REQUIRED = "ALL_ANSWERS_REQUIRED";
+var ONE_ANSWER_REQUIRED = "ONE_ANSWER_REQUIRED";
+var SUBSET_OF_ANSWERS_REQUIRED = "SUBSET_OF_ANSWERS_REQUIRED";
+var NUMBER_OF_MATCHING_ANSWERS_REQUIRED = "NUMBER_OF_MATCHING_ANSWERS_REQUIRED";
+var POSSIBLE_POINTS = "POSSIBLE_POINTS";
+var ANSWER_CLASSES = "ANSWER_CLASSES";
+var ANSWERS = "ANSWERS";
+var SCORE = "SCORE";
+
+// teacher grade page model properties
+var CORRECT = "CORRECT";
+var PARTIALLY_CORRECT = "PARTIALLY_CORRECT";
+var INCORRECT = "INCORRECT";
+var SHOW_ALL = "SHOW_ALL";
+var SHOW_NONE = "SHOW_NONE";
 
 // Assignment properties
 var ASSIGNMENT_NAME = 'ASSIGNMENT_NAME';
@@ -176,7 +199,7 @@ function studentSubmissionsZip(evt) {
             var allStudentWork = [];
 
             // you now have every files contained in the loaded zip
-            for (file in new_zip.files) { 
+            for (var file in new_zip.files) { 
                 // don't get properties from prototype
                 if (new_zip.files.hasOwnProperty(file)) {
                     // extra directory added when zipping files on mac
@@ -187,12 +210,12 @@ function studentSubmissionsZip(evt) {
                     if (new_zip.file(file) == null) continue; 
                     var fileContents = new_zip.file(file).asText();
                     // how is this behaviring differrntly than JSOn.parse()?!?!
-                    assignmentData = $.parseJSON(fileContents);
-                    allStudentWork.push({filename : file, assignment : assignmentData});
+                    var assignmentData = $.parseJSON(fileContents);
+                    allStudentWork.push({STUDENT_FILE : file, ASSIGNMENT : assignmentData});
                 }
             }
             // TODO - add back answer key
-            aggregatedWork = aggregateStudentWork(allStudentWork, correctAnswers);
+            var aggregatedWork = aggregateStudentWork(allStudentWork);
         }
         r.readAsArrayBuffer(f);
     } else { 
@@ -200,58 +223,144 @@ function studentSubmissionsZip(evt) {
     }
 }
 
+// returns score out of total possible points that are specified in the answer key
+function gradeSingleProblem(problem, answerKey) {
+    var automaticallyAssignedGrade;
+    var problemKey = answerKey[problem[PROBLEM_NUMBER]];
+    $.each(problemKey[ANSWER_CLASSES], function(answerClassIndex, answerClass) {
+        var exitEarly = false;
+        if (answerClass[GRADE_STRATEGY] === ONE_ANSWER_REQUIRED) {
+            $.each(answerClass[ANSWERS], function(answerIndex, answer) {
+            var studentAnswer = _.last(problem[STEPS]);
+            // TODO - better expression comparison
+            // var expr1 = KAS.parse(answer).expr;
+            // var expr2 = KAS.parse(studentAnswer).expr;
+            // if (KAS.compare(expr1, expr2).equal) {
+            if (answer == studentAnswer) {
+                // TODO - good rounding
+                automaticallyAssignedGrade = answerKey[problem[PROBLEM_NUMBER]][POSSIBLE_POINTS] * answerClass[SCORE];
+                exitEarly = true;
+                return false; // early terminate loops
+            }
+            });
+        } else {
+        alert("This grading strategy has not been implemented - " + answerClass[GRADE_STRATEGY]);
+        }
+        if (exitEarly) return false;
+    });
+    return automaticallyAssignedGrade;
+}
+
+//      [ { "PROBLEM_NUMBER" : "1", POSSIBLE_POINTS : 3, "ANSWER_CLASSES" : [ { SCORE : 1, ANSWERS : ["x=5", "5=x"]}, { "SCORE" : 0.5, ANSWERS : ["x=-5","-5=x"] ],
+//          "GRADE_STRATEGY" : "ALL_ANSWERS_REQUIRED" | "ONE_ANSWER_REQUIRED" | "SUBSET_OF_ANSWERS_REQUIRED", "NUMBER_OF_MATCHING_ANSWERS_REQUIRED" : 2 } ]
+function testGradeProblem() {
+    var answerKey = { "1" : { POSSIBLE_POINTS : 3,
+                        ANSWER_CLASSES : [  { SCORE : 1, ANSWERS : ["x=5", "5=x"], GRADE_STRATEGY : ONE_ANSWER_REQUIRED },
+                                            { SCORE : 0.5, ANSWERS : ["x=-5", "-5=x"], GRADE_STRATEGY : ONE_ANSWER_REQUIRED }] } };
+    var studentAnswer1 = { PROBLEM_NUMBER : 1, STEPS : [ "2x=10", "x=5"]};
+    var studentAnswer2 = { PROBLEM_NUMBER : 1, STEPS : [ "2x=10", "x=-5"]};
+    expect(gradeSingleProblem(studentAnswer1, answerKey)).toEqual(3);
+    expect(gradeSingleProblem(studentAnswer2, answerKey)).toEqual(1.5);
+}
+
+function testAggregateStudentWork() {
+    var allStudentWork = [ {STUDENT_FILE : "jake r.", ASSIGNMENT: [{PROBLEM_NUMBER : 1, STEPS : ["5x=10", "x=2"]}]},
+                           {STUDENT_FILE : "jon m.", ASSIGNMENT: [{PROBLEM_NUMBER : 1, STEPS : ["5x=10", "x=-2"]}]} ];
+    var answerKey = { "1" : { 
+            POSSIBLE_POINTS : 3, 
+            ANSWER_CLASSES : [ { SCORE : 1, ANSWERS : ["x=2", "2=x"], GRADE_STRATEGY : ONE_ANSWER_REQUIRED}, 
+                                { SCORE : 0.5, ANSWERS : ["x=-2","-2=x"], GRADE_STRATEGY : ONE_ANSWER_REQUIRED } ],
+            } };
+    var expectedOutput = {
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+        SIMILAR_ASSIGNMENT_SETS : [ ],
+        STUDENT_WORK : [ {
+            PROBLEM_NUMBER : "1",
+            POSSIBLE_POINTS : 3,
+            UNIQUE_ANSWERS : [ { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_GRADE : 3, 
+                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] }, {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_GRADE : 3, 
+                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] } ]
+        }]
+    };
+
+    expect(
+        aggregateStudentWork(allStudentWork, answerKey)
+    ).toEqual(expectedOutput);
+}
+
+//
+// Returns:
+// CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : 1, CORRECTNESS : [ "INCORRECT", "PARTIALLY_CORRECT", "INCORRECT"], ANONYMOUS : true/false }
+// SIMILAR_ASSIGNMENT_SETS : [ [ "jason", "emma", "matt"], ["jim", "tim"] ],
+// STUDENT_WORK : [ {
+//      "PROBLEM_NUMBER" : "1.a",
+//      "POSSIBLE_POINTS : 3,
+//      "UNIQUE_ANSWERS" : [ { ANSWER : "x=7", FILTER : "SHOW_ALL"/"SHOW_NONE", STUDENT_WORK : [ {STUDENT_FILE : "jason", AUTOMATICALLY_ASSIGNED_GRADE : 3, 
+//                             STEPS : [ { CONTENT : "2x=14"},{ CONTENT : "x=7", HIGHLIGHT : SUCCESS ]} ] } } ]} ]
+
 // Transforms a list of student assignments into a structure where all work for one problem
 // is stored together, separated by different final answers reached by groups of students.
 //
+// In the answer key, scores on individual answers are given as a float value from [0,1).
+// The grading strategy for individual problems (how to handle partial credit, fractional points
+// and allowing users to scale some problems to be worth more points, is still being decided).
+// Can't just use floating point for fractional points because users will expecting them to add up
+// cleanly. Even if I decide on some fractional system, floating point partial credit scores would
+// be safe enough to import with rounding. The again might just be over-thinking it and floats even
+// after aggregation would be fine for "snapping" to common fractional values, just need to store
+// all raw input so it can be shown back to users as what they entered.
+//
 // Params:
 // allStudentWork:
-// [ {filename : "jake r.", problems: [{"steps" : }]]
+//      [ {STUDENT_FILE : "jake r.", ASSIGNMENT: [{PROBLEM_NUMBER : 1, "STEPS" : }]]
+// answerKey: - list of problem numbers with answers, given as a map with the problem numbers as keys
+//              non-numeric keys are considered valid to allow 1.a, iii, 5.11, etc./
+//              NUMBER_OF_MATCHING_ANSWERS_REQUIRED is only valid to set if SUBSET_OF_ANSWERS_REQUIRED is specified.
+//              Each answer class has its own GRADE_STRATEGY because for a question with multiple answers, the partial
+//              credit options will likely be defined as SUBSET_OF_ANSWERS_REQUIRED
+//      { "1" : { POSSIBLE_POINTS : 3, "ANSWER_CLASSES" : [
+//                { SCORE : 1, ANSWERS : ["x=5", "5=x"], "GRADE_STRATEGY" : "ALL_ANSWERS_REQUIRED" },
+//                { "SCORE" : 0.5, ANSWERS : ["x=-5","-5=x"] ],
+//                      "GRADE_STRATEGY" : "ALL_ANSWERS_REQUIRED" | "ONE_ANSWER_REQUIRED" | 
+//                      "SUBSET_OF_ANSWERS_REQUIRED", "NUMBER_OF_MATCHING_ANSWERS_REQUIRED" : 2 } ]
 //
 // Returns:
-// TODO - this will need to be something other than an array to allow for complex problem numbers
-// [ {
-//      "problemNumber" : "1.a",
-//      "totalIncorrect" : 5, 
-//      "totalMissing" : 0,
-//      "uniqueAnswers" : { "x=7" : [ {studentFile : "jason", autoGradeStatus: "correct|incorrect", steps : ["2x=14","x=7" ]} ] } ]
-function aggregateStudentWork(allStudentWork, correctAnswers = {}) {
+// CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : 1, CORRECTNESS : [ "INCORRECT", "PARTIALLY_CORRECT", "INCORRECT"], ANONYMOUS : true/false }
+// SIMILAR_ASSIGNMENT_SETS : [ [ "jason", "emma", "matt"], ["jim", "tim"] ],
+// STUDENT_WORK : [ {
+//      "PROBLEM_NUMBER" : "1.a",
+//      "POSSIBLE_POINTS : 3,
+//      "UNIQUE_ANSWERS" : [ { ANSWER : "x=7", FILTER : "SHOW_ALL"/"SHOW_NONE", STUDENT_WORK : [ {STUDENT_FILE : "jason", AUTOMATICALLY_ASSIGNED_GRADE : 3, 
+//                             STEPS : [ { CONTENT : "2x=14"},{ CONTENT : "x=7", HIGHLIGHT : SUCCESS ]} ] } } ]
+function aggregateStudentWork(allStudentWork, answerKey = {}) {
     var aggregatedWork = [];
     // used to simplify filling in a flag for missing work if a student does not do a problem
     // structure: { "1.1" : { "jason" :true, "taylor" : true }
     var studentWorkFound = {};
-    console.log(correctAnswers);
+    console.log(answerKey);
     allStudentWork.forEach(function(assignInfo, index, array) {
-        assignInfo.assignment.problems.forEach(function(problem, index, array) {
+        assignInfo[ASSIGNMENT].forEach(function(problem, index, array) {
             console.log(problem);
-            var studentAnswer = problem.steps[problem.steps.length - 1];
-            var autoGrade = "incorrect";
+            var studentAnswer = problem[STEPS][problem[LAST_SHOWN_STEP] ];
+            var automaticallyAssignedGrade = 0;
             var correct = false;
-            // TODO - fixme, correctAnswers is not an array, it is currently a map, as the keys can be
+            // TODO - fixme, answerKey is not an array, it is currently a map, as the keys can be
             // non integers like 1.1 or 5.b
-            if (!$.isEmptyObject(correctAnswers)) {
+            if (!$.isEmptyObject(answerKey)) {
                 // this problem did not appear in the answer key
-                if (!correctAnswers[problem.problemNumber]) {
-                    autoGrade = "incorrect";
+                if (!answerKey[problem[PROBLEM_NUMBER]]) {
+                    automaticallyAssignedGrade = 0;
                 } else {
-                    $.each(correctAnswers[problem.problemNumber], function(index, answer) {
-                        console.log(answer);
-                        console.log(studentAnswer);
-                        var expr1 = KAS.parse(answer).expr;
-                        var expr2 = KAS.parse(studentAnswer).expr;
-                        if (KAS.compare(expr1, expr2).equal) {
-                            autoGrade = "correct";
-                            return false; // early terminate loop
-                        }
-                    });
+                    automaticallyAssignedGrade = gradeSingleProblem(problem, answerKey);
                 }
             }
 
             // write into the abreviated list of problems completed, used below to fill in placeholder for
             // completely absent work
-            allStudentsWhoDidThisProblem = studentWorkFound[problem.problemNumber];
+            var allStudentsWhoDidThisProblem = studentWorkFound[problem[PROBLEM_NUMBER]];
             allStudentsWhoDidThisProblem = (typeof allStudentsWhoDidThisProblem != 'undefined') ? allStudentsWhoDidThisProblem : {};
-            allStudentsWhoDidThisProblem[assignInfo.filename] = true;
-            studentWorkFound[problem.problemNumber] = allStudentsWhoDidThisProblem;
+            allStudentsWhoDidThisProblem[assignInfo[STUDENT_FILE]] = true;
+            studentWorkFound[problem[PROBLEM_NUMBER]] = allStudentsWhoDidThisProblem;
             
             // TODO - move this mostly to the notes.txt doc
             // once I am doing better grading based on parsing the math, I won't be able
@@ -264,36 +373,47 @@ function aggregateStudentWork(allStudentWork, correctAnswers = {}) {
             //   similar expressions near one another
             //    - might be easiest to just do a nested loop when that comes up, this would just
             //      require an approximate equals method, not even a compareTo() implementation 
-            var problemSummary = aggregatedWork[problem.problemNumber];
+            
+            /*
+                STUDENT_WORK : [ {
+                    PROBLEM_NUMBER : "1",
+                    POSSIBLE_POINTS : 3,
+                    UNIQUE_ANSWERS : [ { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_GRADE : 3, 
+                            STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] }, {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_GRADE : 3, 
+                            STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] } ]
+                }]
+            */
+            var problemSummary = aggregatedWork[problem[PROBLEM_NUMBER]];
             problemSummary = (typeof problemSummary != 'undefined') ? problemSummary : {};
 
-            var uniqueAnswers = problemSummary['uniqueAnswers'];
+            var uniqueAnswers = problemSummary[UNIQUE_ANSWERS];
             uniqueAnswers = ( typeof uniqueAnswers != 'undefined') ? 
                     uniqueAnswers : {};
             var workList = uniqueAnswers[studentAnswer];
             workList = ( typeof workList != 'undefined' && workList instanceof Array ) ? workList : [];
-            var totalIncorrect = problemSummary['totalIncorrect'];
-            totalIncorrect = ( typeof totalIncorrect != 'undefined') ? totalIncorrect : 0;
-            if (autoGrade == "incorrect") {
-                totalIncorrect++;
-            }
-            workList.push({studentFile : assignInfo.filename, autoGradeStatus: autoGrade, steps : problem.steps});
+            // var totalIncorrect = problemSummary['totalIncorrect'];
+            // totalIncorrect = ( typeof totalIncorrect != 'undefined') ? totalIncorrect : 0;
+            // if (autoGrade == "incorrect") {
+            //     totalIncorrect++;
+            // }
+            workList.push({studentFile : assignInfo[STUDENT_FILE], AUTOMATICALLY_ASSIGNED_GRADE : automaticallyAssignedGrade, steps : wrapSteps(problem[STEPS])});
             uniqueAnswers[studentAnswer] = workList;
-            problemSummary['uniqueAnswers'] = uniqueAnswers;
+            problemSummary[UNIQUE_ANSWERS] = uniqueAnswers;
             // this is currently redundant, but the next step to order all of the problems based
             // on which ones most students go wrong with rewrite the keys to numeric ones
-            problemSummary['problemNumber'] = problem.problemNumber;
-            problemSummary['totalIncorrect'] = totalIncorrect;
+            problemSummary[PROBLEM_NUMBER] = problem[PROBLEM_NUMBER];
+            // problemSummary['totalIncorrect'] = totalIncorrect;
             // this is necessary because this might be the first time this problem number was seen so we just created the list
             // if this wasn't the case, this wouldn't be necessary because objects including arrays are always passed by reference
-            aggregatedWork[problem.problemNumber] = problemSummary;
+            aggregatedWork[problem[PROBLEM_NUMBER]] = problemSummary;
         });
     });
+    /*
     // add blank answers for any students missing problems
     $.each(allStudentWork, function(index, assignInfo) {
         $.each(studentWorkFound, function(problemNumber, studentsFound) {
             if (!studentsFound[assignInfo.filename]) {
-                missingWork = aggregatedWork[problemNumber]['uniqueAnswers']['unanswered'];
+                var missingWork = aggregatedWork[problemNumber]['uniqueAnswers']['unanswered'];
                 missingWork = (typeof missingWork != 'undefined') ? missingWork : [];
                 missingWork.push(
                         {studentFile : assignInfo.filename, autoGradeStatus: 'incorrect', steps : ['unanswered']});
@@ -301,7 +421,22 @@ function aggregateStudentWork(allStudentWork, correctAnswers = {}) {
             }
         });
     });
+    */
+    console.log(aggregatedWork);
     return aggregatedWork;
+}
+
+// currently in the student model, the steps associated with a problem
+// are a simple array of strings with Latex in them. In the teacher
+// gradng model, each step is wrapped in an object to allow for storing
+// metadata with each step. Current usage is to show a highlight of an
+// error or success identified by the teacher on that step.
+function wrapSteps(studentSteps) {
+    var wrappedSteps = [];
+    studentSteps.forEach(function(step, index, arr) {
+        wrappedSteps.push({CONTENT : step});
+    });
+    return wrappedSteps;
 }
 
 function saveAssignment() {
@@ -356,8 +491,7 @@ function convertToCurrentFormat(possiblyOldDoc) {
 
     possiblyOldDoc.problems.forEach(function (problem) {
         if (problem.problemNumber !== undefined) {
-            var newSteps = problem.steps;
-            problem[STEPS] = newSteps;
+            problem[STEPS] = problem.steps;
             problem[LAST_SHOWN_STEP] = newSteps.length - 1;
             problem[PROBLEM_NUMBER] = problem.problemNumber;
             delete problem.steps;
@@ -843,7 +977,7 @@ store.subscribe(render);
 $(function() {
     render();
     $('#open-file-input').change(readSingleFile);
-    //$('#open-student-submissions-input').change(studentSubmissionsZip);
+    $('#open-student-submissions-input').change(studentSubmissionsZip);
 });
 
 function testAddProblem() {
@@ -1001,6 +1135,8 @@ testEditStep();
 testNewStep();
 testUndoStep();
 testRedoStep();
+testGradeProblem();
+testAggregateStudentWork();
 console.log("All tests complete");
 
 </script>

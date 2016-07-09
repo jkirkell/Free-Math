@@ -1149,6 +1149,46 @@ Work on 1/10/2016
 - modify zip file read and aggregateStudentWork functionality to populate new model structure
     - time estimate 20 mins, finish 11
 
+------------------
+6/25/2016
+------------------
+- goals for tonight
+    - finish converting teacher grading experience to React
+        - transforming list of student docs into teacher grading model
+        - define actions for teacher grading experience
+        - impelement grading reducer and tests
+        - define component to render teacher grading experience
+        - add export student docs with feedback
+        - export grading summary table, simple CSV, student -> total grade
+- finishing reworking of code to transform raw student docs into the teacher grading
+  model
+    - time estimate 20 mins, finish time 11:45
+        - spent a little time changing the object model to handle a few more cases
+    - new estimate 15 minutes, finish time 12:10
+        - stupid tangent about fractional points
+    - new estimate 15 mins, finish time 12:25
+
+------------------
+7/1/2016
+------------------
+- finish function for grading a single problem, with tests
+    - time estimate 15 mins, finish 8:35
+        - got distracted
+        - new finish time 9:10
+        - took a bit longer than expected, finished 9:40
+
+------------------
+7/8/2016
+------------------
+- need to finish rewrite of aggregateStudentWork function
+    - mostly just rename of properties, also moving aggregations to rendering
+      rather than storing computed values in the data model (total number correct for a given problem, etc.)
+- define a complete simple test with 2 students, assume similarity check is off
+    - time estimate 5 minutes, finish 9:35
+- finish implementing method to pass the test
+    - don't need to worry about similar assignment detection, or filling in missing work yet
+    - time estimate 15 minutes, finish 10:05
+        - got distracted, new deadline, 10:25
 
 - TODO soon
     - better answer check

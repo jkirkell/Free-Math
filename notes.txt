@@ -1189,6 +1189,41 @@ Work on 1/10/2016
     - don't need to worry about similar assignment detection, or filling in missing work yet
     - time estimate 15 minutes, finish 10:05
         - got distracted, new deadline, 10:25
+        - took longer than expected, but I got my test passing!
+
+------------------
+7/9/2016
+------------------
+- goals for tonight and tomorrow
+    - finish teacher grading experience reducer
+        - assuming simple answer comparison
+    - convert existing UI into react components
+    - work on advanced answer comparison and 
+      more advanced cheating detection
+    - work on a public facing demo page
+- work starting at 9:15
+    - write test for student work aggregation function in the case of
+      no answer key
+        - time estimate 5 mins, finish 9:20
+- stretch goals
+    - get the multi-step equation editor incorporated into perseus
+        - submit PR
+    - work on integration with moodle
+    - try to submit directly to web storage like dropbox and google drive
+
+
+
+// old notes about how to organize stude work on the grading pae
+// once I am doing better grading based on parsing the math, I won't be able
+// to use the answers as keys into this map
+// TODO - look up making custom map keys in JS (I know it ins't supported natively)
+// to make a hashmap I would need to define hashing that would consider
+// sufficiently similar expressions equivelent in hash value, while also customizing
+// what is allowed to be different between the expressions
+// - similar problem with treemap, would need to define ordering that would put
+//   similar expressions near one another
+//    - might be easiest to just do a nested loop when that comes up, this would just
+//      require an approximate equals method, not even a compareTo() implementation 
 
 - TODO soon
     - better answer check

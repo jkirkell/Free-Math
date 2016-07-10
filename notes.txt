@@ -1204,14 +1204,24 @@ Work on 1/10/2016
 - work starting at 9:15
     - write test for student work aggregation function in the case of
       no answer key
-        - time estimate 5 mins, finish 9:20
+        - time estimate 5 mins, finish 9:20, actual finish 9:25
+    - write reducer function to implement grading a group of similar student work
+        - apply grade to all similar answers
+        - time estimate 15 mins, finish 10:50
+
 - stretch goals
     - get the multi-step equation editor incorporated into perseus
         - submit PR
     - work on integration with moodle
     - try to submit directly to web storage like dropbox and google drive
 
-
+------------------
+7/10/2016
+------------------
+- work starting at 9:30
+- finish reducer function to implement grading a group of similar student work
+    - apply grade to all similar answers, with unit test
+        - time estimate 10 minutes, finish, 9:40, new deadline 10:05
 
 // old notes about how to organize stude work on the grading pae
 // once I am doing better grading based on parsing the math, I won't be able

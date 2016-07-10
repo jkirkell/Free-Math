@@ -86,7 +86,7 @@ var GRADE_ASSIGNMENTS = 'GRADE_ASSIGNMENTS';
 var STUDENT_FILE = 'STUDENT_FILE';
 var ASSIGNMENT = 'ASSIGNMENT';
 var UNIQUE_ANSWERS = 'UNIQUE_ANSWERS';
-var AUTOMATICALLY_ASSIGNED_GRADE = 'AUTOMATICALLY_ASSIGNED_GRADE';
+var AUTOMATICALLY_ASSIGNED_SCORE = 'AUTOMATICALLY_ASSIGNED_SCORE';
 var PROBLEM_SCORE = 'PROBLEM_SCORE';
 var SUCCESS_HIGHLIGHTS = 'SUCCESS_HIGHLIGHTS';
 
@@ -110,6 +110,16 @@ var SHOW_NONE = "SHOW_NONE";
 var STUDENT_WORK = "STUDENT_WORK";
 var ANSWER = "ANSWER";
 
+// teacher grading actions
+var GRADE_SINGLE_PROBLEM = "GRADE_SINGLE_PROBLEM";
+// action properties
+// PROBLEM_NUMBER, SOLUTION_CLASS_INDEX, SCORE 
+var GRADE_CLASS_OF_SOLUTIONS = "GRADE_CLASS_OF_SOLUTIONS";
+var SOLUTION_CLASS_INDEX = "SOLUTION_CLASS_INDEX";
+var HIDE_BY_CORRECTNESS = "HIDE_BY_CORRECTNESS";
+var HIDE_CLASS_OF_SOLUTIONS = "HIDE_CLASS_OF_SOLUTIONS";
+var TOGGLE_GRADING_ANONYMOUSLY = "TOGGLE_GRADING_ANONYMOUSLY";
+
 // Assignment properties
 var ASSIGNMENT_NAME = 'ASSIGNMENT_NAME';
 var PROBLEMS = 'PROBLEMS';
@@ -130,7 +140,7 @@ var SET_ASSIGNMENT_NAME = 'SET_ASSIGNMENT_NAME';
 // a document from a file
 var SET_ASSIGNMENT_CONTENT = 'SET_ASSIGNMENT_CONTENT';
 
-// actions
+// student assignment actions
 var ADD_PROBLEM = 'ADD_PROBLEM';
 // remove problem expects an "index" property 
 // specifying which problem to remove
@@ -263,9 +273,9 @@ function testAggregateStudentWork() {
         STUDENT_WORK : { "1" : {
             POSSIBLE_POINTS : 3,
             UNIQUE_ANSWERS : [ 
-                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_GRADE : 3, 
+                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 3, SCORE : 3,
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] }, 
-                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_GRADE : 1.5, 
+                    { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 1.5,  SCORE : 1.5,
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
         } }
     };
@@ -281,9 +291,9 @@ function testAggregateStudentWorkNoAnswerKey() {
         STUDENT_WORK : { "1" : {
             POSSIBLE_POINTS : 6,
             UNIQUE_ANSWERS : [ 
-                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_GRADE : 0,
+                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0,
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] }, 
-                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_GRADE : 0, 
+                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0,
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
         } }
     };
@@ -321,7 +331,7 @@ function testAggregateStudentWorkNoAnswerKey() {
 // SIMILAR_ASSIGNMENT_SETS : [ [ "jason", "emma", "matt"], ["jim", "tim"] ],
 // STUDENT_WORK : { "1.a" : {
 //      "POSSIBLE_POINTS : 3,
-//      "UNIQUE_ANSWERS" : [ { ANSWER : "x=7", FILTER : "SHOW_ALL"/"SHOW_NONE", STUDENT_WORK : [ {STUDENT_FILE : "jason", AUTOMATICALLY_ASSIGNED_GRADE : 3, 
+//      "UNIQUE_ANSWERS" : [ { ANSWER : "x=7", FILTER : "SHOW_ALL"/"SHOW_NONE", STUDENT_WORK : [ {STUDENT_FILE : "jason", AUTOMATICALLY_ASSIGNED_SCORE : 3, 
 //                             STEPS : [ { CONTENT : "2x=14"},{ CONTENT : "x=7", HIGHLIGHT : SUCCESS ]} ] } } ]}
 function aggregateStudentWork(allStudentWork, answerKey = {}) {
     var aggregatedWork = {};
@@ -334,7 +344,7 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
             console.log(problem);
             var studentAnswer = problem[STEPS][problem[LAST_SHOWN_STEP] ];
             var automaticallyAssignedGrade = 0;
-            var correct = false;
+
             if (!$.isEmptyObject(answerKey)) {
                 // this problem did not appear in the answer key
                 if (!answerKey[problem[PROBLEM_NUMBER]]) {
@@ -374,7 +384,8 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
             }
             workList[STUDENT_WORK].push(
                 { STUDENT_FILE : assignInfo[STUDENT_FILE], 
-                  AUTOMATICALLY_ASSIGNED_GRADE : automaticallyAssignedGrade,
+                  AUTOMATICALLY_ASSIGNED_SCORE : automaticallyAssignedGrade,
+                  SCORE : automaticallyAssignedGrade,
                   STEPS : wrapSteps(problem[STEPS])}
             );
             uniqueAnswers[indexInUniqueAnswersList] = workList;
@@ -386,7 +397,6 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
             } else {
                 problemSummary[POSSIBLE_POINTS] = 6;
              }
-            // problemSummary['totalIncorrect'] = totalIncorrect;
             // this is necessary because this might be the first time this problem number was seen so we just created the list
             // if this wasn't the case, this wouldn't be necessary because objects including arrays are always passed by reference
             aggregatedWork[problem[PROBLEM_NUMBER]] = problemSummary;
@@ -587,6 +597,27 @@ function assignment(state, action) {
         var new_state = _.clone(state);
         new_state[PROBLEMS] = problems(new_state[PROBLEMS], action); 
         return new_state;
+    }
+}
+
+// CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : 1, CORRECTNESS : [ "INCORRECT", "PARTIALLY_CORRECT", "INCORRECT"], ANONYMOUS : true/false }
+// SIMILAR_ASSIGNMENT_SETS : [ [ "jason", "emma", "matt"], ["jim", "tim"] ],
+// STUDENT_WORK : { "1.a" : {
+//      "POSSIBLE_POINTS : 3,
+//      "UNIQUE_ANSWERS" : [ { ANSWER : "x=7", FILTER : "SHOW_ALL"/"SHOW_NONE", STUDENT_WORK : [ {STUDENT_FILE : "jason", AUTOMATICALLY_ASSIGNED_SCORE : 3, 
+//                             STEPS : [ { CONTENT : "2x=14"},{ CONTENT : "x=7", HIGHLIGHT : SUCCESS ]} ] } } ]}
+// reducer for teacher grading page
+function grading(state, action) {
+    if (state === undefined) {
+        alert("Defualt state has not been defined for teacher grading experience");
+    } else if (action.type === GRADE_CLASS_OF_SOLUTIONS) {
+        var newState = _.cloneDeep(state);
+        var allWorkForProblem = newState[STUDENT_WORK][action[PROBLEM_NUMBER]];
+        var workInGivenSolutionClass = allWorkForProblem[UNIQUE_ANSWERS][action[SOLUTION_CLASS_INDEX]][STUDENT_WORK];
+        workInGivenSolutionClass.forEach(function(singleStudentsWork, index, arr) {
+            singleStudentsWork[SCORE] = action[SCORE];
+        });
+        return newState;
     }
 }
 
@@ -966,6 +997,46 @@ $(function() {
     $('#open-student-submissions-input').change(studentSubmissionsZip);
 });
 
+// in the teacher grading experince, student work is grouped by similar final answer
+// these groups are called solution classes
+function testGradeSolutionClass() {
+
+    // PROBLEM_NUMBER, SOLUTION_CLASS_INDEX, SCORE 
+    //var GRADE_CLASS_OF_SOLUTIONS = "GRADE_CLASS_OF_SOLUTIONS";
+
+    var input = {
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+        SIMILAR_ASSIGNMENT_SETS : [ ],
+        STUDENT_WORK : { "1" : {
+            POSSIBLE_POINTS : 6,
+            UNIQUE_ANSWERS : [ 
+            { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
+                {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
+                {STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ] }] }, 
+                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0,
+                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
+        } }
+    };
+    var expectedOutput = {
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+        SIMILAR_ASSIGNMENT_SETS : [ ],
+        STUDENT_WORK : { "1" : {
+            POSSIBLE_POINTS : 6,
+            UNIQUE_ANSWERS : [ 
+                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
+                    {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 3, STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
+                    {STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 3, STEPS : [ 
+                        { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} 
+                        ] } 
+                ] }, 
+                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0,
+                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
+        } }
+    };
+    var output = grading(input, { type : GRADE_CLASS_OF_SOLUTIONS, PROBLEM_NUMBER : "1", SOLUTION_CLASS_INDEX : 0, SCORE : 3} );
+    expect(output).toEqual(expectedOutput);
+}
+
 function testAddProblem() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
@@ -1124,6 +1195,7 @@ testRedoStep();
 testGradeProblem();
 testAggregateStudentWork();
 testAggregateStudentWorkNoAnswerKey();
+testGradeSolutionClass();
 console.log("All tests complete");
 
 </script>

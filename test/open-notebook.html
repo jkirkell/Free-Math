@@ -621,6 +621,38 @@ function grading(state, action) {
     }
 }
 
+// trying to create utility function for updating part of a nested structure
+// while respecting Redux immutable model, this is a basic reducer to test the function
+// input : { username : "asdf", events : [ { name : "priate party", date : "aug 30"} ] }
+// action : { type : "updateDate", eventIndex : 0, newDate : "jan 10" }
+function userEventReducer(state, action) {
+    if (action.type === "updateDate") {
+        return {
+            ...state,
+            events : [
+                ...state.events.slice(0, action.eventIndex),
+                { ...state.events[action.eventIndex],
+                    date : action.newDate
+                },
+                ...state.events.slice(action.eventIndex + 1),
+            ]
+        };
+        //var newState = _.cloneDeep(state);
+        //newState.events[action.eventIndex].date = action.newDate;
+        //return newState;
+    }
+}
+
+testNestedUpdate();
+
+function testNestedUpdate(state, action) {
+    var initialState = { username : "asdf", events : [ { name : "priate party", date : "aug 30"} ] };
+    var action = { type : "updateDate", eventIndex : 0, newDate : "jan 10" };
+    var expectedOut = { username : "asdf", events : [ { name : "priate party", date : "jan 10"} ] };
+    deepFreeze(initialState);
+    expect(userEventReducer(initialState, action)).toEqual(expectedOut);
+}
+
 var createStore = Redux.createStore;
 var store = createStore(assignment);
 
@@ -1033,6 +1065,7 @@ function testGradeSolutionClass() {
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
         } }
     };
+    deepFreeze(input);
     var output = grading(input, { type : GRADE_CLASS_OF_SOLUTIONS, PROBLEM_NUMBER : "1", SOLUTION_CLASS_INDEX : 0, SCORE : 3} );
     expect(output).toEqual(expectedOutput);
 }

@@ -627,6 +627,15 @@ function grading(state, action) {
 // action : { type : "updateDate", eventIndex : 0, newDate : "jan 10" }
 function userEventReducer(state, action) {
     if (action.type === "updateDate") {
+        return setDeepImmutable( state, ['events', action.eventIndex, "date"], action.newDate);
+        /*
+        var newRoot = _.clone(state);
+        newRoot.events = _.clone(state.events);
+        newRoot.events[action.eventIndex] = _.clone(state.events[action.eventIndex]);
+        newRoot.events[action.eventIndex].date = action.newDate;
+        return newRoot;
+        */
+        /*
         return {
             ...state,
             events : [
@@ -637,10 +646,37 @@ function userEventReducer(state, action) {
                 ...state.events.slice(action.eventIndex + 1),
             ]
         };
+        */
         //var newState = _.cloneDeep(state);
         //newState.events[action.eventIndex].date = action.newDate;
         //return newState;
     }
+}
+
+function setDeepImmutable(orig, pathDown, newVal) {
+    // shallow copy
+    var newRoot = _.clone(orig);
+    var currentLevel = newRoot;
+    pathDown.forEach(function(pathSegment, index, array) {
+        var valToInsert;
+        if (index == array.length - 1 ) {
+            valToInsert = newVal;
+        } else {
+            valToInsert = _.clone(currentLevel[pathSegment]);
+        }
+        if (typeof(pathSegment) === 'string') {
+            currentLevel[pathSegment] = valToInsert;
+            currentLevel = currentLevel[pathSegment];
+            return true;
+        } else if (typeof(pathSegment) === 'number') {
+            currentLevel[pathSegment] = valToInsert;
+            currentLevel = currentLevel[pathSegment];
+            return true;
+        } else {
+            console.log("Unsupported type given for nested structure traversal, only strings and numbers can be given");
+        }
+    });
+    return newRoot;
 }
 
 testNestedUpdate();

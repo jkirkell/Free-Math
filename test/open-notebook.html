@@ -611,11 +611,15 @@ function grading(state, action) {
     if (state === undefined) {
         alert("Defualt state has not been defined for teacher grading experience");
     } else if (action.type === GRADE_CLASS_OF_SOLUTIONS) {
-        var newState = _.cloneDeep(state);
+        var newState = state; 
         var allWorkForProblem = newState[STUDENT_WORK][action[PROBLEM_NUMBER]];
         var workInGivenSolutionClass = allWorkForProblem[UNIQUE_ANSWERS][action[SOLUTION_CLASS_INDEX]][STUDENT_WORK];
         workInGivenSolutionClass.forEach(function(singleStudentsWork, index, arr) {
-            singleStudentsWork[SCORE] = action[SCORE];
+            newState = setDeepImmutable(
+                newState, 
+                [ STUDENT_WORK, action[PROBLEM_NUMBER], UNIQUE_ANSWERS,
+                    action[SOLUTION_CLASS_INDEX], STUDENT_WORK, index, SCORE],
+                    action[SCORE]);
         });
         return newState;
     }

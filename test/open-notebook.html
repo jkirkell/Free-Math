@@ -630,8 +630,8 @@ function grading(state, action) {
 // input : { username : "asdf", events : [ { name : "priate party", date : "aug 30"} ] }
 // action : { type : "updateDate", eventIndex : 0, newDate : "jan 10" }
 function userEventReducer(state, action) {
-    if (action.type === "updateDate") {
-        return setDeepImmutable( state, ['events', action.eventIndex, "date"], action.newDate);
+    if (action.type === 'updateDate') {
+        return setDeepImmutable( state, ['events', action.eventIndex, 'date'], action.newDate);
         /*
         var newRoot = _.clone(state);
         newRoot.events = _.clone(state.events);
@@ -682,8 +682,6 @@ function setDeepImmutable(orig, pathDown, newVal) {
     });
     return newRoot;
 }
-
-testNestedUpdate();
 
 function testNestedUpdate(state, action) {
     var initialState = { username : "asdf", events : [ { name : "priate party", date : "aug 30"} ] };
@@ -1269,6 +1267,9 @@ testGradeProblem();
 testAggregateStudentWork();
 testAggregateStudentWorkNoAnswerKey();
 testGradeSolutionClass();
+
+// test utility method
+testNestedUpdate();
 console.log("All tests complete");
 
 </script>

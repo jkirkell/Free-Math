@@ -273,9 +273,9 @@ function testAggregateStudentWork() {
         STUDENT_WORK : { "1" : {
             POSSIBLE_POINTS : 3,
             UNIQUE_ANSWERS : [ 
-                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 3, SCORE : 3,
+                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 3, SCORE : 3, FEEDBACK : "",
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] }, 
-                    { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 1.5,  SCORE : 1.5,
+                    { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 1.5,  SCORE : 1.5, FEEDBACK : "",
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
         } }
     };
@@ -291,9 +291,9 @@ function testAggregateStudentWorkNoAnswerKey() {
         STUDENT_WORK : { "1" : {
             POSSIBLE_POINTS : 6,
             UNIQUE_ANSWERS : [ 
-                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0,
+                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, FEEDBACK : "",
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] }, 
-                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0,
+                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, FEEDBACK : "",
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
         } }
     };
@@ -386,6 +386,7 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
                 { STUDENT_FILE : assignInfo[STUDENT_FILE], 
                   AUTOMATICALLY_ASSIGNED_SCORE : automaticallyAssignedGrade,
                   SCORE : automaticallyAssignedGrade,
+                  FEEDBACK : '',
                   STEPS : wrapSteps(problem[STEPS])}
             );
             uniqueAnswers[indexInUniqueAnswersList] = workList;
@@ -627,7 +628,9 @@ function grading(state, action) {
 
 // trying to create utility function for updating part of a nested structure
 // while respecting Redux immutable model, this is a basic reducer to test the function
-// input : { username : "asdf", events : [ { name : "priate party", date : "aug 30"} ] }
+// input : { username : "asdf",
+//           events : [ { name : "pirate party", date : "aug 30"}, { name : "dance party", date : "jan 1" } ]
+//         }
 // action : { type : "updateDate", eventIndex : 0, newDate : "jan 10" }
 function userEventReducer(state, action) {
     if (action.type === 'updateDate') {
@@ -1081,10 +1084,16 @@ function testGradeSolutionClass() {
             POSSIBLE_POINTS : 6,
             UNIQUE_ANSWERS : [ 
             { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
-                {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
-                {STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ] }] }, 
-                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0,
-                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
+                { STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, 
+                  SCORE : 0, FEEDBACK : "",
+                  STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
+                { STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
+                  SCORE : 0, FEEDBACK : "",
+                  STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ] }] }, 
+            { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [
+                { STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
+                  SCORE : 0, FEEDBACK : "",
+                  STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
         } }
     };
     var expectedOutput = {
@@ -1094,12 +1103,12 @@ function testGradeSolutionClass() {
             POSSIBLE_POINTS : 6,
             UNIQUE_ANSWERS : [ 
                 { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
-                    {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 3, STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
-                    {STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 3, STEPS : [ 
+                    {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 3, FEEDBACK : "", STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
+                    {STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 3, FEEDBACK : "", STEPS : [ 
                         { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} 
                         ] } 
                 ] }, 
-                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0,
+                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, FEEDBACK : "",
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
         } }
     };

@@ -1244,9 +1244,32 @@ Work on 1/10/2016
             - http://stackoverflow.com/questions/32135779/updating-nested-data-in-redux-store
     - giving it a shot, start time 5:20, finish 5:40
         - got example of nested update working with slicing arrays and spread operator
+        - finished writing thw complete function
+    - updated grading reducer to avoid a root level deep copy using new method
+- remaining actions for teacher experience
+    - grading single student's work
+    - hide/show filters
+        - global correctness: incorrect, correct, partially correct
+        - class of solutions for one problem
+        - grade anonymously or show student names
+        - show group of students with similar work
+    - set feedback text for a given student
+        - need to add this to the model
+    - apply eror or success highlight to a student step
+- take a few minutes to review structure of existing reducers
+    - time estimate 10 minutes, finish 9:55
+    - put this on hold for project orgainization
+- navigating the code is getting to be a real pain, need to set up a real project structure
+    - time estimate 30 minutes, finish, 10:20
+        - spent some time trying to look at how to best get an npm build set up
+            - seems pretty complicated, for now I'll work on the core application and
+              try to find someone more experienced to help me organize the code soon
+- 
+
+
         
 
-// old notes about how to organize stude work on the grading pae
+// old notes about how to organize student work on the grading page
 // once I am doing better grading based on parsing the math, I won't be able
 // to use the answers as keys into this map
 // TODO - look up making custom map keys in JS (I know it ins't supported natively)

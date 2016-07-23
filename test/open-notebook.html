@@ -111,7 +111,10 @@ var STUDENT_WORK = "STUDENT_WORK";
 var ANSWER = "ANSWER";
 
 // teacher grading actions
-var GRADE_SINGLE_PROBLEM = "GRADE_SINGLE_PROBLEM";
+
+// action properties
+// PROBLEM_NUMBER, SOLUTION_CLASS_INDEX, SCORE, SOLUTION_INDEX
+var GRADE_SINGLE_SOLUTION = "GRADE_SINGLE_SOLUTION";
 // action properties
 // PROBLEM_NUMBER, SOLUTION_CLASS_INDEX, SCORE 
 var GRADE_CLASS_OF_SOLUTIONS = "GRADE_CLASS_OF_SOLUTIONS";
@@ -119,6 +122,8 @@ var SOLUTION_CLASS_INDEX = "SOLUTION_CLASS_INDEX";
 var HIDE_BY_CORRECTNESS = "HIDE_BY_CORRECTNESS";
 var HIDE_CLASS_OF_SOLUTIONS = "HIDE_CLASS_OF_SOLUTIONS";
 var TOGGLE_GRADING_ANONYMOUSLY = "TOGGLE_GRADING_ANONYMOUSLY";
+
+var SOLUTION_INDEX = "SOLUTION_INDEX";
 
 // Assignment properties
 var ASSIGNMENT_NAME = 'ASSIGNMENT_NAME';
@@ -275,7 +280,7 @@ function testAggregateStudentWork() {
             UNIQUE_ANSWERS : [ 
                 { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 3, SCORE : 3, FEEDBACK : "",
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] }, 
-                    { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 1.5,  SCORE : 1.5, FEEDBACK : "",
+                    { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 1.5,  SCORE : 1.5,FEEDBACK : "",
                     STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
         } }
     };
@@ -623,6 +628,10 @@ function grading(state, action) {
                     action[SCORE]);
         });
         return newState;
+    } else if (action.type === GRADE_SINGLE_SOLUTION) {
+        return setDeepImmutable(state, 
+                                [ STUDENT_WORK, action[PROBLEM_NUMBER], UNIQUE_ANSWERS, 
+                                  action[SOLUTION_CLASS_INDEX], STUDENT_WORK, action[SOLUTION_INDEX], SCORE], action[SCORE]);
     }
 }
 
@@ -1074,9 +1083,6 @@ $(function() {
 // these groups are called solution classes
 function testGradeSolutionClass() {
 
-    // PROBLEM_NUMBER, SOLUTION_CLASS_INDEX, SCORE 
-    //var GRADE_CLASS_OF_SOLUTIONS = "GRADE_CLASS_OF_SOLUTIONS";
-
     var input = {
         CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
@@ -1116,6 +1122,52 @@ function testGradeSolutionClass() {
     var output = grading(input, { type : GRADE_CLASS_OF_SOLUTIONS, PROBLEM_NUMBER : "1", SOLUTION_CLASS_INDEX : 0, SCORE : 3} );
     expect(output).toEqual(expectedOutput);
 }
+
+
+function testGradeSingleSolution() {
+    var input = {
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+        SIMILAR_ASSIGNMENT_SETS : [ ],
+        STUDENT_WORK : { "1" : {
+            POSSIBLE_POINTS : 6,
+            UNIQUE_ANSWERS : [ 
+            { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
+                { STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, 
+                  SCORE : 0, FEEDBACK : "",
+                  STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
+                { STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
+                  SCORE : 0, FEEDBACK : "",
+                  STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ] }] }, 
+            { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [
+                { STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
+                  SCORE : 0, FEEDBACK : "",
+                  STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
+        } }
+    };
+    var expectedOutput = {
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+        SIMILAR_ASSIGNMENT_SETS : [ ],
+        STUDENT_WORK : { "1" : {
+            POSSIBLE_POINTS : 6,
+            UNIQUE_ANSWERS : [ 
+                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
+                    {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 3, FEEDBACK : "", STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
+                    {STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, FEEDBACK : "", STEPS : [ 
+                        { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} 
+                        ] } 
+                ] }, 
+                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, FEEDBACK : "",
+                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
+        } }
+    };
+    deepFreeze(input);
+    var output = grading(input, { type : GRADE_SINGLE_SOLUTION, PROBLEM_NUMBER : "1", SOLUTION_CLASS_INDEX : 0, SCORE : 3, SOLUTION_INDEX : 0} );
+    console.log(output);
+    console.log(expectedOutput);
+    expect(output).toEqual(expectedOutput);
+}
+
+
 
 function testAddProblem() {
     var initialAssignment = {
@@ -1276,7 +1328,7 @@ testGradeProblem();
 testAggregateStudentWork();
 testAggregateStudentWorkNoAnswerKey();
 testGradeSolutionClass();
-
+testGradeSingleSolution();
 // test utility method
 testNestedUpdate();
 console.log("All tests complete");

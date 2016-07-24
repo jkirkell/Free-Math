@@ -1310,12 +1310,53 @@ var TeacherInteractiveGrader = React.createClass({
     }
 });
 
+var SolutionClassGrader = React.createClass({
+    render: function() {
+        var data =  
+                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
+                { STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, 
+                  SCORE : 0, FEEDBACK : "",
+                  STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
+                { STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
+                  SCORE : 0, FEEDBACK : "",
+                  STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ] }] };
+        //var data = this.props.solutionClassInfo;
+        var studentFinalAnswer = data[ANSWER];
+        var studentCount = _.size(data[STUDENT_WORK]);
+        if (studentCount > 1) {
+            studentCount = studentCount + ' students ';
+        } else {
+            studentCount = studentCount + ' student ';
+        }
+        var message = 'with work leading to answer ';
+        if (studentFinalAnswer === 'unanswered') {
+           message = 'with the question '; 
+        }
+        return (
+            <div className="similar-student-answers" style={{float:"none",overflow:"hidden"}} >
+                <input type="submit" className="show-all-common-answers" name="show all" value="show all"/>
+                <input type="submit" className="hide-all-common-answers" name="hide all" value="hide all"/>
+                <p> {studentCount}{message}
+                <TeX>{studentFinalAnswer}</TeX></p>
+                {
+                    data[STUDENT_WORK].map(function(studentSolution, studentSolutionIndex) {
+                    return (
+                        <SolutionGrader solutionGradeInfo={studentSolution} key={studentSolutionIndex} id={studentSolutionIndex}/>
+                    );
+                })}
+            </div>
+        );
+    }
+});
+
 var SolutionGrader = React.createClass({
     render: function() {
+        /*
         var data = { STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
                   SCORE : 0, FEEDBACK : "",
                   STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ]};
-        //var data = this.props.solutionGradeInfo;
+        */
+        var data = this.props.solutionGradeInfo;
         var correctness;
         //var possiblePoints = this.props.possiblePoints;
         var possiblePoints = 3;
@@ -1373,7 +1414,7 @@ var TeacherGraderFilters = React.createClass({
                     <label><input type="checkbox" id="show-correct" checked="checked"/>correct</label></div>
             </div>
             <div><label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked"/>Show student names (or grade anonymously)</label></div>
-            <SolutionGrader /> 
+            <SolutionClassGrader /> 
         </div>
         );
     }

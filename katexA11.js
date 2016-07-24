@@ -6,6 +6,7 @@
  * KaTeX A11y
  * A library for converting KaTeX math into readable strings.
  */
+// I include lodash elsewhere
 //var _ = require("underscore");
 
 var stringMap = {

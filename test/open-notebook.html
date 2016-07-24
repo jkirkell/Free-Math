@@ -43,6 +43,12 @@
 <!-- Only use this for MathQuill! --> 
 <script type="text/javascript" src="support/jquery-1.7.2.js"></script>
 
+<!-- Needed for static math rendering borrowed from Kahn Perseus project -->
+<script type="text/javascript" src="../katexA11.js"></script>
+<!-- Katex -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.js"></script>
+
 <script type="text/javascript" src="../build/mathquill-basic.js"></script>
 <!-- App state management -->
 <script type="text/javascript" src="../redux.js"></script>
@@ -1109,6 +1115,7 @@ var TeacherGraderFilters = React.createClass({
                     <label><input type="checkbox" id="show-correct" checked="checked"/>correct</label></div>
             </div>
             <div><label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked"/>Show student names (or grade anonymously)</label></div>
+            <TeX>10+{"\\frac{5i}{109}"}</TeX>
         </div>
         );
     }
@@ -1188,7 +1195,8 @@ const TeX = React.createClass({
         style: React.PropTypes.any,
     },
 
-    mixins: [PureRenderMixin],
+    /* TODO - get re-enabled for perf boost */
+    /* mixins: [PureRenderMixin], */
 
     getDefaultProps: function() {
         return {

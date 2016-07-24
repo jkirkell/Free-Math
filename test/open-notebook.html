@@ -1001,12 +1001,12 @@ function problem(problem, action) {
     } else if (action.type === EDIT_STEP) {
         // TODO - I should avoid using cloneDeep, I think it migh be okay here though
         var editedProb = _.cloneDeep(problem)
-        editedProb.STEPS[action.STEP_KEY] = action.NEW_STEP_CONTENT;
+        editedProb.STEPS[action[STEP_KEY]] = action.NEW_STEP_CONTENT;
         return editedProb;
     } else if (action.type === NEW_STEP) {
         var editedProb = _.cloneDeep(problem);
-        var oldLastStep = editedProb.STEPS[problem.LAST_SHOWN_STEP];
-        editedProb[STEPS] = editedProb[STEPS].slice(0, problem.LAST_SHOWN_STEP + 1);
+        var oldLastStep = editedProb[STEPS][problem[LAST_SHOWN_STEP]];
+        editedProb[STEPS] = editedProb[STEPS].slice(0, problem[LAST_SHOWN_STEP] + 1);
         editedProb[STEPS].push(oldLastStep);
         editedProb[LAST_SHOWN_STEP]++;
         return editedProb;

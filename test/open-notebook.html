@@ -55,6 +55,485 @@
 <script type="text/javascript" src="../lodash.min.js"></script>
 <script type="text/babel">
 
+// Copied from Khan's Perseus project
+let pendingScripts = [];
+let pendingCallbacks = [];
+let needsProcess = false;
+
+const process = (script, callback) => {
+    pendingScripts.push(script);
+    pendingCallbacks.push(callback);
+    if (!needsProcess) {
+        needsProcess = true;
+        setTimeout(doProcess, 0);
+    }
+};
+
+const loadMathJax = (callback) => {
+    if (typeof MathJax !== "undefined") {
+        callback();
+    } else if (typeof Khan !== "undefined" && Khan.mathJaxLoaded) {
+        Khan.mathJaxLoaded.then(callback);
+    } else {
+        throw new Error(
+            "MathJax wasn't loaded before it was needed by <TeX/>");
+    }
+};
+
+const doProcess = () => {
+    loadMathJax(() => {
+        MathJax.Hub.Queue(function() {
+            const oldElementScripts = MathJax.Hub.elementScripts;
+            MathJax.Hub.elementScripts = (element) => pendingScripts;
+
+            try {
+                return MathJax.Hub.Process(null, () => {
+                    // Trigger all of the pending callbacks before clearing them
+                    // out.
+                    for (const callback of pendingCallbacks) {
+                        callback();
+                    }
+
+                    pendingScripts = [];
+                    pendingCallbacks = [];
+                    needsProcess = false;
+                });
+            } catch (e) {
+                // IE8 requires `catch` in order to use `finally`
+                throw e;
+            } finally {
+                MathJax.Hub.elementScripts = oldElementScripts;
+            }
+        });
+    });
+};
+
+// Make content only visible to screen readers.
+// Both collegeboard.org and Bootstrap 3 use this exact implementation.
+const srOnly = {
+    border: 0,
+    clip: "rect(0,0,0,0)",
+    height: "1px",
+    margin: "-1px",
+    overflow: "hidden",
+    padding: 0,
+    position: "absolute",
+    width: "1px",
+};
+
+const TeX = React.createClass({
+    propTypes: {
+        children: React.PropTypes.node,
+        onClick: React.PropTypes.func,
+        onRender: React.PropTypes.func,
+        style: React.PropTypes.any,
+    },
+
+    /* TODO - get re-enabled for perf boost */
+    /* mixins: [PureRenderMixin], */
+
+    getDefaultProps: function() {
+        return {
+            // Called after math is rendered or re-rendered
+            onRender: function() {},
+            onClick: null,
+        };
+    },
+
+    componentDidMount: function() {
+        this._root = ReactDOM.findDOMNode(this);
+
+        if (this.refs.katex.childElementCount > 0) {
+            // If we already rendered katex in the render function, we don't
+            // need to render anything here.
+            this.props.onRender(this._root);
+            return;
+        }
+
+        const text = this.props.children;
+
+        this.setScriptText(text);
+        process(this.script, () => this.props.onRender(this._root));
+    },
+
+    componentDidUpdate: function(prevProps, prevState) {
+        // If we already rendered katex in the render function, we don't
+        // need to render anything here.
+        if (this.refs.katex.childElementCount > 0) {
+            if (this.script) {
+                // If we successfully rendered KaTeX, check if there's
+                // lingering MathJax from the last render, and if so remove it.
+                loadMathJax(() => {
+                    const jax = MathJax.Hub.getJaxFor(this.script);
+                    if (jax) {
+                        jax.Remove();
+                    }
+                });
+            }
+
+            this.props.onRender();
+            return;
+        }
+
+        const newText = this.props.children;
+
+        if (this.script) {
+            loadMathJax(() => {
+                MathJax.Hub.Queue(() => {
+                    const jax = MathJax.Hub.getJaxFor(this.script);
+                    if (jax) {
+                        return jax.Text(newText, this.props.onRender);
+                    } else {
+                        this.setScriptText(newText);
+                        process(this.script, this.props.onRender);
+                    }
+                });
+            });
+        } else {
+            this.setScriptText(newText);
+            process(this.script, this.props.onRender);
+        }
+    },
+
+    componentWillUnmount: function() {
+        if (this.script) {
+            loadMathJax(() => {
+                const jax = MathJax.Hub.getJaxFor(this.script);
+                if (jax) {
+                    jax.Remove();
+                }
+            });
+        }
+    },
+
+    setScriptText: function(text) {
+        if (!this.script) {
+            this.script = document.createElement("script");
+            this.script.type = "math/tex";
+            ReactDOM.findDOMNode(this.refs.mathjax).appendChild(this.script);
+        }
+        if ("text" in this.script) {
+            // IE8, etc
+            this.script.text = text;
+        } else {
+            this.script.textContent = text;
+        }
+    },
+
+    render: function() {
+        let katexHtml = null;
+        try {
+            katexHtml = {
+                __html: katex.renderToString(this.props.children),
+            };
+        } catch (e) {
+            /* jshint -W103 */
+            if (e.__proto__ !== katex.ParseError.prototype) {
+            /* jshint +W103 */
+                throw e;
+            }
+        }
+
+        let katexA11yHtml = null;
+        if (katexHtml) {
+            try {
+                katexA11yHtml = {
+                    __html: katexA11y.renderString(this.props.children),
+                };
+            } catch (e) {
+                // Nothing
+            }
+        }
+
+        return <span
+            style={this.props.style}
+            onClick={this.props.onClick}
+        >
+            <span ref="mathjax" />
+            <span
+                ref="katex"
+                dangerouslySetInnerHTML={katexHtml}
+                aria-hidden={!!katexHtml && !!katexA11yHtml}
+            />
+            <span
+                dangerouslySetInnerHTML={katexA11yHtml}
+                style={srOnly}
+            />
+        </span>;
+    },
+});
+
+// End static math render copied from Perseus
+
+// Math editor copied from Khan Perseus project
+
+MathQuill.interfaceVersion(1);
+var PT = React.PropTypes;
+
+// A WYSIWYG math input that calls `onChange(LaTeX-string)`
+var MathInput = React.createClass({
+    propTypes: {
+        value: PT.string,
+        convertDotToTimes: PT.bool,
+        buttonsVisible: PT.oneOf(['always', 'never', 'focused']),
+        labelText: React.PropTypes.string,
+        onFocus: PT.func,
+        onBlur: PT.func,
+    },
+
+    render: function() {
+        // mathquill usually adds these itself but react removes them when
+        // updating the component.
+        var className = "perseus-math-input mq-editable-field mq-math-mode";
+
+        if (this.props.className) {
+            className = className + " " + this.props.className;
+        }
+
+        var buttons = null;
+        /*
+        if (this._shouldShowButtons()) {
+            buttons = <TexButtons
+                sets={this.props.buttonSets}
+                className="math-input-buttons absolute"
+                convertDotToTimes={this.props.convertDotToTimes}
+                onInsert={this.insert} />;
+        }
+        */
+
+        return <div>
+            <div style={{display: 'inline-block'}}>
+                <span className={className}
+                      ref="mathinput"
+                      aria-label={this.props.labelText}
+                      onFocus={this.handleFocus}
+                      onBlur={this.handleBlur} />
+            </div>
+        </div>;
+    },
+
+    // handlers:
+    // keep track of two related bits of state:
+    // * this.state.focused - whether the buttons are currently shown
+    // * this.mouseDown - whether a mouse click is active that started in the
+    //   buttons div
+
+    handleFocus: function() {
+        console.log("focused");
+        this.setState({ focused: true });
+        // TODO(joel) fix properly - we should probably allow onFocus handlers
+        // to this property, but we need to work correctly with them.
+        // if (this.props.onFocus) {
+        //     this.props.onFocus();
+        // }
+    },
+
+    handleMouseDown: function(event) {
+        var focused = ReactDOM.findDOMNode(this).contains(event.target);
+        this.mouseDown = focused;
+        if (!focused) {
+            this.setState({ focused: false });
+        }
+    },
+
+    handleMouseUp: function() {
+        // this mouse click started in the buttons div so we should focus the
+        // input
+        if (this.mouseDown) {
+            this.focus();
+        }
+        this.mouseDown = false;
+    },
+
+    handleBlur: function() {
+        if (!this.mouseDown) {
+            this.setState({ focused: false });
+        }
+    },
+
+    _shouldShowButtons: function() {
+        if (this.props.buttonsVisible === 'always') {
+            return true;
+        } else if (this.props.buttonsVisible === 'never') {
+            return false;
+        } else {
+            return this.state.focused;
+        }
+    },
+
+    getDefaultProps: function() {
+        return {
+            value: "",
+            convertDotToTimes: false,
+            buttonsVisible: 'focused'
+        };
+    },
+
+    getInitialState: function() {
+        return { focused: false };
+    },
+
+    insert: function(value) {
+        var input = this.mathField();
+        if (_(value).isFunction()) {
+            value(input);
+        } else if (value[0] === '\\') {
+            input.cmd(value).focus();
+        } else {
+            input.write(value).focus();
+        }
+        input.focus();
+    },
+
+    mathField: function(options) {
+        // MathQuill.MathField takes a DOM node, MathQuill-ifies it if it's
+        // seeing that node for the first time, then returns the associated
+        // MathQuill object for that node. It is stable - will always return
+        // the same object when called on the same DOM node.
+        return MathQuill.MathField(ReactDOM.findDOMNode(this.refs.mathinput), options);
+    },
+
+    componentWillUnmount: function() {
+        window.removeEventListener("mousedown", this.handleMouseDown);
+        window.removeEventListener("mouseup", this.handleMouseUp);
+    },
+
+    componentDidMount: function() {
+        window.addEventListener("mousedown", this.handleMouseDown);
+        window.addEventListener("mouseup", this.handleMouseUp);
+
+        // These options can currently only be set globally. (Hopefully this
+        // will change at some point.) They appear safe to set multiple times.
+
+        // LaTeX commands that, when typed, are immediately replaced by the
+        // appropriate symbol. This does not include ln, log, or any of the
+        // trig functions; those are always interpreted as commands.
+        //MathQuill.addAutoCommands("pi theta phi sqrt nthroot");
+
+        // Pop the cursor out of super/subscripts on arithmetic operators or
+        // (in)equalities.
+        // MathQuill.addCharsThatBreakOutOfSupSub("+-*/=<>≠≤≥");
+
+        // Prevent excessive super/subscripts or fractions from being created
+        // without operands, e.g. when somebody holds down a key
+        //MathQuill.disableCharsWithoutOperand("^_/");
+
+        var initialized = false;
+        console.log(this)
+
+        // Initialize MathQuill.MathField instance
+        this.mathField({
+            // The name of this option is somewhat misleading, as tabbing in
+            // MathQuill breaks you out of a nested context (fraction/script)
+            // if you're in one, but moves focus to the next input if you're
+            // not. Spaces (with this option enabled) are just ignored in the
+            // latter case.
+            //
+            // TODO(alex): In order to allow inputting mixed numbers, we will
+            // have to accept spaces in certain cases. The desired behavior is
+            // still to escape nested contexts if currently in one, but to
+            // insert a space if not (we don't expect mixed numbers in nested
+            // contexts). We should also limit to one consecutive space.
+            spaceBehavesLikeTab: true,
+
+            // for intuitive navigation of fractions
+            leftRightIntoCmdGoes: 'up',
+            autoCommands: 'pi theta sqrt sum',
+            autoSubscriptNumerals: true,
+            charsThatBreakOutOfSupSub: '+-*/=<>≠≤≥',
+
+            handlers: {
+                edited: (mathField) => {
+                    // This handler is guaranteed to be called on change, but
+                    // unlike React it sometimes generates false positives.
+                    // One of these is on initialization (with an empty string
+                    // value), so we have to guard against that below.
+                    console.log("EDITED!");
+                    var value = mathField.latex();
+
+                    // Provide a MathQuill-compatible way to generate the
+                    // not-equals sign without pasting unicode or typing TeX
+                    value = value.replace(/<>/g, "\\ne");
+
+                    // Use the specified symbol to represent multiplication
+                    // TODO(alex): Add an option to disallow variables, in
+                    // which case 'x' should get converted to '\\times'
+                    if (this.props.convertDotToTimes) {
+                        value = value.replace(/\\cdot/g, "\\times");
+
+                        // Preserve cursor position in the common case:
+                        // typing '*' to insert a multiplication sign.
+                        // We do this by modifying internal MathQuill state
+                        // directly, instead of waiting for `.latex()` to be
+                        // called in `componentDidUpdate()`.
+                        var left = mathField.controller.cursor[MathQuill.L];
+                        if (left && left.ctrlSeq === '\\cdot ') {
+                            mathField.controller.backspace();
+                            mathField.cmd('\\times');
+                        }
+                    } else {
+                        value = value.replace(/\\times/g, "\\cdot");
+                    }
+
+                    if (initialized && this.props.value !== value) {
+                        //this.props.onChange(value);
+                        console.log("SETTING NEW VALUE");
+                        store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : this.props.problemIndex, 
+                                         STEP_KEY : this.props.stepIndex, NEW_STEP_CONTENT : value});
+                    }
+                },
+                enter: () => {
+                    // This handler is called when the user presses the enter
+                    // key. Since this isn't an actual <input> element, we have
+                    // to manually trigger the usually automatic form submit.
+
+                    console.log("enter pressed");
+                    // Using enter for go to next step
+                    store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : this.props.problemIndex});
+
+                    //$(ReactDOM.findDOMNode(this.refs.mathinput)).submit();
+                },
+                upOutOf: (mathField) => {
+                    // This handler is called when the user presses the up
+                    // arrow key, but there is nowhere in the expression to go
+                    // up to (no numerator or exponent). For ease of use,
+                    // interpret this as an attempt to create an exponent.
+                    console.log("Up");
+                    mathField.typedText("^");
+                }
+            }
+        });
+
+        // Ideally, we would be able to pass an initial value directly into
+        // the constructor above
+        this.mathField().latex(this.props.value);
+        this.mathField().focus();
+        console.log("mathfield init");
+        initialized = true;
+    },
+
+    componentDidUpdate: function() {
+        console.log("mathfield component did update");
+        if (!_.isEqual(this.mathField().latex(), this.props.value)) {
+            console.log("mathfield component did update 2: " + this.props.value);
+            console.log(this.props);
+            this.mathField().latex(this.props.value);
+        }
+    },
+
+    focus: function() {
+        this.mathField().focus();
+        this.setState({ focused: true });
+    },
+
+    blur: function() {
+        this.mathField().blur();
+        this.setState({ focused: false });
+    }
+});
+
+// End of Khan Math Editor
+
 // copied from here, didn't seem worth adding a dependency, I'm sure the JS people will cure me of that eventually...
 // https://github.com/substack/deep-freeze/blob/master/index.js
 function deepFreeze (o) {
@@ -741,272 +1220,6 @@ function render() {
     );
 }
 
-MathQuill.interfaceVersion(1);
-var PT = React.PropTypes;
-
-// A WYSIWYG math input that calls `onChange(LaTeX-string)`
-var MathInput = React.createClass({
-    propTypes: {
-        value: PT.string,
-        convertDotToTimes: PT.bool,
-        buttonsVisible: PT.oneOf(['always', 'never', 'focused']),
-        labelText: React.PropTypes.string,
-        onFocus: PT.func,
-        onBlur: PT.func,
-    },
-
-    render: function() {
-        // mathquill usually adds these itself but react removes them when
-        // updating the component.
-        var className = "perseus-math-input mq-editable-field mq-math-mode";
-
-        if (this.props.className) {
-            className = className + " " + this.props.className;
-        }
-
-        var buttons = null;
-        /*
-        if (this._shouldShowButtons()) {
-            buttons = <TexButtons
-                sets={this.props.buttonSets}
-                className="math-input-buttons absolute"
-                convertDotToTimes={this.props.convertDotToTimes}
-                onInsert={this.insert} />;
-        }
-        */
-
-        return <div>
-            <div style={{display: 'inline-block'}}>
-                <span className={className}
-                      ref="mathinput"
-                      aria-label={this.props.labelText}
-                      onFocus={this.handleFocus}
-                      onBlur={this.handleBlur} />
-            </div>
-        </div>;
-    },
-
-    // handlers:
-    // keep track of two related bits of state:
-    // * this.state.focused - whether the buttons are currently shown
-    // * this.mouseDown - whether a mouse click is active that started in the
-    //   buttons div
-
-    handleFocus: function() {
-        console.log("focused");
-        this.setState({ focused: true });
-        // TODO(joel) fix properly - we should probably allow onFocus handlers
-        // to this property, but we need to work correctly with them.
-        // if (this.props.onFocus) {
-        //     this.props.onFocus();
-        // }
-    },
-
-    handleMouseDown: function(event) {
-        var focused = ReactDOM.findDOMNode(this).contains(event.target);
-        this.mouseDown = focused;
-        if (!focused) {
-            this.setState({ focused: false });
-        }
-    },
-
-    handleMouseUp: function() {
-        // this mouse click started in the buttons div so we should focus the
-        // input
-        if (this.mouseDown) {
-            this.focus();
-        }
-        this.mouseDown = false;
-    },
-
-    handleBlur: function() {
-        if (!this.mouseDown) {
-            this.setState({ focused: false });
-        }
-    },
-
-    _shouldShowButtons: function() {
-        if (this.props.buttonsVisible === 'always') {
-            return true;
-        } else if (this.props.buttonsVisible === 'never') {
-            return false;
-        } else {
-            return this.state.focused;
-        }
-    },
-
-    getDefaultProps: function() {
-        return {
-            value: "",
-            convertDotToTimes: false,
-            buttonsVisible: 'focused'
-        };
-    },
-
-    getInitialState: function() {
-        return { focused: false };
-    },
-
-    insert: function(value) {
-        var input = this.mathField();
-        if (_(value).isFunction()) {
-            value(input);
-        } else if (value[0] === '\\') {
-            input.cmd(value).focus();
-        } else {
-            input.write(value).focus();
-        }
-        input.focus();
-    },
-
-    mathField: function(options) {
-        // MathQuill.MathField takes a DOM node, MathQuill-ifies it if it's
-        // seeing that node for the first time, then returns the associated
-        // MathQuill object for that node. It is stable - will always return
-        // the same object when called on the same DOM node.
-        return MathQuill.MathField(ReactDOM.findDOMNode(this.refs.mathinput), options);
-    },
-
-    componentWillUnmount: function() {
-        window.removeEventListener("mousedown", this.handleMouseDown);
-        window.removeEventListener("mouseup", this.handleMouseUp);
-    },
-
-    componentDidMount: function() {
-        window.addEventListener("mousedown", this.handleMouseDown);
-        window.addEventListener("mouseup", this.handleMouseUp);
-
-        // These options can currently only be set globally. (Hopefully this
-        // will change at some point.) They appear safe to set multiple times.
-
-        // LaTeX commands that, when typed, are immediately replaced by the
-        // appropriate symbol. This does not include ln, log, or any of the
-        // trig functions; those are always interpreted as commands.
-        //MathQuill.addAutoCommands("pi theta phi sqrt nthroot");
-
-        // Pop the cursor out of super/subscripts on arithmetic operators or
-        // (in)equalities.
-        // MathQuill.addCharsThatBreakOutOfSupSub("+-*/=<>≠≤≥");
-
-        // Prevent excessive super/subscripts or fractions from being created
-        // without operands, e.g. when somebody holds down a key
-        //MathQuill.disableCharsWithoutOperand("^_/");
-
-        var initialized = false;
-        console.log(this)
-
-        // Initialize MathQuill.MathField instance
-        this.mathField({
-            // The name of this option is somewhat misleading, as tabbing in
-            // MathQuill breaks you out of a nested context (fraction/script)
-            // if you're in one, but moves focus to the next input if you're
-            // not. Spaces (with this option enabled) are just ignored in the
-            // latter case.
-            //
-            // TODO(alex): In order to allow inputting mixed numbers, we will
-            // have to accept spaces in certain cases. The desired behavior is
-            // still to escape nested contexts if currently in one, but to
-            // insert a space if not (we don't expect mixed numbers in nested
-            // contexts). We should also limit to one consecutive space.
-            spaceBehavesLikeTab: true,
-
-            // for intuitive navigation of fractions
-            leftRightIntoCmdGoes: 'up',
-            autoCommands: 'pi theta sqrt sum',
-            autoSubscriptNumerals: true,
-            charsThatBreakOutOfSupSub: '+-*/=<>≠≤≥',
-
-            handlers: {
-                edited: (mathField) => {
-                    // This handler is guaranteed to be called on change, but
-                    // unlike React it sometimes generates false positives.
-                    // One of these is on initialization (with an empty string
-                    // value), so we have to guard against that below.
-                    console.log("EDITED!");
-                    var value = mathField.latex();
-
-                    // Provide a MathQuill-compatible way to generate the
-                    // not-equals sign without pasting unicode or typing TeX
-                    value = value.replace(/<>/g, "\\ne");
-
-                    // Use the specified symbol to represent multiplication
-                    // TODO(alex): Add an option to disallow variables, in
-                    // which case 'x' should get converted to '\\times'
-                    if (this.props.convertDotToTimes) {
-                        value = value.replace(/\\cdot/g, "\\times");
-
-                        // Preserve cursor position in the common case:
-                        // typing '*' to insert a multiplication sign.
-                        // We do this by modifying internal MathQuill state
-                        // directly, instead of waiting for `.latex()` to be
-                        // called in `componentDidUpdate()`.
-                        var left = mathField.controller.cursor[MathQuill.L];
-                        if (left && left.ctrlSeq === '\\cdot ') {
-                            mathField.controller.backspace();
-                            mathField.cmd('\\times');
-                        }
-                    } else {
-                        value = value.replace(/\\times/g, "\\cdot");
-                    }
-
-                    if (initialized && this.props.value !== value) {
-                        //this.props.onChange(value);
-                        console.log("SETTING NEW VALUE");
-                        store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : this.props.problemIndex, 
-                                         STEP_KEY : this.props.stepIndex, NEW_STEP_CONTENT : value});
-                    }
-                },
-                enter: () => {
-                    // This handler is called when the user presses the enter
-                    // key. Since this isn't an actual <input> element, we have
-                    // to manually trigger the usually automatic form submit.
-
-                    console.log("enter pressed");
-                    // Using enter for go to next step
-                    store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : this.props.problemIndex});
-
-                    //$(ReactDOM.findDOMNode(this.refs.mathinput)).submit();
-                },
-                upOutOf: (mathField) => {
-                    // This handler is called when the user presses the up
-                    // arrow key, but there is nowhere in the expression to go
-                    // up to (no numerator or exponent). For ease of use,
-                    // interpret this as an attempt to create an exponent.
-                    console.log("Up");
-                    mathField.typedText("^");
-                }
-            }
-        });
-
-        // Ideally, we would be able to pass an initial value directly into
-        // the constructor above
-        this.mathField().latex(this.props.value);
-        this.mathField().focus();
-        console.log("mathfield init");
-        initialized = true;
-    },
-
-    componentDidUpdate: function() {
-        console.log("mathfield component did update");
-        if (!_.isEqual(this.mathField().latex(), this.props.value)) {
-            console.log("mathfield component did update 2: " + this.props.value);
-            console.log(this.props);
-            this.mathField().latex(this.props.value);
-        }
-    },
-
-    focus: function() {
-        this.mathField().focus();
-        this.setState({ focused: true });
-    },
-
-    blur: function() {
-        this.mathField().blur();
-        this.setState({ focused: false });
-    }
-});
-
-
 var Problem = React.createClass({
 
     handleStepChange: function(event) {
@@ -1096,6 +1309,14 @@ var TeacherInteractiveGrader = React.createClass({
     }
 });
 
+var SolutionGrader = React.createClass({
+    render: function() {
+        var correctness = "correct"; // TODO
+        return (
+            <TeX>{"10+\\frac{5i}{109}"}</TeX>
+        );
+    }
+});
 
 var TeacherGraderFilters = React.createClass({
     render: function() {
@@ -1121,215 +1342,6 @@ var TeacherGraderFilters = React.createClass({
     }
 });
 
-// Copied from Khan's Perseus project
-let pendingScripts = [];
-let pendingCallbacks = [];
-let needsProcess = false;
-
-const process = (script, callback) => {
-    pendingScripts.push(script);
-    pendingCallbacks.push(callback);
-    if (!needsProcess) {
-        needsProcess = true;
-        setTimeout(doProcess, 0);
-    }
-};
-
-const loadMathJax = (callback) => {
-    if (typeof MathJax !== "undefined") {
-        callback();
-    } else if (typeof Khan !== "undefined" && Khan.mathJaxLoaded) {
-        Khan.mathJaxLoaded.then(callback);
-    } else {
-        throw new Error(
-            "MathJax wasn't loaded before it was needed by <TeX/>");
-    }
-};
-
-const doProcess = () => {
-    loadMathJax(() => {
-        MathJax.Hub.Queue(function() {
-            const oldElementScripts = MathJax.Hub.elementScripts;
-            MathJax.Hub.elementScripts = (element) => pendingScripts;
-
-            try {
-                return MathJax.Hub.Process(null, () => {
-                    // Trigger all of the pending callbacks before clearing them
-                    // out.
-                    for (const callback of pendingCallbacks) {
-                        callback();
-                    }
-
-                    pendingScripts = [];
-                    pendingCallbacks = [];
-                    needsProcess = false;
-                });
-            } catch (e) {
-                // IE8 requires `catch` in order to use `finally`
-                throw e;
-            } finally {
-                MathJax.Hub.elementScripts = oldElementScripts;
-            }
-        });
-    });
-};
-
-// Make content only visible to screen readers.
-// Both collegeboard.org and Bootstrap 3 use this exact implementation.
-const srOnly = {
-    border: 0,
-    clip: "rect(0,0,0,0)",
-    height: "1px",
-    margin: "-1px",
-    overflow: "hidden",
-    padding: 0,
-    position: "absolute",
-    width: "1px",
-};
-
-const TeX = React.createClass({
-    propTypes: {
-        children: React.PropTypes.node,
-        onClick: React.PropTypes.func,
-        onRender: React.PropTypes.func,
-        style: React.PropTypes.any,
-    },
-
-    /* TODO - get re-enabled for perf boost */
-    /* mixins: [PureRenderMixin], */
-
-    getDefaultProps: function() {
-        return {
-            // Called after math is rendered or re-rendered
-            onRender: function() {},
-            onClick: null,
-        };
-    },
-
-    componentDidMount: function() {
-        this._root = ReactDOM.findDOMNode(this);
-
-        if (this.refs.katex.childElementCount > 0) {
-            // If we already rendered katex in the render function, we don't
-            // need to render anything here.
-            this.props.onRender(this._root);
-            return;
-        }
-
-        const text = this.props.children;
-
-        this.setScriptText(text);
-        process(this.script, () => this.props.onRender(this._root));
-    },
-
-    componentDidUpdate: function(prevProps, prevState) {
-        // If we already rendered katex in the render function, we don't
-        // need to render anything here.
-        if (this.refs.katex.childElementCount > 0) {
-            if (this.script) {
-                // If we successfully rendered KaTeX, check if there's
-                // lingering MathJax from the last render, and if so remove it.
-                loadMathJax(() => {
-                    const jax = MathJax.Hub.getJaxFor(this.script);
-                    if (jax) {
-                        jax.Remove();
-                    }
-                });
-            }
-
-            this.props.onRender();
-            return;
-        }
-
-        const newText = this.props.children;
-
-        if (this.script) {
-            loadMathJax(() => {
-                MathJax.Hub.Queue(() => {
-                    const jax = MathJax.Hub.getJaxFor(this.script);
-                    if (jax) {
-                        return jax.Text(newText, this.props.onRender);
-                    } else {
-                        this.setScriptText(newText);
-                        process(this.script, this.props.onRender);
-                    }
-                });
-            });
-        } else {
-            this.setScriptText(newText);
-            process(this.script, this.props.onRender);
-        }
-    },
-
-    componentWillUnmount: function() {
-        if (this.script) {
-            loadMathJax(() => {
-                const jax = MathJax.Hub.getJaxFor(this.script);
-                if (jax) {
-                    jax.Remove();
-                }
-            });
-        }
-    },
-
-    setScriptText: function(text) {
-        if (!this.script) {
-            this.script = document.createElement("script");
-            this.script.type = "math/tex";
-            ReactDOM.findDOMNode(this.refs.mathjax).appendChild(this.script);
-        }
-        if ("text" in this.script) {
-            // IE8, etc
-            this.script.text = text;
-        } else {
-            this.script.textContent = text;
-        }
-    },
-
-    render: function() {
-        let katexHtml = null;
-        try {
-            katexHtml = {
-                __html: katex.renderToString(this.props.children),
-            };
-        } catch (e) {
-            /* jshint -W103 */
-            if (e.__proto__ !== katex.ParseError.prototype) {
-            /* jshint +W103 */
-                throw e;
-            }
-        }
-
-        let katexA11yHtml = null;
-        if (katexHtml) {
-            try {
-                katexA11yHtml = {
-                    __html: katexA11y.renderString(this.props.children),
-                };
-            } catch (e) {
-                // Nothing
-            }
-        }
-
-        return <span
-            style={this.props.style}
-            onClick={this.props.onClick}
-        >
-            <span ref="mathjax" />
-            <span
-                ref="katex"
-                dangerouslySetInnerHTML={katexHtml}
-                aria-hidden={!!katexHtml && !!katexA11yHtml}
-            />
-            <span
-                dangerouslySetInnerHTML={katexA11yHtml}
-                style={srOnly}
-            />
-        </span>;
-    },
-});
-
-// End static math render copied from Perseus
 
 
 var GraderForSingleSolution = React.createClass({

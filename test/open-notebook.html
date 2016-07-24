@@ -1132,13 +1132,23 @@ function solutionClassReducer(state, action) {
             ...state,
             STUDENT_WORK : workInGivenSolutionClass
         };
+    } else if (action.type === GRADE_SINGLE_SOLUTION) {
+        return { 
+            ...state,
+            STUDENT_WORK : [
+                ...state[STUDENT_WORK].slice(0, action[SOLUTION_INDEX]),
+                singleSolutionReducer(state[STUDENT_WORK][action[SOLUTION_INDEX]], action),
+                ...state[STUDENT_WORK].slice(action[SOLUTION_INDEX] + 1)
+            ]
+        };
     } else {
         return state;
     }
 }
 
 function problemGraderReducer(state, action) {
-    if (action.type === GRADE_CLASS_OF_SOLUTIONS) {
+    if (action.type === GRADE_CLASS_OF_SOLUTIONS ||
+        action.type === GRADE_SINGLE_SOLUTION) {
         console.log(state);
         return { 
             ...state,
@@ -1164,7 +1174,8 @@ function problemGraderReducer(state, action) {
 function grading(state, action) {
     if (state === undefined) {
         alert("Defualt state has not been defined for teacher grading experience");
-    } else if (action.type === GRADE_CLASS_OF_SOLUTIONS) {
+    } else if (action.type === GRADE_CLASS_OF_SOLUTIONS ||
+               action.type === GRADE_SINGLE_SOLUTION) {
         return {
             ...state,
             STUDENT_WORK : {
@@ -1172,13 +1183,8 @@ function grading(state, action) {
                 [action[PROBLEM_NUMBER]] : problemGraderReducer(state[STUDENT_WORK][action[PROBLEM_NUMBER]], action)
             }
         };
-    } else if (action.type === GRADE_SINGLE_SOLUTION) {
+    } else {
         return state;
-        /*
-        return setDeepImmutable(state, 
-                                [ STUDENT_WORK, action[PROBLEM_NUMBER], UNIQUE_ANSWERS, 
-                                  action[SOLUTION_CLASS_INDEX], STUDENT_WORK, action[SOLUTION_INDEX], SCORE], action[SCORE]);
-        */
     }
 }
 
@@ -1664,8 +1670,6 @@ testAggregateStudentWork();
 testAggregateStudentWorkNoAnswerKey();
 testGradeSolutionClass();
 testGradeSingleSolution();
-// test utility method
-testNestedUpdate();
 console.log("All tests complete");
 
 </script>

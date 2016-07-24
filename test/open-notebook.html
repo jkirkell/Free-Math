@@ -584,10 +584,32 @@ function problems(probList, action) {
 function assignment(state, action) {
     console.log(action);
     if (state === undefined) {
+        /*
         return {
             APP_MODE : EDIT_ASSIGNMENT,
             ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
             PROBLEMS : problems(undefined, action)
+            };
+        */
+        return {
+            APP_MODE : GRADE_ASSIGNMENTS,
+            CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+            SIMILAR_ASSIGNMENT_SETS : [ ],
+            STUDENT_WORK : { "1" : {
+                POSSIBLE_POINTS : 6,
+                UNIQUE_ANSWERS : [ 
+                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
+                    { STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, 
+                      SCORE : 0, FEEDBACK : "",
+                      STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
+                    { STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
+                      SCORE : 0, FEEDBACK : "",
+                      STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ] }] }, 
+                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [
+                    { STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
+                      SCORE : 0, FEEDBACK : "",
+                      STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
+            } }
         };
     } else if (action.type === SET_ASSIGNMENT_NAME) {
         state = _.cloneDeep(state);
@@ -1060,6 +1082,37 @@ var Assignment = React.createClass({
     ,
 });
 
+var TeacherInteractiveGrader = React.createClass({
+    render: function() {
+        return (
+            <TeacherGraderFilters value={this.props.value}/>
+        );
+    }
+});
+
+
+var TeacherGraderFilters = React.createClass({
+    render: function() {
+        return (
+        <div className="assignment-filters">
+            <div style={{width:"100%", overflow:"hidden"}}>
+                <div style={{float:"left"}}>Show Student Work that is:</div>
+                <div className="show-incorrect-div"><label><input type="checkbox" id="show-incorrect" checked="checked"/>incorrect</label></div>
+                {
+                    // this is unchecked programmatically to hide all of the correct work by default
+                    // there was a weird bug where parens weren't showing up with other attempts to hide
+                    // it programatically
+                }
+                <div className="show-partially-correct-div">
+                    <label><input type="checkbox" id="show-partially-correct" checked="checked"/>partially correct</label></div>
+                <div className="show-correct-div">
+                    <label><input type="checkbox" id="show-correct" checked="checked"/>correct</label></div>
+            </div>
+            <div><label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked"/>Show student names (or grade anonymously)</label></div>
+        </div>
+        );
+    }
+});
 var OpenNotebook = React.createClass({
   render: function() {
     // TODO - figure out how to best switch between teacher and
@@ -1068,6 +1121,10 @@ var OpenNotebook = React.createClass({
       return (
         <Assignment value={this.props.value}/>
       );
+    } else if (this.props.value[APP_MODE] === GRADE_ASSIGNMENTS) {
+        return (
+            <TeacherInteractiveGrader value={this.props.value}/>
+        );
     }
   }
 });

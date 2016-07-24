@@ -1114,6 +1114,46 @@ function assignment(state, action) {
     }
 }
 
+function singleSolutionReducer(state, action) {
+    if (action.type === GRADE_SINGLE_SOLUTION) {
+        return { ...state,
+                 SCORE : action[SCORE] };
+    }
+}
+
+function solutionClassReducer(state, action) {
+    if (action.type === GRADE_CLASS_OF_SOLUTIONS) {
+        var newState = { ...state };
+        var workInGivenSolutionClass = [ ...state[STUDENT_WORK] ];
+        workInGivenSolutionClass.forEach(function(singleStudentsWork, index, arr) {
+            workInGivenSolutionClass[index] = singleSolutionReducer(singleStudentsWork, {type : GRADE_SINGLE_SOLUTION, SCORE : action[SCORE]});
+        });
+        return { 
+            ...state,
+            STUDENT_WORK : workInGivenSolutionClass
+        };
+    } else {
+        return state;
+    }
+}
+
+function problemGraderReducer(state, action) {
+    if (action.type === GRADE_CLASS_OF_SOLUTIONS) {
+        console.log(state);
+        return { 
+            ...state,
+            UNIQUE_ANSWERS : [
+                ...state[UNIQUE_ANSWERS].slice(0, action[SOLUTION_CLASS_INDEX]),
+                solutionClassReducer(state[UNIQUE_ANSWERS][action[SOLUTION_CLASS_INDEX]], action),
+                ...state[UNIQUE_ANSWERS].slice(action[SOLUTION_CLASS_INDEX] + 1),
+            ]
+        };
+                    
+    } else {
+        return state; 
+    }
+}
+
 // CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : 1, CORRECTNESS : [ "INCORRECT", "PARTIALLY_CORRECT", "INCORRECT"], ANONYMOUS : true/false }
 // SIMILAR_ASSIGNMENT_SETS : [ [ "jason", "emma", "matt"], ["jim", "tim"] ],
 // STUDENT_WORK : { "1.a" : {
@@ -1125,21 +1165,20 @@ function grading(state, action) {
     if (state === undefined) {
         alert("Defualt state has not been defined for teacher grading experience");
     } else if (action.type === GRADE_CLASS_OF_SOLUTIONS) {
-        var newState = state; 
-        var allWorkForProblem = newState[STUDENT_WORK][action[PROBLEM_NUMBER]];
-        var workInGivenSolutionClass = allWorkForProblem[UNIQUE_ANSWERS][action[SOLUTION_CLASS_INDEX]][STUDENT_WORK];
-        workInGivenSolutionClass.forEach(function(singleStudentsWork, index, arr) {
-            newState = setDeepImmutable(
-                newState, 
-                [ STUDENT_WORK, action[PROBLEM_NUMBER], UNIQUE_ANSWERS,
-                    action[SOLUTION_CLASS_INDEX], STUDENT_WORK, index, SCORE],
-                    action[SCORE]);
-        });
-        return newState;
+        return {
+            ...state,
+            STUDENT_WORK : {
+                ...state[STUDENT_WORK],
+                [action[PROBLEM_NUMBER]] : problemGraderReducer(state[STUDENT_WORK][action[PROBLEM_NUMBER]], action)
+            }
+        };
     } else if (action.type === GRADE_SINGLE_SOLUTION) {
+        return state;
+        /*
         return setDeepImmutable(state, 
                                 [ STUDENT_WORK, action[PROBLEM_NUMBER], UNIQUE_ANSWERS, 
                                   action[SOLUTION_CLASS_INDEX], STUDENT_WORK, action[SOLUTION_INDEX], SCORE], action[SCORE]);
+        */
     }
 }
 

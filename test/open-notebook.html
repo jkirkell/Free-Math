@@ -1068,11 +1068,9 @@ function problems(probList, action) {
 
 // reducer for an overall assignment
 function assignment(state, action) {
-    console.log(action);
     if (state === undefined) {
         /*
         return {
-            APP_MODE : EDIT_ASSIGNMENT,
             ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
             PROBLEMS : problems(undefined, action)
             };
@@ -1188,8 +1186,27 @@ function grading(state, action) {
     }
 }
 
+function rootReducer(state, action) {
+    if (state === undefined) {
+        return { 
+            ...assignment(), 
+            APP_MODE : GRADE_ASSIGNMENTS 
+        };
+    } else if (state[APP_MODE] == EDIT_ASSIGNMENT) {
+        return {
+            ...assignment(state, action),
+            APP_MODE : EDIT_ASSIGNMENT
+        }
+    } else if (state[APP_MODE] == GRADE_ASSIGNMENTS) {
+       return {
+            ...grading(state, action),
+            APP_MODE : GRADE_ASSIGNMENTS
+        };
+    }
+}
+
 var createStore = Redux.createStore;
-var store = createStore(assignment);
+var store = createStore(rootReducer);
 
 function render() {
     ReactDOM.render(
@@ -1402,9 +1419,9 @@ var OpenNotebook = React.createClass({
     // TODO - figure out how to best switch between teacher and
     // student mode rendering
     if (this.props.value[APP_MODE] === EDIT_ASSIGNMENT) {
-      return (
-        <Assignment value={this.props.value}/>
-      );
+        return (
+            <Assignment value={this.props.value}/>
+        );
     } else if (this.props.value[APP_MODE] === GRADE_ASSIGNMENTS) {
         return (
             <TeacherInteractiveGrader value={this.props.value}/>

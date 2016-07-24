@@ -594,6 +594,7 @@ var SHOW_ALL = "SHOW_ALL";
 var SHOW_NONE = "SHOW_NONE";
 var STUDENT_WORK = "STUDENT_WORK";
 var ANSWER = "ANSWER";
+var CONTENT = "CONTENT";
 
 // teacher grading actions
 
@@ -1340,8 +1341,14 @@ var SolutionGrader = React.createClass({
                 <p>Feedback</p><div><textarea width="30" height="8"></textarea></div>
                 <div style={{float:"left"}} className="equation-list">
                     <br/>
-                    <TeX>{"\\frac{10}{y}+\\frac{5i}{109}"}</TeX> <br/><br/>
-                    <TeX>{"10+\\frac{5i}{109}"}</TeX>
+                    {
+                        data[STEPS].map(function(step, stepIndex) {
+                        return (
+                            <div key={stepIndex}>
+                            <TeX>{step[CONTENT]}</TeX> <br/><br/>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         );

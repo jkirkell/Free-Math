@@ -608,6 +608,8 @@ var SOLUTION_CLASS_INDEX = "SOLUTION_CLASS_INDEX";
 var HIDE_BY_CORRECTNESS = "HIDE_BY_CORRECTNESS";
 var HIDE_CLASS_OF_SOLUTIONS = "HIDE_CLASS_OF_SOLUTIONS";
 var TOGGLE_GRADING_ANONYMOUSLY = "TOGGLE_GRADING_ANONYMOUSLY";
+var SET_PROBLEM_POSSIBLE_POINTS = "SET_PROBLEM_POSSIBLE_POINTS";
+var OLD_POSSIBLE_POINTS = "OLD_POSSIBLE_POINTS";
 
 var SOLUTION_INDEX = "SOLUTION_INDEX";
 
@@ -1117,15 +1119,29 @@ function singleSolutionReducer(state, action) {
         // currently no validation here
         return { ...state,
                  SCORE : action[SCORE] };
+    } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS) {
+        var newScore = Math.round( (Number(state[SCORE])/Number(action[OLD_POSSIBLE_POINTS])) * Number(action[POSSIBLE_POINTS]));
+        if (Number(state[SCORE]) > 0) {
+            return { ...state,
+                     SCORE : newScore };
+        } else {
+            return state;
+        }
+    } else {
+        return state;
     }
 }
 
 function solutionClassReducer(state, action) {
-    if (action.type === GRADE_CLASS_OF_SOLUTIONS) {
+    if (action.type === GRADE_CLASS_OF_SOLUTIONS || 
+        action.type === SET_PROBLEM_POSSIBLE_POINTS) {
         var newState = { ...state };
         var workInGivenSolutionClass = [ ...state[STUDENT_WORK] ];
+        if (action.type === GRADE_CLASS_OF_SOLUTIONS) {
+            action.type = GRADE_SINGLE_SOLUTION;
+        }
         workInGivenSolutionClass.forEach(function(singleStudentsWork, index, arr) {
-            workInGivenSolutionClass[index] = singleSolutionReducer(singleStudentsWork, {type : GRADE_SINGLE_SOLUTION, SCORE : action[SCORE]});
+            workInGivenSolutionClass[index] = singleSolutionReducer(singleStudentsWork, action);
         });
         return { 
             ...state,
@@ -1156,8 +1172,27 @@ function problemGraderReducer(state, action) {
                 solutionClassReducer(state[UNIQUE_ANSWERS][action[SOLUTION_CLASS_INDEX]], action),
                 ...state[UNIQUE_ANSWERS].slice(action[SOLUTION_CLASS_INDEX] + 1),
             ]
+        }; 
+        return ret;
+    } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS) {
+        // as the point values are stored at this level, must pass it down to
+        // recalculate points based on new value for total possible points
+        if (action.type === SET_PROBLEM_POSSIBLE_POINTS) {
+            action[OLD_POSSIBLE_POINTS] = state[POSSIBLE_POINTS];
+        }
+        var newState = { ...state };
+        var solutionClasses = [ ...state[UNIQUE_ANSWERS] ];
+        solutionClasses.forEach(function(singleSolutionClass, index, arr) {
+            solutionClasses[index] = solutionClassReducer(singleSolutionClass, action);
+        });
+        var ret = { 
+            ...state,
+            UNIQUE_ANSWERS : solutionClasses
         };
-                    
+        if (action.type === SET_PROBLEM_POSSIBLE_POINTS) {
+            ret[POSSIBLE_POINTS] = action[POSSIBLE_POINTS];
+        }
+        return ret;
     } else {
         return state; 
     }
@@ -1173,7 +1208,8 @@ function problemGraderReducer(state, action) {
 function grading(state, action) {
     if (state === undefined) {
         alert("Defualt state has not been defined for teacher grading experience");
-    } else if (action.type === GRADE_CLASS_OF_SOLUTIONS ||
+    } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS ||
+               action.type === GRADE_CLASS_OF_SOLUTIONS ||
                action.type === GRADE_SINGLE_SOLUTION) {
         return {
             ...state,
@@ -1310,7 +1346,12 @@ var ProblemGrader = React.createClass({
             <div className="problem-summary-container" style={{float:"none",overflow:"hidden"}}>
                 <h3>Problem number {problemNumber}</h3>
                 <p>Total incorrect answers {totalIncorrect}</p>
-                <p>Possible points &nbsp;<input type="text" className="possible-points-input" width="4" value={possiblePoints}/></p>
+                <p>Possible points &nbsp;<input type="text" className="possible-points-input" width="4" value={possiblePoints} onChange={
+                                function(evt) { store.dispatch({ 
+                                    type : SET_PROBLEM_POSSIBLE_POINTS, PROBLEM_NUMBER : problemNumber,
+                                    POSSIBLE_POINTS : evt.target.value
+                                }) }}
+                            /></p>
                 {
                     problemInfo[UNIQUE_ANSWERS].map(function(solutionClassInfo, solutionClassIndex) {
                         return (

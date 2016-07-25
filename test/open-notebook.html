@@ -761,7 +761,7 @@ function testAggregateStudentWork() {
     var expectedOutput = {
         CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
-        STUDENT_WORK : { "1" : {
+        PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 3,
             UNIQUE_ANSWERS : [ 
                 { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 3, SCORE : 3, FEEDBACK : "",
@@ -779,7 +779,7 @@ function testAggregateStudentWorkNoAnswerKey() {
     var expectedOutput = {
         CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
-        STUDENT_WORK : { "1" : {
+        PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 6,
             UNIQUE_ANSWERS : [ 
                 { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, FEEDBACK : "",
@@ -820,7 +820,7 @@ function testAggregateStudentWorkNoAnswerKey() {
 // Returns:
 // CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : 1, CORRECTNESS : [ "INCORRECT", "PARTIALLY_CORRECT", "INCORRECT"], ANONYMOUS : true/false }
 // SIMILAR_ASSIGNMENT_SETS : [ [ "jason", "emma", "matt"], ["jim", "tim"] ],
-// STUDENT_WORK : { "1.a" : {
+// PROBLEMS : { "1.a" : {
 //      "POSSIBLE_POINTS : 3,
 //      "UNIQUE_ANSWERS" : [ { ANSWER : "x=7", FILTER : "SHOW_ALL"/"SHOW_NONE", STUDENT_WORK : [ {STUDENT_FILE : "jason", AUTOMATICALLY_ASSIGNED_SCORE : 3, 
 //                             STEPS : [ { CONTENT : "2x=14"},{ CONTENT : "x=7", HIGHLIGHT : SUCCESS ]} ] } } ]}
@@ -911,7 +911,7 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
     console.log(aggregatedWork);
 
     return { CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
-    SIMILAR_ASSIGNMENT_SETS : [ ], STUDENT_WORK : aggregatedWork }
+    SIMILAR_ASSIGNMENT_SETS : [ ], PROBLEMS : aggregatedWork }
 }
 
 // currently in the student model, the steps associated with a problem
@@ -1079,7 +1079,7 @@ function assignment(state, action) {
             APP_MODE : GRADE_ASSIGNMENTS,
             CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
             SIMILAR_ASSIGNMENT_SETS : [ ],
-            STUDENT_WORK : { "1" : {
+            PROBLEMS : { "1" : {
                 POSSIBLE_POINTS : 6,
                 UNIQUE_ANSWERS : [ 
                 { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
@@ -1165,7 +1165,7 @@ function problemGraderReducer(state, action) {
 
 // CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : 1, CORRECTNESS : [ "INCORRECT", "PARTIALLY_CORRECT", "INCORRECT"], ANONYMOUS : true/false }
 // SIMILAR_ASSIGNMENT_SETS : [ [ "jason", "emma", "matt"], ["jim", "tim"] ],
-// STUDENT_WORK : { "1.a" : {
+// PROBLEMS : { "1.a" : {
 //      "POSSIBLE_POINTS : 3,
 //      "UNIQUE_ANSWERS" : [ { ANSWER : "x=7", FILTER : "SHOW_ALL"/"SHOW_NONE", STUDENT_WORK : [ {STUDENT_FILE : "jason", AUTOMATICALLY_ASSIGNED_SCORE : 3, 
 //                             STEPS : [ { CONTENT : "2x=14"},{ CONTENT : "x=7", HIGHLIGHT : SUCCESS ]} ] } } ]}
@@ -1177,9 +1177,9 @@ function grading(state, action) {
                action.type === GRADE_SINGLE_SOLUTION) {
         return {
             ...state,
-            STUDENT_WORK : {
-                ...state[STUDENT_WORK],
-                [action[PROBLEM_NUMBER]] : problemGraderReducer(state[STUDENT_WORK][action[PROBLEM_NUMBER]], action)
+            PROBLEMS : {
+                ...state[PROBLEMS],
+                [action[PROBLEM_NUMBER]] : problemGraderReducer(state[PROBLEMS][action[PROBLEM_NUMBER]], action)
             }
         };
     } else {
@@ -1317,7 +1317,7 @@ var ProblemGrader = React.createClass({
                             <SolutionGrader solutionGradeInfo={studentSolution} problemNumber={problemNumber} possiblePoints={possiblePoints}
                                             key={studentSolutionIndex} id={studentSolutionIndex} solutionClassIndex={solutionClassIndex}/>
                         );
-                    });
+                    })
                 }
             </div>);
     }
@@ -1452,8 +1452,8 @@ var TeacherGraderFilters = React.createClass({
                     <label><input type="checkbox" id="show-correct" checked="checked"/>correct</label></div>
             </div>
             <div><label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked"/>Show student names (or grade anonymously)</label></div>
-            <SolutionClassGrader solutionClassInfo={store.getState()[STUDENT_WORK]["1"][UNIQUE_ANSWERS][0]}
-                                 possiblePoints={store.getState()[STUDENT_WORK]["1"][POSSIBLE_POINTS]}/> 
+            <SolutionClassGrader solutionClassInfo={store.getState()[PROBLEMS]["1"][UNIQUE_ANSWERS][0]}
+                                 possiblePoints={store.getState()[PROBLEMS]["1"][POSSIBLE_POINTS]}/> 
         </div>
         );
     }
@@ -1489,7 +1489,7 @@ function testGradeSolutionClass() {
     var input = {
         CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
-        STUDENT_WORK : { "1" : {
+        PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 6,
             UNIQUE_ANSWERS : [ 
             { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
@@ -1508,7 +1508,7 @@ function testGradeSolutionClass() {
     var expectedOutput = {
         CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
-        STUDENT_WORK : { "1" : {
+        PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 6,
             UNIQUE_ANSWERS : [ 
                 { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
@@ -1531,7 +1531,7 @@ function testGradeSingleSolution() {
     var input = {
         CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
-        STUDENT_WORK : { "1" : {
+        PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 6,
             UNIQUE_ANSWERS : [ 
             { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
@@ -1550,7 +1550,7 @@ function testGradeSingleSolution() {
     var expectedOutput = {
         CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
-        STUDENT_WORK : { "1" : {
+        PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 6,
             UNIQUE_ANSWERS : [ 
                 { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 

@@ -1297,6 +1297,32 @@ var Assignment = React.createClass({
     ,
 });
 
+// A problem grader encompasses all of the student work in response
+// to a single problem. The work is grouped by similar final answer,
+// the groups are called "answer classes".
+var ProblemGrader = React.createClass({
+    render: function() {
+        var problemNumber = this.props.problemNumber;
+        var problemInfo = this.props.problemInfo;
+        var possiblePoints = problemInfo[POSSIBLE_POINTS];
+        var totalIncorrect = "TODO";
+        return (
+            <div className="problem-summary-container" style={{float:"none",overflow:"hidden"}}>
+                <h3>Problem number {problemNumber}</h3>
+                <p>Total incorrect answers {totalIncorrect}</p>' + 
+                <p>Possible points &nbsp;<input type="text" className="possible-points-input" width="4" value={possiblePoints}/></p>
+                {
+                    problemInfo[STUDENT_WORK].map(function(studentSolution, studentSolutionIndex) {
+                        return (
+                            <SolutionGrader solutionGradeInfo={studentSolution} problemNumber={problemNumber} possiblePoints={possiblePoints}
+                                            key={studentSolutionIndex} id={studentSolutionIndex} solutionClassIndex={solutionClassIndex}/>
+                        );
+                    });
+                }
+            </div>);
+    }
+});
+
 var TeacherInteractiveGrader = React.createClass({
     render: function() {
         return (
@@ -1346,11 +1372,6 @@ var SolutionClassGrader = React.createClass({
 
 var SolutionGrader = React.createClass({
     render: function() {
-        /*
-        var data = { STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
-                  SCORE : 0, FEEDBACK : "",
-                  STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ]};
-        */
         var data = this.props.solutionGradeInfo;
         var problemNumber = this.props.problemNumber;
         var possiblePoints = this.props.possiblePoints;

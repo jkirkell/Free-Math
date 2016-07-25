@@ -1114,6 +1114,7 @@ function assignment(state, action) {
 
 function singleSolutionReducer(state, action) {
     if (action.type === GRADE_SINGLE_SOLUTION) {
+        // currently no validation here
         return { ...state,
                  SCORE : action[SCORE] };
     }
@@ -1306,15 +1307,14 @@ var TeacherInteractiveGrader = React.createClass({
 
 var SolutionClassGrader = React.createClass({
     render: function() {
-        var data =  
-                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
-                { STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, 
-                  SCORE : 0, FEEDBACK : "",
-                  STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
-                { STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
-                  SCORE : 0, FEEDBACK : "",
-                  STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ] }] };
-        //var data = this.props.solutionClassInfo;
+        // TODO - finish
+        var data = this.props.solutionClassInfo;
+        // TODO - finish
+        //var solutionClassIndex = this.props.key;
+        var solutionClassIndex = 0;
+        var problemNumber = "1";
+        //var problemNumber = this.props.problemNumber;
+        var possiblePoints = this.props.possiblePoints;
         var studentFinalAnswer = data[ANSWER];
         var studentCount = _.size(data[STUDENT_WORK]);
         if (studentCount > 1) {
@@ -1335,7 +1335,8 @@ var SolutionClassGrader = React.createClass({
                 {
                     data[STUDENT_WORK].map(function(studentSolution, studentSolutionIndex) {
                     return (
-                        <SolutionGrader solutionGradeInfo={studentSolution} key={studentSolutionIndex} id={studentSolutionIndex}/>
+                        <SolutionGrader solutionGradeInfo={studentSolution} problemNumber={problemNumber} possiblePoints={possiblePoints}
+                                        key={studentSolutionIndex} id={studentSolutionIndex} solutionClassIndex={solutionClassIndex}/>
                     );
                 })}
             </div>
@@ -1351,15 +1352,22 @@ var SolutionGrader = React.createClass({
                   STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ]};
         */
         var data = this.props.solutionGradeInfo;
-        var correctness;
-        //var possiblePoints = this.props.possiblePoints;
-        var possiblePoints = 3;
+        var problemNumber = this.props.problemNumber;
+        var possiblePoints = this.props.possiblePoints;
+        var solutionClassIndex = this.props.solutionClassIndex;
+        var studentSolutionIndex = this.props.id;
         //var showStudentName = this.props.showStudentName;
         var showStudentName = true;
+        var correctness;
+        // TODO - look up react/redux best practices with stuff like this
+        // keep possiblePoints as a string in the model to allow it to be
+        // empty string while editing the text
+        var score = Number(data[SCORE]);
         // TODO - replace with classNames library - https://github.com/JedWatson/classnames
-        if (data[SCORE] == 0) {
+        var possiblePointsNum = Number(possiblePoints);
+        if (score == 0) {
             correctness = "answer-incorrect";
-        } else if (data[SCORE] == possiblePoints) {
+        } else if (score >= possiblePointsNum) {
             correctness = "answer-correct";
         } else {
             correctness = "answer-partially-correct";
@@ -1368,8 +1376,23 @@ var SolutionGrader = React.createClass({
         return (
             <div className={classes} style={{float:"left"}}> {/*<!-- container for nav an equation list --> */}
                 <p className="student-name-label"> {showStudentName ? data[STUDENT_FILE] : "" }</p>
-                <p>Score <input type="text" className="problem-grade-input" value={data[SCORE]}/> out of {possiblePoints}</p>
-                <label>&nbsp;<input type="checkbox" className="dont-apply-score-to-similar"/>Don't apply score to similar student work</label><br/>
+                {/* TODO - I need teachers to be able to edit the score, including deleting down to empty string, so they
+                           can write a new score. If I add validation when setting the value in the reducer the field won't be editable.
+                           Look up react best pratices for this, right now I'll assume I should attach another event here to ensure
+                           that the field contains a number when focus is lost
+                */}
+                <p>Score <input type="text" className="problem-grade-input" value={data[SCORE]} onChange={
+                                function(evt) { store.dispatch({ 
+                                    type : GRADE_SINGLE_SOLUTION, PROBLEM_NUMBER : problemNumber,
+                                    SOLUTION_CLASS_INDEX : solutionClassIndex, SCORE : evt.target.value, SOLUTION_INDEX : studentSolutionIndex
+                                }) }}
+                          /> out of {possiblePoints} 
+                        <input type="submit" name="apply score to all" value="apply score to all" onClick={
+                        function() {store.dispatch({ 
+                                    type : GRADE_CLASS_OF_SOLUTIONS, PROBLEM_NUMBER : problemNumber,
+                                    SOLUTION_CLASS_INDEX : solutionClassIndex, SCORE : data[SCORE]
+                                }) }}/>
+                </p>
                 <input type="submit" name="highlight errors" value="highlight errors"/>
                 <input type="submit" name="highlight successes" value="highlight successes"/>
                 <input type="submit" name="clear highlights" value="clear hightlights"/>
@@ -1408,7 +1431,8 @@ var TeacherGraderFilters = React.createClass({
                     <label><input type="checkbox" id="show-correct" checked="checked"/>correct</label></div>
             </div>
             <div><label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked"/>Show student names (or grade anonymously)</label></div>
-            <SolutionClassGrader /> 
+            <SolutionClassGrader solutionClassInfo={store.getState()[STUDENT_WORK]["1"][UNIQUE_ANSWERS][0]}
+                                 possiblePoints={store.getState()[STUDENT_WORK]["1"][POSSIBLE_POINTS]}/> 
         </div>
         );
     }

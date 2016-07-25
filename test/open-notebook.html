@@ -1309,15 +1309,16 @@ var ProblemGrader = React.createClass({
         return (
             <div className="problem-summary-container" style={{float:"none",overflow:"hidden"}}>
                 <h3>Problem number {problemNumber}</h3>
-                <p>Total incorrect answers {totalIncorrect}</p>' + 
+                <p>Total incorrect answers {totalIncorrect}</p>
                 <p>Possible points &nbsp;<input type="text" className="possible-points-input" width="4" value={possiblePoints}/></p>
                 {
-                    problemInfo[STUDENT_WORK].map(function(studentSolution, studentSolutionIndex) {
+                    problemInfo[UNIQUE_ANSWERS].map(function(solutionClassInfo, solutionClassIndex) {
                         return (
-                            <SolutionGrader solutionGradeInfo={studentSolution} problemNumber={problemNumber} possiblePoints={possiblePoints}
-                                            key={studentSolutionIndex} id={studentSolutionIndex} solutionClassIndex={solutionClassIndex}/>
+                            <SolutionClassGrader solutionClassInfo={solutionClassInfo} key={solutionClassIndex}
+                                                 solutionClassIndex={solutionClassIndex} problemNumber={problemNumber} 
+                                                 possiblePoints={possiblePoints}/>
                         );
-                    })
+                    }) 
                 }
             </div>);
     }
@@ -1336,10 +1337,8 @@ var SolutionClassGrader = React.createClass({
         // TODO - finish
         var data = this.props.solutionClassInfo;
         // TODO - finish
-        //var solutionClassIndex = this.props.key;
-        var solutionClassIndex = 0;
-        var problemNumber = "1";
-        //var problemNumber = this.props.problemNumber;
+        var solutionClassIndex = this.props.solutionClassIndex;
+        var problemNumber = this.props.problemNumber;
         var possiblePoints = this.props.possiblePoints;
         var studentFinalAnswer = data[ANSWER];
         var studentCount = _.size(data[STUDENT_WORK]);
@@ -1360,9 +1359,9 @@ var SolutionClassGrader = React.createClass({
                 <TeX>{studentFinalAnswer}</TeX></p>
                 {
                     data[STUDENT_WORK].map(function(studentSolution, studentSolutionIndex) {
-                    return (
-                        <SolutionGrader solutionGradeInfo={studentSolution} problemNumber={problemNumber} possiblePoints={possiblePoints}
-                                        key={studentSolutionIndex} id={studentSolutionIndex} solutionClassIndex={solutionClassIndex}/>
+                        return (
+                            <SolutionGrader solutionGradeInfo={studentSolution} problemNumber={problemNumber} possiblePoints={possiblePoints}
+                                            key={studentSolutionIndex} id={studentSolutionIndex} solutionClassIndex={solutionClassIndex}/>
                     );
                 })}
             </div>
@@ -1452,8 +1451,7 @@ var TeacherGraderFilters = React.createClass({
                     <label><input type="checkbox" id="show-correct" checked="checked"/>correct</label></div>
             </div>
             <div><label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked"/>Show student names (or grade anonymously)</label></div>
-            <SolutionClassGrader solutionClassInfo={store.getState()[PROBLEMS]["1"][UNIQUE_ANSWERS][0]}
-                                 possiblePoints={store.getState()[PROBLEMS]["1"][POSSIBLE_POINTS]}/> 
+            <ProblemGrader problemInfo={store.getState()[PROBLEMS]["1"]} problemNumber={"1"}/> 
         </div>
         );
     }

@@ -47,6 +47,7 @@ SOFTWARE.
 This project includes code from the MathQuill project. These
 portions of the code are licensed under the Mozilla Public License, v. 2.0.
 http://mozilla.org/MPL/2.0/
+
 -->
 <html>
 <head>
@@ -615,6 +616,11 @@ var ONE_ANSWER_REQUIRED = "ONE_ANSWER_REQUIRED";
 var SUBSET_OF_ANSWERS_REQUIRED = "SUBSET_OF_ANSWERS_REQUIRED";
 var NUMBER_OF_MATCHING_ANSWERS_REQUIRED = "NUMBER_OF_MATCHING_ANSWERS_REQUIRED";
 var POSSIBLE_POINTS = "POSSIBLE_POINTS";
+// as the points already assigned for all work on a problem need to be scaled
+// wen the possible points changes, and the old a new values need to be
+// known at the time of the recalculation, user input is stored in this field
+// until the field is submitted (with a button, pressing enter key or focus loss)
+var POSSIBLE_POINTS_EDITED = "POSSIBLE_POINTS_EDITED";
 var ANSWER_CLASSES = "ANSWER_CLASSES";
 var ANSWERS = "ANSWERS";
 var SCORE = "SCORE";
@@ -642,6 +648,7 @@ var HIDE_BY_CORRECTNESS = "HIDE_BY_CORRECTNESS";
 var HIDE_CLASS_OF_SOLUTIONS = "HIDE_CLASS_OF_SOLUTIONS";
 var TOGGLE_GRADING_ANONYMOUSLY = "TOGGLE_GRADING_ANONYMOUSLY";
 var SET_PROBLEM_POSSIBLE_POINTS = "SET_PROBLEM_POSSIBLE_POINTS";
+var EDIT_POSSIBLE_POINTS = "EDIT_POSSIBLE_POINTS";
 var OLD_POSSIBLE_POINTS = "OLD_POSSIBLE_POINTS";
 
 var SOLUTION_INDEX = "SOLUTION_INDEX";
@@ -1151,7 +1158,7 @@ function singleSolutionReducer(state, action) {
     if (action.type === GRADE_SINGLE_SOLUTION) {
         // currently no validation here
         return { ...state,
-                 SCORE : action[SCORE] };
+        SCORE : action[SCORE] };
     } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS) {
         var newScore = Math.round( (Number(state[SCORE])/Number(action[OLD_POSSIBLE_POINTS])) * Number(action[POSSIBLE_POINTS]));
         if (Number(state[SCORE]) > 0) {
@@ -1195,6 +1202,8 @@ function solutionClassReducer(state, action) {
 }
 
 function problemGraderReducer(state, action) {
+    console.log(state);
+    console.log(action);
     if (action.type === GRADE_CLASS_OF_SOLUTIONS ||
         action.type === GRADE_SINGLE_SOLUTION) {
         console.log(state);
@@ -1207,11 +1216,17 @@ function problemGraderReducer(state, action) {
             ]
         }; 
         return ret;
+    } else if (action.type === EDIT_POSSIBLE_POINTS) {
+        console.log("edit possible points");
+        console.log(state);
+        console.log(action);
+        return { ...state, POSSIBLE_POINTS_EDITED : action[POSSIBLE_POINTS]};
     } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS) {
         // as the point values are stored at this level, must pass it down to
         // recalculate points based on new value for total possible points
         if (action.type === SET_PROBLEM_POSSIBLE_POINTS) {
             action[OLD_POSSIBLE_POINTS] = state[POSSIBLE_POINTS];
+            action[POSSIBLE_POINTS] = state[POSSIBLE_POINTS_EDITED];
         }
         var newState = { ...state };
         var solutionClasses = [ ...state[UNIQUE_ANSWERS] ];
@@ -1241,7 +1256,8 @@ function problemGraderReducer(state, action) {
 function grading(state, action) {
     if (state === undefined) {
         alert("Defualt state has not been defined for teacher grading experience");
-    } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS ||
+        } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS ||
+               action.type === EDIT_POSSIBLE_POINTS || 
                action.type === GRADE_CLASS_OF_SOLUTIONS ||
                action.type === GRADE_SINGLE_SOLUTION) {
         return {
@@ -1375,22 +1391,27 @@ var ProblemGrader = React.createClass({
         var problemInfo = this.props.problemInfo;
         var possiblePoints = problemInfo[POSSIBLE_POINTS];
         var totalIncorrect = "TODO";
+        var possiblePoints = problemInfo[POSSIBLE_POINTS_EDITED] != undefined ? problemInfo[POSSIBLE_POINTS_EDITED] : problemInfo[POSSIBLE_POINTS];
+        var oldPossiblePoints = problemInfo[POSSIBLE_POINTS];
         return (
             <div className="problem-summary-container" style={{float:"none",overflow:"hidden"}}>
                 <h3>Problem number {problemNumber}</h3>
                 <p>Total incorrect answers {totalIncorrect}</p>
                 <p>Possible points &nbsp;<input type="text" className="possible-points-input" width="4" value={possiblePoints} onChange={
                                 function(evt) { store.dispatch({ 
-                                    type : SET_PROBLEM_POSSIBLE_POINTS, PROBLEM_NUMBER : problemNumber,
+                                    type : EDIT_POSSIBLE_POINTS, PROBLEM_NUMBER : problemNumber,
                                     POSSIBLE_POINTS : evt.target.value
-                                }) }}
-                            /></p>
+                                    }) }}
+                                />
+                    <input type="submit" name="apply new possible score" value="Apply" onClick={
+                        function() { store.dispatch({ type : SET_PROBLEM_POSSIBLE_POINTS, PROBLEM_NUMBER : problemNumber}) }}/> <br/>
+                            </p>
                 {
                     problemInfo[UNIQUE_ANSWERS].map(function(solutionClassInfo, solutionClassIndex) {
                         return (
                             <SolutionClassGrader solutionClassInfo={solutionClassInfo} key={solutionClassIndex}
                                                  solutionClassIndex={solutionClassIndex} problemNumber={problemNumber} 
-                                                 possiblePoints={possiblePoints}/>
+                                                 possiblePoints={oldPossiblePoints}/>
                         );
                     }) 
                 }

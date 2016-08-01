@@ -353,7 +353,6 @@ var MathInput = React.createClass({
     //   buttons div
 
     handleFocus: function() {
-        console.log("focused");
         this.setState({ focused: true });
         // TODO(joel) fix properly - we should probably allow onFocus handlers
         // to this property, but we need to work correctly with them.
@@ -482,7 +481,6 @@ var MathInput = React.createClass({
                     // unlike React it sometimes generates false positives.
                     // One of these is on initialization (with an empty string
                     // value), so we have to guard against that below.
-                    console.log("EDITED!");
                     var value = mathField.latex();
 
                     // Provide a MathQuill-compatible way to generate the
@@ -511,7 +509,6 @@ var MathInput = React.createClass({
 
                     if (initialized && this.props.value !== value) {
                         //this.props.onChange(value);
-                        console.log("SETTING NEW VALUE");
                         store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : this.props.problemIndex, 
                                          STEP_KEY : this.props.stepIndex, NEW_STEP_CONTENT : value});
                     }
@@ -521,7 +518,6 @@ var MathInput = React.createClass({
                     // key. Since this isn't an actual <input> element, we have
                     // to manually trigger the usually automatic form submit.
 
-                    console.log("enter pressed");
                     // Using enter for go to next step
                     store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : this.props.problemIndex});
 
@@ -542,14 +538,11 @@ var MathInput = React.createClass({
         // the constructor above
         this.mathField().latex(this.props.value);
         this.mathField().focus();
-        console.log("mathfield init");
         initialized = true;
     },
 
     componentDidUpdate: function() {
-        console.log("mathfield component did update");
         if (!_.isEqual(this.mathField().latex(), this.props.value)) {
-            console.log("mathfield component did update 2: " + this.props.value);
             console.log(this.props);
             this.mathField().latex(this.props.value);
         }
@@ -600,6 +593,11 @@ var type = 'type';
 var APP_MODE = 'APP_MODE';
 var EDIT_ASSIGNMENT = 'EDIT_ASSIGNMENT';
 var GRADE_ASSIGNMENTS = 'GRADE_ASSIGNMENTS';
+
+// Actions to change modes
+var SET_ASSIGNMENTS_TO_GRADE = 'SET_ASSIGNMENTS_TO_GRADE';
+// action properties
+var NEW_STATE = 'NEW_STATE';
 
 // Object model for teacher grading experience, see return value in the aggreateStudentWork() method
 var STUDENT_FILE = 'STUDENT_FILE';
@@ -740,11 +738,13 @@ function studentSubmissionsZip(evt) {
                     var fileContents = new_zip.file(file).asText();
                     // how is this behaviring differrntly than JSOn.parse()?!?!
                     var assignmentData = $.parseJSON(fileContents);
-                    allStudentWork.push({STUDENT_FILE : file, ASSIGNMENT : assignmentData});
+                    assignmentData = convertToCurrentFormat(assignmentData);
+                    allStudentWork.push({STUDENT_FILE : file, ASSIGNMENT : assignmentData[PROBLEMS]});
                 }
             }
             // TODO - add back answer key
             var aggregatedWork = aggregateStudentWork(allStudentWork);
+            store.dispatch({type : SET_ASSIGNMENTS_TO_GRADE, NEW_STATE : aggregatedWork});
         }
         r.readAsArrayBuffer(f);
     } else { 
@@ -874,7 +874,6 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
     console.log(answerKey);
     allStudentWork.forEach(function(assignInfo, index, array) {
         assignInfo[ASSIGNMENT].forEach(function(problem, index, array) {
-            console.log(problem);
             var studentAnswer = problem[STEPS][problem[LAST_SHOWN_STEP] ];
             var automaticallyAssignedGrade = 0;
 
@@ -950,7 +949,6 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
         });
     });
     */
-    console.log(aggregatedWork);
 
     return { CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
     SIMILAR_ASSIGNMENT_SETS : [ ], PROBLEMS : aggregatedWork }
@@ -1013,22 +1011,21 @@ function removeExtension(filename) {
 }
 
 function convertToCurrentFormat(possiblyOldDoc) {
-    console.log(possiblyOldDoc);
     if (!possiblyOldDoc.hasOwnProperty('problems')) {
-        console.log('new doc found');
         return possiblyOldDoc;
     }
 
     possiblyOldDoc.problems.forEach(function (problem) {
         if (problem.problemNumber !== undefined) {
             problem[STEPS] = problem.steps;
-            problem[LAST_SHOWN_STEP] = newSteps.length - 1;
+            problem[LAST_SHOWN_STEP] = problem[STEPS].length - 1;
             problem[PROBLEM_NUMBER] = problem.problemNumber;
             delete problem.steps;
             delete problem.problemNumber;
         }
     });
     possiblyOldDoc[PROBLEMS] = possiblyOldDoc.problems;
+    delete possiblyOldDoc.problems;
     return possiblyOldDoc;
 }
 
@@ -1144,8 +1141,6 @@ function assignment(state, action) {
     } else if (action.type === SET_ASSIGNMENT_CONTENT) {
         state = _.cloneDeep(state);
         state.PROBLEMS = action.PROBLEMS;
-        console.log('new state');
-        console.log(state);
         return state;
     } else {
         var new_state = _.clone(state);
@@ -1202,11 +1197,8 @@ function solutionClassReducer(state, action) {
 }
 
 function problemGraderReducer(state, action) {
-    console.log(state);
-    console.log(action);
     if (action.type === GRADE_CLASS_OF_SOLUTIONS ||
         action.type === GRADE_SINGLE_SOLUTION) {
-        console.log(state);
         return { 
             ...state,
             UNIQUE_ANSWERS : [
@@ -1217,9 +1209,6 @@ function problemGraderReducer(state, action) {
         }; 
         return ret;
     } else if (action.type === EDIT_POSSIBLE_POINTS) {
-        console.log("edit possible points");
-        console.log(state);
-        console.log(action);
         return { ...state, POSSIBLE_POINTS_EDITED : action[POSSIBLE_POINTS]};
     } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS) {
         // as the point values are stored at this level, must pass it down to
@@ -1278,6 +1267,13 @@ function rootReducer(state, action) {
             ...assignment(), 
             APP_MODE : GRADE_ASSIGNMENTS 
         };
+    } else if (action.type === SET_ASSIGNMENTS_TO_GRADE) {
+        // TODO - consolidate the defaults for filters
+        // TODO - get similar assignment list from comparing the assignments
+        return {
+            ...action[NEW_STATE],
+            APP_MODE : GRADE_ASSIGNMENTS,
+        }
     } else if (state[APP_MODE] == EDIT_ASSIGNMENT) {
         return {
             ...assignment(state, action),
@@ -1348,8 +1344,6 @@ var Problem = React.createClass({
 
 var Assignment = React.createClass({
     render: function() {
-      console.log('rendering...'); 
-      console.log(this.props.value);
       var defaultEqtn = "4-9\\left(\\frac{2}{3}\\right)^2+\\frac{4}{5-3\\cdot 4}";
       return (
         <div id="assignment-container">
@@ -1658,8 +1652,6 @@ function testGradeSingleSolution() {
     };
     deepFreeze(input);
     var output = grading(input, { type : GRADE_SINGLE_SOLUTION, PROBLEM_NUMBER : "1", SOLUTION_CLASS_INDEX : 0, SCORE : 3, SOLUTION_INDEX : 0} );
-    console.log(output);
-    console.log(expectedOutput);
     expect(output).toEqual(expectedOutput);
 }
 

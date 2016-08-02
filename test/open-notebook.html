@@ -427,12 +427,9 @@ var TexButtons = React.createClass({
             (setName) => _.keys(buttonSets).indexOf(setName));
 
         var buttons = _.map(sortedButtonSets, setName => buttonSets[setName]);
-        console.log("@@@@@@@@@");
-        console.log(buttons);
 
         var buttonRows = _.map(buttons, row => row.map(symbGen => {
             // create a (component, thing we should send to mathquill) pair
-            console.log(this.props);
             var symbol = symbGen(this.props);
             return <button onClick={() => this.props.onInsert(symbol[1])}
                            className="tex-button"
@@ -442,13 +439,8 @@ var TexButtons = React.createClass({
                 {symbol[0]}
             </button>;
         }));
-        console.log('!!!!!!!!!!!!!!!');
-        console.log(buttonRows);
-        console.log(buttonRows[0][2]);
 
         var buttonPopup = _.map(buttonRows, (row, i) => {
-            console.log(row);
-            console.log(i);
             return <div className="clearfix tex-button-row"
                         key={this.props.sets[i]}>
                 {row}

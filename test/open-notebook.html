@@ -426,12 +426,13 @@ var TexButtons = React.createClass({
         var sortedButtonSets = _.sortBy(this.props.sets,
             (setName) => _.keys(buttonSets).indexOf(setName));
 
-        var buttons = _(sortedButtonSets).map(setName => buttonSets[setName]);
+        var buttons = _.map(sortedButtonSets, setName => buttonSets[setName]);
         console.log("@@@@@@@@@");
         console.log(buttons);
 
-        var buttonRows = _(buttons).map(row => row.map(symbGen => {
+        var buttonRows = _.map(buttons, row => row.map(symbGen => {
             // create a (component, thing we should send to mathquill) pair
+            console.log(this.props);
             var symbol = symbGen(this.props);
             return <button onClick={() => this.props.onInsert(symbol[1])}
                            className="tex-button"
@@ -441,8 +442,13 @@ var TexButtons = React.createClass({
                 {symbol[0]}
             </button>;
         }));
+        console.log('!!!!!!!!!!!!!!!');
+        console.log(buttonRows);
+        console.log(buttonRows[0][2]);
 
-        var buttonPopup = _(buttonRows).map((row, i) => {
+        var buttonPopup = _.map(buttonRows, (row, i) => {
+            console.log(row);
+            console.log(i);
             return <div className="clearfix tex-button-row"
                         key={this.props.sets[i]}>
                 {row}
@@ -1499,7 +1505,7 @@ var Problem = React.createClass({
                         this.props.value[STEPS].map(function(step, stepIndex) {
                         if (stepIndex > lastShownStep) return;
                         return (
-                        <MathInput key={stepIndex} buttonsVisible='focused' buttonSets={['basic+div']} stepIndex={stepIndex} problemIndex={problemIndex} value={step}/>
+                        <MathInput key={stepIndex} buttonsVisible='always' buttonSets={['basic+div']} stepIndex={stepIndex} problemIndex={problemIndex} value={step}/>
                         );
                     })}
                 </div>

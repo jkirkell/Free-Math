@@ -1,54 +1,6 @@
 /*
 Copied from persus project
 */
-/*
-.perseus-tooltip {
-  background: #fff;
-  padding: 5px 10px;
-  width: 240px;
-}
-.perseus-formats-tooltip {
-  background: #fff;
-  padding: 5px 10px;
-  width: 240px;
-  color: #777;
-}
-.framework-perseus .perseus-formats-tooltip .paragraph > ul {
-  padding: 0;
-  margin: -20px 0 -16px 0;
-}
-.framework-perseus .perseus-formats-tooltip .paragraph > ul > li {
-  list-style-type: none;
-}
-.perseus-math-input.mq-editable-field.mq-math-mode {
-  background: #fff;
-  font-size: 18px;
-  min-width: 100px;
-  border-color: #a4a4a4;
-  border-radius: 5px;
-}
-.perseus-math-input.mq-editable-field.mq-math-mode > .mq-root-block {
-  padding: 4px;
-}
-.perseus-math-input.mq-editable-field.mq-math-mode .mq-cursor {
-  padding-left: 0;
-}
-.perseus-math-input.mq-editable-field.mq-math-mode .mq-paren.mq-ghost {
-  color: inherit;
-}
-.perseus-math-input.mq-editable-field.mq-math-mode .mq-paren + span {
-  margin: 0;
-}
-.perseus-math-input.mq-editable-field.mq-math-mode .mq-binary-operator {
-  font-family: KaTeX_Main !important;
-}
-.perseus-math-input.mq-editable-field.mq-math-mode sup {
-  line-height: normal;
-}
-.perseus-widget-editor .perseus-math-input.mq-editable-field.mq-math-mode > .mq-root-block {
-  border-radius: 0;
-}
-*/
 .math-input-buttons {
   background-color: rgba(255, 255, 255, 0.7);
   border-radius: 5px;

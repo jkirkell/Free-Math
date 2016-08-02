@@ -1108,32 +1108,10 @@ function problems(probList, action) {
 // reducer for an overall assignment
 function assignment(state, action) {
     if (state === undefined) {
-        /*
         return {
             ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
             PROBLEMS : problems(undefined, action)
             };
-        */
-        return {
-            APP_MODE : GRADE_ASSIGNMENTS,
-            CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
-            SIMILAR_ASSIGNMENT_SETS : [ ],
-            PROBLEMS : { "1" : {
-                POSSIBLE_POINTS : 6,
-                UNIQUE_ANSWERS : [ 
-                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
-                    { STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, 
-                      SCORE : 0, FEEDBACK : "",
-                      STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
-                    { STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
-                      SCORE : 0, FEEDBACK : "",
-                      STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ] }] }, 
-                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [
-                    { STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
-                      SCORE : 0, FEEDBACK : "",
-                      STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
-            } }
-        };
     } else if (action.type === SET_ASSIGNMENT_NAME) {
         state = _.cloneDeep(state);
         state.ASSIGNMENT_NAME = action.ASSIGNMENT_NAME;
@@ -1244,6 +1222,26 @@ function problemGraderReducer(state, action) {
 // reducer for teacher grading page
 function grading(state, action) {
     if (state === undefined) {
+        return {
+            APP_MODE : GRADE_ASSIGNMENTS,
+            CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+            SIMILAR_ASSIGNMENT_SETS : [ ],
+            PROBLEMS : { "1" : {
+                POSSIBLE_POINTS : 6,
+                UNIQUE_ANSWERS : [ 
+                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ 
+                    { STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, 
+                      SCORE : 0, FEEDBACK : "",
+                      STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] },
+                    { STUDENT_FILE : "alica m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
+                      SCORE : 0, FEEDBACK : "",
+                      STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "5x=10"},{ CONTENT : "x=2"} ] }] }, 
+                { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [
+                    { STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0,
+                      SCORE : 0, FEEDBACK : "",
+                      STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
+            } }
+            };
         alert("Defualt state has not been defined for teacher grading experience");
         } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS ||
                action.type === EDIT_POSSIBLE_POINTS || 
@@ -1265,7 +1263,7 @@ function rootReducer(state, action) {
     if (state === undefined) {
         return { 
             ...assignment(), 
-            APP_MODE : GRADE_ASSIGNMENTS 
+            APP_MODE : EDIT_ASSIGNMENT
         };
     } else if (action.type === SET_ASSIGNMENTS_TO_GRADE) {
         // TODO - consolidate the defaults for filters

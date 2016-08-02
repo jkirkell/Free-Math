@@ -84,7 +84,7 @@ http://mozilla.org/MPL/2.0/
 <link rel="stylesheet" href="../katex.min.css">
 <script src="../katex.min.js"></script>
 
-<script type="text/javascript" src="../build/mathquill-basic.js"></script>
+<script type="text/javascript" src="../build/mathquill.js"></script>
 <!-- App state management -->
 <script type="text/javascript" src="../redux.js"></script>
 <script type="text/javascript" src="../lodash.min.js"></script>
@@ -407,6 +407,12 @@ var buttonSets = {
         () => [<TeX key="leq">\leq</TeX>, "\\leq"],
         () => [<TeX key="geq">\geq</TeX>, "\\geq"],
     ],
+    "calculus": [
+        () => [<TeX key="integral">{"\\int"}</TeX>, "\\int"],
+        /* TODO - had trouble getting these buttons to produce expressions with mutliple parts, it just inserted the latex text into the box */
+        /*() => [<TeX key="dy/dx">{"\\frac{dy}{dx}"}</TeX>, "\\frac {dy}"], */
+        () => [<TeX key="prime">'</TeX>, "'"]
+    ],
 };
 
 var buttonSetsType = React.PropTypes.arrayOf(
@@ -628,11 +634,13 @@ var MathInput = React.createClass({
             // still to escape nested contexts if currently in one, but to
             // insert a space if not (we don't expect mixed numbers in nested
             // contexts). We should also limit to one consecutive space.
-            spaceBehavesLikeTab: true,
+            // TODO Jason A. - I modified this, consider if I need it back where
+            // the Khan team had it
+            spaceBehavesLikeTab: false,
 
             // for intuitive navigation of fractions
             leftRightIntoCmdGoes: 'up',
-            autoCommands: 'pi theta sqrt sum',
+            autoCommands: 'pi theta sqrt sum int',
             autoSubscriptNumerals: true,
             charsThatBreakOutOfSupSub: '+-*/=<>≠≤≥',
 
@@ -1497,7 +1505,7 @@ var Problem = React.createClass({
                         this.props.value[STEPS].map(function(step, stepIndex) {
                         if (stepIndex > lastShownStep) return;
                         return (
-                        <MathInput key={stepIndex} buttonsVisible='always' buttonSets={['basic+div']} stepIndex={stepIndex} problemIndex={problemIndex} value={step}/>
+                        <MathInput key={stepIndex} buttonsVisible='focused' buttonSets={['calculus']} stepIndex={stepIndex} problemIndex={problemIndex} value={step}/>
                         );
                     })}
                 </div>

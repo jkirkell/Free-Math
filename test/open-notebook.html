@@ -57,6 +57,7 @@ http://mozilla.org/MPL/2.0/
 <title>Open Notebook</title>
 
 <link rel="stylesheet" type="text/css" href="../build/mathquill.css">
+<link rel="stylesheet" type="text/css" href="../perseus.css">
 <link rel="stylesheet" type="text/css" href="support/home.css">
 <!-- testing -->
 <script src="../expect.min.js"></script>
@@ -408,8 +409,6 @@ var buttonSets = {
     ],
 };
 
-console.log("@#$%@#%#$%");
-console.log(_(buttonSets).keys());
 var buttonSetsType = React.PropTypes.arrayOf(
         React.PropTypes.oneOf(_.keys(buttonSets))
     );
@@ -428,6 +427,8 @@ var TexButtons = React.createClass({
             (setName) => _.keys(buttonSets).indexOf(setName));
 
         var buttons = _(sortedButtonSets).map(setName => buttonSets[setName]);
+        console.log("@@@@@@@@@");
+        console.log(buttons);
 
         var buttonRows = _(buttons).map(row => row.map(symbGen => {
             // create a (component, thing we should send to mathquill) pair
@@ -486,7 +487,7 @@ var MathInput = React.createClass({
         }
 
         var buttons = null; 
-        if (true || this._shouldShowButtons()) {
+        if (this._shouldShowButtons()) {
             buttons = <TexButtons
                 sets={this.props.buttonSets}
                 className="math-input-buttons absolute"
@@ -502,6 +503,9 @@ var MathInput = React.createClass({
                       onFocus={this.handleFocus}
                       onBlur={this.handleBlur} />
             </div>
+            <div style={{position: "relative"}}>
+                {buttons}
+            </div> 
         </div>;
     },
 
@@ -1495,7 +1499,7 @@ var Problem = React.createClass({
                         this.props.value[STEPS].map(function(step, stepIndex) {
                         if (stepIndex > lastShownStep) return;
                         return (
-                        <MathInput key={stepIndex} buttonsVisible={'focused'} buttonSets={['basic']} stepIndex={stepIndex} problemIndex={problemIndex} value={step}/>
+                        <MathInput key={stepIndex} buttonsVisible='focused' buttonSets={['basic+div']} stepIndex={stepIndex} problemIndex={problemIndex} value={step}/>
                         );
                     })}
                 </div>

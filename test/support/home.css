@@ -1,6 +1,7 @@
 /*
 Copied from persus project
 */
+/*
 .perseus-tooltip {
   background: #fff;
   padding: 5px 10px;
@@ -47,6 +48,7 @@ Copied from persus project
 .perseus-widget-editor .perseus-math-input.mq-editable-field.mq-math-mode > .mq-root-block {
   border-radius: 0;
 }
+*/
 .math-input-buttons {
   background-color: rgba(255, 255, 255, 0.7);
   border-radius: 5px;

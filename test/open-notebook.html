@@ -1206,7 +1206,7 @@ function convertToCurrentFormat(possiblyOldDoc) {
 // reducer for an individual problem
 function problem(problem, action) {
     if (problem === undefined) {
-        return { PROBLEM_NUMBER : "", STEPS : [""], LAST_SHOWN_STEP : 0}
+        return { PROBLEM_NUMBER : "", STEPS : [{CONTENT : ""}], LAST_SHOWN_STEP : 0}
     } else if (action.type === SET_PROBLEM_NUMBER) {
         var newNamedProb = _.clone(problem)
         newNamedProb[PROBLEM_NUMBER] = action[NEW_PROBLEM_NUMBER];
@@ -1214,7 +1214,7 @@ function problem(problem, action) {
     } else if (action.type === EDIT_STEP) {
         // TODO - I should avoid using cloneDeep, I think it migh be okay here though
         var editedProb = _.cloneDeep(problem)
-        editedProb.STEPS[action[STEP_KEY]] = action.NEW_STEP_CONTENT;
+        editedProb.STEPS[action[STEP_KEY]][CONTENT] = action.NEW_STEP_CONTENT;
         return editedProb;
     } else if (action.type === NEW_STEP) {
         var editedProb = _.cloneDeep(problem);
@@ -1505,7 +1505,7 @@ var Problem = React.createClass({
                         this.props.value[STEPS].map(function(step, stepIndex) {
                         if (stepIndex > lastShownStep) return;
                         return (
-                        <MathInput key={stepIndex} buttonsVisible='focused' buttonSets={['calculus']} stepIndex={stepIndex} problemIndex={problemIndex} value={step}/>
+                        <MathInput key={stepIndex} buttonsVisible='focused' buttonSets={['calculus']} stepIndex={stepIndex} problemIndex={problemIndex} value={step[CONTENT]}/>
                         );
                     })}
                 </div>
@@ -1827,22 +1827,20 @@ function testGradeSingleSolution() {
     expect(output).toEqual(expectedOutput);
 }
 
-
-
 function testAddProblem() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 0 },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 0 }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 0 },
+                     { PROBLEM_NUMBER : "2", STEPS : [{CONTENT : "4-2"}, {CONTENT : "2"}], LAST_SHOWN_STEP : 0 }
         ]
     }
     var expectedAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 0 },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 0 },
-                     { PROBLEM_NUMBER : "", STEPS : [""], LAST_SHOWN_STEP : 0 }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 0 },
+                     { PROBLEM_NUMBER : "2", STEPS : [{CONTENT : "4-2"}, {CONTENT : "2"}], LAST_SHOWN_STEP : 0 },
+                     { PROBLEM_NUMBER : "", STEPS : [{CONTENT : ""}], LAST_SHOWN_STEP : 0 }
         ]
         
     }
@@ -1856,14 +1854,14 @@ function testRemoveProblem() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1},
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1}
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTNENT : "1+2"},{CONTENT : "3"}], LAST_SHOWN_STEP : 1},
+                     { PROBLEM_NUMBER : "2", STEPS : [{CONTENT : "4-2"}, {CONTENT : "2"}], LAST_SHOWN_STEP : 1}
         ]
     }
     var expectedAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1} ]
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTNENT : "1+2"},{CONTENT : "3"}], LAST_SHOWN_STEP : 1} ]
     }
     deepFreeze(initialAssignment);
     expect(
@@ -1875,16 +1873,16 @@ function testCloneProblem() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1},
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1}
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTNENT : "1+2"},{CONTENT : "3"}], LAST_SHOWN_STEP : 1},
+                     { PROBLEM_NUMBER : "2", STEPS : [{CONTENT : "4-2"}, {CONTENT : "2"}], LAST_SHOWN_STEP : 1}
         ]
     }
     var expectedAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1},
-                     { PROBLEM_NUMBER : "1 - copy", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1},
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1}
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTNENT : "1+2"},{CONTENT : "3"}], LAST_SHOWN_STEP : 1},
+                     { PROBLEM_NUMBER : "1 - copy", STEPS : [{CONTNENT : "1+2"},{CONTENT : "3"}], LAST_SHOWN_STEP : 1},
+                     { PROBLEM_NUMBER : "2", STEPS : [{CONTENT : "4-2"}, {CONTENT : "2"}], LAST_SHOWN_STEP : 1}
         ]
     }
     deepFreeze(initialAssignment);
@@ -1897,15 +1895,15 @@ function testRenameProblem() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1},
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1}
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTNENT : "1+2"},{CONTENT : "3"}], LAST_SHOWN_STEP : 1},
+                     { PROBLEM_NUMBER : "2", STEPS : [{CONTENT : "4-2"}, {CONTENT : "2"}], LAST_SHOWN_STEP : 1}
         ]
     }
     var expectedAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 },
-                     { PROBLEM_NUMBER : "1.a", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1 }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTNENT : "1+2"},{CONTENT : "3"}], LAST_SHOWN_STEP : 1},
+                     { PROBLEM_NUMBER : "1.a", STEPS : [{CONTENT : "4-2"}, {CONTENT : "2"}], LAST_SHOWN_STEP : 1}
         ]
     }
     deepFreeze(initialAssignment);
@@ -1918,15 +1916,15 @@ function testEditStep() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1 }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 1 },
+                     { PROBLEM_NUMBER : "2", STEPS : [{CONTENT : "4-2"}, {CONTENT : "2"}], LAST_SHOWN_STEP : 1 }
         ]
     }
     var expectedAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "5"], LAST_SHOWN_STEP : 1 }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 1 },
+                     { PROBLEM_NUMBER : "2", STEPS : [{CONTENT : "4-2"}, {CONTENT : "5"}], LAST_SHOWN_STEP : 1 }
         ]
     }
     deepFreeze(initialAssignment);
@@ -1939,15 +1937,15 @@ function testNewStep() {
     var initialAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2"], LAST_SHOWN_STEP : 1 }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 1 },
+                     { PROBLEM_NUMBER : "2", STEPS : [{CONTENT : "4-2"}, {CONTENT : "2"}], LAST_SHOWN_STEP : 1 }
         ]
     }
     var expectedAssignment = {
         APP_MODE : EDIT_ASSIGNMENT,
         ASSIGNMENT_NAME : UNTITLED_ASSINGMENT,
-        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 },
-                     { PROBLEM_NUMBER : "2", STEPS : ["4-2", "2", "2"], LAST_SHOWN_STEP : 2 }
+        PROBLEMS : [ { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 1 },
+                     { PROBLEM_NUMBER : "2", STEPS : [{CONTENT : "4-2"}, {CONTENT : "2"}, {CONTENT : "2"}], LAST_SHOWN_STEP : 2 }
         ]
     }
     deepFreeze(initialAssignment);
@@ -1957,8 +1955,8 @@ function testNewStep() {
 }
 
 function testUndoStep() {
-    var initialProblem = { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 };
-    var expectedProblem = { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 0 };
+    var initialProblem = { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 1 };
+    var expectedProblem = { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 0 };
     deepFreeze(initialProblem);
     expect(
         problem(initialProblem, { type : UNDO_STEP})
@@ -1966,8 +1964,8 @@ function testUndoStep() {
 }
 
 function testRedoStep() {
-    var initialProblem = { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 0 };
-    var expectedProblem = { PROBLEM_NUMBER : "1", STEPS : ["1+2", "3"], LAST_SHOWN_STEP : 1 };
+    var initialProblem = { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 0 };
+    var expectedProblem = { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 1 };
     deepFreeze(initialProblem);
     expect(
         problem(initialProblem, { type : REDO_STEP})

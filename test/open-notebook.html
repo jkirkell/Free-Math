@@ -1191,7 +1191,7 @@ function convertToCurrentFormat(possiblyOldDoc) {
 
     possiblyOldDoc.problems.forEach(function (problem) {
         if (problem.problemNumber !== undefined) {
-            problem[STEPS] = problem.steps;
+            problem[STEPS] = wrapSteps(problem.steps);
             problem[LAST_SHOWN_STEP] = problem[STEPS].length - 1;
             problem[PROBLEM_NUMBER] = problem.problemNumber;
             delete problem.steps;

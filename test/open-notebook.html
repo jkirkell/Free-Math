@@ -1212,15 +1212,24 @@ function problem(problem, action) {
         newNamedProb[PROBLEM_NUMBER] = action[NEW_PROBLEM_NUMBER];
         return newNamedProb;
     } else if (action.type === EDIT_STEP) {
-        // TODO - I should avoid using cloneDeep, I think it migh be okay here though
-        var editedProb = _.cloneDeep(problem)
-        editedProb.STEPS[action[STEP_KEY]][CONTENT] = action.NEW_STEP_CONTENT;
-        return editedProb;
+        return {
+            ...problem,
+            STEPS : [
+                ...problem[STEPS].slice(0, action[STEP_KEY]),
+                { CONTENT : action.NEW_STEP_CONTENT },
+                ...problem[STEPS].slice(action[STEP_KEY] + 1)
+            ]
+        }
     } else if (action.type === NEW_STEP) {
         var editedProb = _.cloneDeep(problem);
         var oldLastStep = editedProb[STEPS][problem[LAST_SHOWN_STEP]];
         editedProb[STEPS] = editedProb[STEPS].slice(0, problem[LAST_SHOWN_STEP] + 1);
-        editedProb[STEPS].push(oldLastStep);
+        // TODO - had a bug with edit step because this was previously just
+        // adding another entry to the list with a reference to the same object
+        // is it considered good practice in Redux to defensively prevent bugs
+        // like this, or is it better to defer new object creation and be more thorough
+        // to make sure that incorect mutations never take place?
+        editedProb[STEPS].push({...oldLastStep});
         editedProb[LAST_SHOWN_STEP]++;
         return editedProb;
     } else if (action.type === UNDO_STEP) {

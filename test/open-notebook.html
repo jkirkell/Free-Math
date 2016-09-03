@@ -479,6 +479,7 @@ var MathInput = React.createClass({
         labelText: React.PropTypes.string,
         onFocus: PT.func,
         onBlur: PT.func,
+        highlight: PT.oneOf(['red', 'green']),
     },
 
     render: function() {
@@ -499,8 +500,14 @@ var MathInput = React.createClass({
                 onInsert={this.insert} />;
         }
 
+        var colorCss = {};
+        if (this.props.highlight === 'red') {
+            colorCss = {backgroundColor : SOFT_RED};
+        } else if (this.props.highlight === 'green') {
+            colorCss = {backgroundColor : GREEN };
+        }
         return <div>
-            <div style={{display: 'inline-block', "backgroundColor":SOFT_RED}}>
+            <div style={{...colorCss, display: 'inline-block'}}>
                 <span className={className}
                       ref="mathinput"
                       aria-label={this.props.labelText}
@@ -775,6 +782,9 @@ var UNIQUE_ANSWERS = 'UNIQUE_ANSWERS';
 var AUTOMATICALLY_ASSIGNED_SCORE = 'AUTOMATICALLY_ASSIGNED_SCORE';
 var PROBLEM_SCORE = 'PROBLEM_SCORE';
 var SUCCESS_HIGHLIGHTS = 'SUCCESS_HIGHLIGHTS';
+var SUCCESS = 'SUCCESS';
+var ERROR = 'ERROR';
+var HIGHLIGHT = 'HIGHLIGHT';
 
 // answer key properties
 var GRADE_STRATEGY = "GRADE_STRATEGY";
@@ -791,6 +801,7 @@ var POSSIBLE_POINTS_EDITED = "POSSIBLE_POINTS_EDITED";
 var ANSWER_CLASSES = "ANSWER_CLASSES";
 var ANSWERS = "ANSWERS";
 var SCORE = "SCORE";
+var FEEDBACK = "FEEDBACK";
 
 // teacher grade page model properties
 var CORRECT = "CORRECT";
@@ -882,6 +893,7 @@ var REDO_STEP = 'REDO_STEP';
 var SOFT_RED = '#FFDEDE';
 var RED = '#FF99CC';
 var GREEN = '#99FFBB';
+var YELLOW = '#FFFDBF';
 
 // open zip file full of student assignments for grading
 function studentSubmissionsZip(evt) {
@@ -1211,7 +1223,10 @@ function convertToCurrentFormat(possiblyOldDoc) {
 // reducer for an individual problem
 function problem(problem, action) {
     if (problem === undefined) {
-        return { PROBLEM_NUMBER : "", STEPS : [{CONTENT : ""}], LAST_SHOWN_STEP : 0}
+        //return { PROBLEM_NUMBER : "", STEPS : [{CONTENT : ""}], LAST_SHOWN_STEP : 0}
+        return { PROBLEM_NUMBER : "", SCORE : 3, POSSIBLE_POINTS : 3, FEEDBACK : "Nice work!", STEPS : 
+                [{CONTENT : "5x-2x+5-3"}, {CONTENT : "3x+5-3", HIGHLIGHT : SUCCESS}, {CONTENT : "3x+8", HIGHLIGHT : ERROR}], 
+                LAST_SHOWN_STEP : 2};
     } else if (action.type === SET_PROBLEM_NUMBER) {
         var newNamedProb = _.clone(problem)
         newNamedProb[PROBLEM_NUMBER] = action[NEW_PROBLEM_NUMBER];
@@ -1491,37 +1506,68 @@ var Problem = React.createClass({
     render: function() {
         var problemIndex = this.props.id;
         var lastShownStep = this.props.value[LAST_SHOWN_STEP];
+        var scoreClass = undefined;
+        var score = this.props.value[SCORE];
+        var possiblePoints = this.props.value[POSSIBLE_POINTS];
+        if (score == possiblePoints) {
+            scoreClass = 'show-correct-div';
+        } else if (score == 0) {
+            scoreClass = 'show-incorrect-div';
+        } else {
+            scoreClass = 'show-partially-correct-div';
+        }
         return (
             <div className="problem-container" style={{float:'none',overflow: 'hidden'}}>
+                <div style={{width:"200", height:"100%",float:"left"}}>
+                    {   this.props.value[SCORE] != undefined 
+                            ? (<div className={scoreClass}>
+                                    Score: {this.props.value[SCORE]} / {this.props.value[POSSIBLE_POINTS]}
+                               </div>) : null
+                    } 
+                    {   this.props.value[FEEDBACK] != undefined 
+                            ? (<div>
+                                    Feedback:<br /> {this.props.value[FEEDBACK]}
+                               </div>) : null
+                    } 
+                </div>
                 <div>
-                    <input type="submit" className="next-step" name="next step" value="x" title="Delete problem" onClick={
-                    function() { if (!window.confirm("Delete problem?")) { return; }
-                                 store.dispatch({ type : REMOVE_PROBLEM, PROBLEM_INDEX : problemIndex}) }}/>&nbsp;&nbsp;
-                    Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number" onChange={
-                    function(evt) { store.dispatch({ type : SET_PROBLEM_NUMBER, PROBLEM_INDEX : problemIndex, 
-                                    NEW_PROBLEM_NUMBER : evt.target.value}) }}/> &nbsp;&nbsp;&nbsp;
-                    <input type="submit" className="next-step" name="next step" value="Clone Problem" 
-                                    title="Make a copy of this work, useful if you need to refernce it while trying another solution path." onClick={
-                    function() { store.dispatch({ type : CLONE_PROBLEM, PROBLEM_INDEX : problemIndex}) }}/>
-                </div>
-                <div style={{float:'left'}}>
-                    <p> Actions </p>
-                    <input type="submit" className="next-step" name="next step" value="next step (enter)" onClick={
-                        function() { store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
-                    <input type="submit" className="undo-step" name="undo step" value="undo step (ctrl-z)" onClick={
-                        function() { store.dispatch({ type : UNDO_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
-                    <input type="submit" className="redo-step" name="redo step" value="redo step (ctrl-shift-z)" onClick={
-                        function() { store.dispatch({ type : REDO_STEP, PROBLEM_INDEX : problemIndex}) }}/>
-                </div>
-                    <div style={{float:'left'}} className="equation-list">
-                    <p> Type math here </p>
-                    {
-                        this.props.value[STEPS].map(function(step, stepIndex) {
-                        if (stepIndex > lastShownStep) return;
-                        return (
-                        <MathInput key={stepIndex} buttonsVisible='focused' buttonSets={['calculus']} stepIndex={stepIndex} problemIndex={problemIndex} value={step[CONTENT]}/>
-                        );
-                    })}
+                    <div>
+                        <input type="submit" value="x" title="Delete problem" onClick={
+                        function() { if (!window.confirm("Delete problem?")) { return; }
+                                     store.dispatch({ type : REMOVE_PROBLEM, PROBLEM_INDEX : problemIndex}) }}/>&nbsp;&nbsp;
+                        Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number" onChange={
+                        function(evt) { store.dispatch({ type : SET_PROBLEM_NUMBER, PROBLEM_INDEX : problemIndex, 
+                                        NEW_PROBLEM_NUMBER : evt.target.value}) }}/> &nbsp;&nbsp;&nbsp;
+                        <input type="submit" className="next-step" name="next step" value="Clone Problem" 
+                                        title="Make a copy of this work, useful if you need to reference it while trying another solution path." onClick={
+                        function() { store.dispatch({ type : CLONE_PROBLEM, PROBLEM_INDEX : problemIndex}) }}/>
+                    </div>
+                    <div style={{float:'left'}}>
+                        <p> Actions </p>
+                        <input type="submit" className="next-step" name="next step" value="next step (enter)" onClick={
+                            function() { store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
+                        <input type="submit" className="undo-step" name="undo step" value="undo step (ctrl-z)" onClick={
+                            function() { store.dispatch({ type : UNDO_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
+                        <input type="submit" className="redo-step" name="redo step" value="redo step (ctrl-shift-z)" onClick={
+                            function() { store.dispatch({ type : REDO_STEP, PROBLEM_INDEX : problemIndex}) }}/>
+                    </div>
+                        <div style={{float:'left'}} className="equation-list">
+                        <p> Type math here </p>
+                        {
+                            this.props.value[STEPS].map(function(step, stepIndex) {
+                            if (stepIndex > lastShownStep) return;
+                            var highlight = undefined;
+                            if (step[HIGHLIGHT] === SUCCESS) {
+                                highlight = 'green';
+                            } else if (step[HIGHLIGHT] === ERROR) {
+                                highlight = 'red';
+                            }
+                            return (
+                            <MathInput key={stepIndex} buttonsVisible='focused' highlight={highlight}
+                                       buttonSets={['calculus']} stepIndex={stepIndex} problemIndex={problemIndex} value={step[CONTENT]}/>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         );
@@ -1713,7 +1759,7 @@ var TeacherGraderFilters = React.createClass({
         return (
         <div className="assignment-filters">
             <div style={{width:"100%", overflow:"hidden"}}>
-                <div style={{float:"left"}}>Show Student Work that is:</div>
+                <div style={{float:"left", margin:"5px 5px 5px 5px"}}>Show Student Work that is:</div>
                 <div className="show-incorrect-div"><label><input type="checkbox" id="show-incorrect" checked="checked"/>incorrect</label></div>
                 {
                     // this is unchecked programmatically to hide all of the correct work by default

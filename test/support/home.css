@@ -148,8 +148,8 @@ div.show-correct-div {
     border:1px solid black;
     background-color:#D0FFC9;
     border-radius: 2px;
-    float: left;
-    margin: 5px 5px 5px 5px;
+    display:inline-block;
+    margin: 0px 5px 5px 0px;
     padding: 5px 5px 5px 5px;
 }
 
@@ -157,8 +157,8 @@ div.show-incorrect-div {
     border:1px solid black;
     background-color:#FFDEDE;
     border-radius: 2px;
-    float: left;
-    margin: 5px 5px 5px 5px;
+    display:inline-block;
+    margin: 0px 5px 5px 0px;
     padding: 5px 5px 5px 5px;
 }
 
@@ -166,8 +166,8 @@ div.show-partially-correct-div {
     border:1px solid black;
     background-color:#FFFDBF;
     border-radius: 2px;
-    float: left;
-    margin: 5px 5px 5px 5px;
+    display:inline-block;
+    margin: 0px 5px 5px 0px;
     padding: 5px 5px 5px 5px;
 }
 

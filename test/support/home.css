@@ -57,6 +57,7 @@ end of styles copied form perseus
     color : #eeeeee;
     top:0;
     left:0;
+    z-index: 100;
     }
 .logo{
     float:left;
@@ -75,7 +76,7 @@ html {
 body {
   min-height: 100%;
   max-width: 95%;
-  font-family: Georgia, serif;
+  font-family: Arial,sans-serif;
   margin-top:40px;
   color: black;
   background-color: #eeeeee;

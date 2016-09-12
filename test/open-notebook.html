@@ -804,9 +804,6 @@ var SCORE = "SCORE";
 var FEEDBACK = "FEEDBACK";
 
 // teacher grade page model properties
-var CORRECT = "CORRECT";
-var PARTIALLY_CORRECT = "PARTIALLY_CORRECT";
-var INCORRECT = "INCORRECT";
 var SHOW_ALL = "SHOW_ALL";
 var SHOW_NONE = "SHOW_NONE";
 var STUDENT_WORK = "STUDENT_WORK";
@@ -822,7 +819,7 @@ var GRADE_SINGLE_SOLUTION = "GRADE_SINGLE_SOLUTION";
 // PROBLEM_NUMBER, SOLUTION_CLASS_INDEX, SCORE 
 var GRADE_CLASS_OF_SOLUTIONS = "GRADE_CLASS_OF_SOLUTIONS";
 var SOLUTION_CLASS_INDEX = "SOLUTION_CLASS_INDEX";
-var HIDE_BY_CORRECTNESS = "HIDE_BY_CORRECTNESS";
+var SET_PROBLEM_FEEDBACK = "SET_PROBLEM_FEEDBACK";
 var HIDE_CLASS_OF_SOLUTIONS = "HIDE_CLASS_OF_SOLUTIONS";
 var TOGGLE_GRADING_ANONYMOUSLY = "TOGGLE_GRADING_ANONYMOUSLY";
 var SET_PROBLEM_POSSIBLE_POINTS = "SET_PROBLEM_POSSIBLE_POINTS";
@@ -989,7 +986,7 @@ function testAggregateStudentWork() {
                                 { SCORE : 0.5, ANSWERS : ["x=-2","-2=x"], GRADE_STRATEGY : ONE_ANSWER_REQUIRED } ],
             } };
     var expectedOutput = {
-        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
         PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 3,
@@ -1010,7 +1007,7 @@ function testAggregateStudentWorkNoAnswerKey() {
                            {STUDENT_FILE : "jon m.", ASSIGNMENT: [{PROBLEM_NUMBER : 1, LAST_SHOWN_STEP : 1, STEPS : [
                                 { CONTENT : "5x=10"}, { CONTENT : "x=-2"}]}]} ];
     var expectedOutput = {
-        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
         PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 6,
@@ -1051,7 +1048,7 @@ function testAggregateStudentWorkNoAnswerKey() {
 //                      "SUBSET_OF_ANSWERS_REQUIRED", "NUMBER_OF_MATCHING_ANSWERS_REQUIRED" : 2 } ]
 //
 // Returns:
-// CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : 1, CORRECTNESS : [ "INCORRECT", "PARTIALLY_CORRECT", "INCORRECT"], ANONYMOUS : true/false }
+// CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : 1, ANONYMOUS : true/false }
 // SIMILAR_ASSIGNMENT_SETS : [ [ "jason", "emma", "matt"], ["jim", "tim"] ],
 // PROBLEMS : { "1.a" : {
 //      "POSSIBLE_POINTS : 3,
@@ -1141,7 +1138,7 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
     });
     */
 
-    return { CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+    return { CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
     SIMILAR_ASSIGNMENT_SETS : [ ], PROBLEMS : aggregatedWork }
 }
 
@@ -1223,10 +1220,12 @@ function convertToCurrentFormat(possiblyOldDoc) {
 // reducer for an individual problem
 function problem(problem, action) {
     if (problem === undefined) {
-        //return { PROBLEM_NUMBER : "", STEPS : [{CONTENT : ""}], LAST_SHOWN_STEP : 0}
-        return { PROBLEM_NUMBER : "", SCORE : 3, POSSIBLE_POINTS : 3, FEEDBACK : "Nice work!", STEPS : 
+        return { PROBLEM_NUMBER : "", STEPS : [{CONTENT : ""}], LAST_SHOWN_STEP : 0};
+        /*
+        return { PROBLEM_NUMBER : "1.1", SCORE : 3, POSSIBLE_POINTS : 3, FEEDBACK : "Nice work!", STEPS : 
                 [{CONTENT : "5x-2x+5-3"}, {CONTENT : "3x+5-3", HIGHLIGHT : SUCCESS}, {CONTENT : "3x+8", HIGHLIGHT : ERROR}], 
                 LAST_SHOWN_STEP : 2};
+        */
     } else if (action.type === SET_PROBLEM_NUMBER) {
         var newNamedProb = _.clone(problem)
         newNamedProb[PROBLEM_NUMBER] = action[NEW_PROBLEM_NUMBER];
@@ -1335,6 +1334,9 @@ function singleSolutionReducer(state, action) {
         // currently no validation here
         return { ...state,
         SCORE : action[SCORE] };
+    } else if (action.type === SET_PROBLEM_FEEDBACK) {
+        return { ...state,
+        FEEDBACK : action[FEEDBACK] };
     } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS) {
         var newScore = Math.round( (Number(state[SCORE])/Number(action[OLD_POSSIBLE_POINTS])) * Number(action[POSSIBLE_POINTS]));
         if (Number(state[SCORE]) > 0) {
@@ -1416,7 +1418,7 @@ function problemGraderReducer(state, action) {
     }
 }
 
-// CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : 1, CORRECTNESS : [ "INCORRECT", "PARTIALLY_CORRECT", "INCORRECT"], ANONYMOUS : true/false }
+// CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : 1, ANONYMOUS : true/false }
 // SIMILAR_ASSIGNMENT_SETS : [ [ "jason", "emma", "matt"], ["jim", "tim"] ],
 // PROBLEMS : { "1.a" : {
 //      "POSSIBLE_POINTS : 3,
@@ -1427,7 +1429,7 @@ function grading(state, action) {
     if (state === undefined) {
         return {
             APP_MODE : GRADE_ASSIGNMENTS,
-            CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+            CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
             SIMILAR_ASSIGNMENT_SETS : [ ],
             PROBLEMS : { "1" : {
                 POSSIBLE_POINTS : 6,
@@ -1648,7 +1650,10 @@ var ProblemGrader = React.createClass({
 var TeacherInteractiveGrader = React.createClass({
     render: function() {
         return (
-            <TeacherGraderFilters value={this.props.value}/>
+            <div> 
+                <TeacherGraderFilters value={this.props.value}/>
+                <ProblemGrader problemInfo={store.getState()[PROBLEMS]["1"]} problemNumber={"1"}/> 
+            </div>
         );
     }
 });
@@ -1737,7 +1742,12 @@ var SolutionGrader = React.createClass({
                 <input type="submit" name="highlight errors" value="highlight errors"/>
                 <input type="submit" name="highlight successes" value="highlight successes"/>
                 <input type="submit" name="clear highlights" value="clear hightlights"/>
-                <p>Feedback</p><div><textarea width="30" height="8"></textarea></div>
+                <p>Feedback</p><div><textarea width="30" height="8" onChange={
+                                function(evt) { store.dispatch({ 
+                                    type : SET_PROBLEM_FEEDBACK, PROBLEM_NUMBER : problemNumber,
+                                    SOLUTION_CLASS_INDEX : solutionClassIndex, FEEDBACK : evt.target.value, SOLUTION_INDEX : studentSolutionIndex
+                                }) }}
+></textarea></div>
                 <div style={{float:"left"}} className="equation-list">
                     <br/>
                     {
@@ -1758,21 +1768,10 @@ var TeacherGraderFilters = React.createClass({
     render: function() {
         return (
         <div className="assignment-filters">
-            <div style={{width:"100%", overflow:"hidden"}}>
-                <div style={{float:"left", margin:"5px 5px 5px 5px"}}>Show Student Work that is:</div>
-                <div className="show-incorrect-div"><label><input type="checkbox" id="show-incorrect" checked="checked"/>incorrect</label></div>
-                {
-                    // this is unchecked programmatically to hide all of the correct work by default
-                    // there was a weird bug where parens weren't showing up with other attempts to hide
-                    // it programatically
-                }
-                <div className="show-partially-correct-div">
-                    <label><input type="checkbox" id="show-partially-correct" checked="checked"/>partially correct</label></div>
-                <div className="show-correct-div">
-                    <label><input type="checkbox" id="show-correct" checked="checked"/>correct</label></div>
+            <h3>Grading Settings</h3>
+            <div><label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked"/>
+                    Show student names (or grade anonymously)</label>
             </div>
-            <div><label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked"/>Show student names (or grade anonymously)</label></div>
-            <ProblemGrader problemInfo={store.getState()[PROBLEMS]["1"]} problemNumber={"1"}/> 
         </div>
         );
     }
@@ -1806,7 +1805,7 @@ $(function() {
 function testGradeSolutionClass() {
 
     var input = {
-        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
         PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 6,
@@ -1825,7 +1824,7 @@ function testGradeSolutionClass() {
         } }
     };
     var expectedOutput = {
-        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
         PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 6,
@@ -1842,13 +1841,15 @@ function testGradeSolutionClass() {
     };
     deepFreeze(input);
     var output = grading(input, { type : GRADE_CLASS_OF_SOLUTIONS, PROBLEM_NUMBER : "1", SOLUTION_CLASS_INDEX : 0, SCORE : 3} );
+    console.log(expectedOutput);
+    console.log(output);
     expect(output).toEqual(expectedOutput);
 }
 
 
 function testGradeSingleSolution() {
     var input = {
-        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
         PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 6,
@@ -1867,7 +1868,7 @@ function testGradeSingleSolution() {
         } }
     };
     var expectedOutput = {
-        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, CORRECTNESS : [ CORRECT, PARTIALLY_CORRECT, INCORRECT], ANONYMOUS : true },
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
         SIMILAR_ASSIGNMENT_SETS : [ ],
         PROBLEMS : { "1" : {
             POSSIBLE_POINTS : 6,

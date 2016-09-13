@@ -1648,11 +1648,28 @@ var ProblemGrader = React.createClass({
 });
 
 var TeacherInteractiveGrader = React.createClass({
-    render: function() {
+render: function() {
+        // TODO - figure out the right way to do this
+        // TODO - do I want to be able to change the sort ordering, possibly to put
+        //        the most important to review problem first, rather than just the
+        //        problems in order?
+        
+        var problems = store.getState()[PROBLEMS];
         return (
             <div> 
                 <TeacherGraderFilters value={this.props.value}/>
-                <ProblemGrader problemInfo={store.getState()[PROBLEMS]["1"]} problemNumber={"1"}/> 
+                {
+                    function() { 
+                        var problemGraders = [];
+                        for (var property in problems) {
+                            if (problems.hasOwnProperty(property)) {
+                                problemGraders.push( 
+                                    (<ProblemGrader problemInfo={problems[property]} problemNumber={property}/> ));
+                            }
+                        }
+                        return problemGraders;
+                    }()
+                }
             </div>
         );
     }
@@ -2057,7 +2074,7 @@ console.log("All tests complete");
 <div class="menuBar">
     <!-- img class="logo" src="logo.jpg"/ -->
     <div class="nav"> 
-        <b>Open Notebook</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <b>Free Math</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         Open Assignment <input type="file" id="open-file-input"/> 
         Grade Student Assignments <input type="file" id="open-student-submissions-input" />
     </div>

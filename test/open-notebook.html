@@ -1035,7 +1035,7 @@ function testAggregateStudentWorkNoAnswerKey() {
 //
 // Params:
 // allStudentWork:
-//      [ {STUDENT_FILE : "jake r.", ASSIGNMENT: [{PROBLEM_NUMBER : 1, "STEPS" : }]]
+//      [ {STUDENT_FILE : "jake r.", ASSIGNMENT: [{PROBLEM_NUMBER : 1, "STEPS" : []}]]
 // answerKey: - list of problem numbers with answers, given as a map with the problem numbers as keys
 //              non-numeric keys are considered valid to allow 1.a, iii, 5.11, etc./
 //              NUMBER_OF_MATCHING_ANSWERS_REQUIRED is only valid to set if SUBSET_OF_ANSWERS_REQUIRED is specified.
@@ -1103,7 +1103,7 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
                 indexInUniqueAnswersList = uniqueAnswers.length;
             }
             workList[STUDENT_WORK].push(
-                { STUDENT_FILE : assignInfo[STUDENT_FILE], 
+                { STUDENT_FILE : removeExtension(assignInfo[STUDENT_FILE]), 
                   AUTOMATICALLY_ASSIGNED_SCORE : automaticallyAssignedGrade,
                   SCORE : automaticallyAssignedGrade,
                   FEEDBACK : '',
@@ -1140,6 +1140,29 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
 
     return { CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
     SIMILAR_ASSIGNMENT_SETS : [ ], PROBLEMS : aggregatedWork }
+}
+
+// PROBLEMS : { "1.a" : {
+//      "POSSIBLE_POINTS : 3,
+//      "UNIQUE_ANSWERS" : [ { ANSWER : "x=7", FILTER : "SHOW_ALL"/"SHOW_NONE", STUDENT_WORK : [ {STUDENT_FILE : "jason", AUTOMATICALLY_ASSIGNED_SCORE : 3, 
+//                             STEPS : [ { CONTENT : "2x=14"},{ CONTENT : "x=7", HIGHLIGHT : SUCCESS ]} ] } } ]}
+function separateIndividualStudentAssignments(aggregatedAndGradedWork) {
+    // TODO - when reading in student files above make sure to uniquify names that overlap and give a warning
+    // map indexed by student assignment filename
+    var assignments = {};
+    var allProblems = aggregatedAndGradedWork[PROBLEMS];
+
+    for (var problemNumber in allProblems) {
+        if (allProblems.hasOwnProperty(problemNumber)) {
+            var possiblePoints = allProblems[problemNumber][POSSIBLE_POINTS];
+            var uniqueAnswers = allProblems[problemNumber][UNIQUE_ANSWERS];
+            uniqueAnswers.forEach(function(singleSolution, index, arr) { 
+                var studentAssignment = assignments[singleSolution[STUDENT_FILE]];
+                studentAssignment = (typeof studentAssignment != 'undefined') ? studentAssignment : {};
+                wrappedSteps.push({CONTENT : step});
+            });
+        }
+    }
 }
 
 // currently in the student model, the steps associated with a problem

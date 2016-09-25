@@ -208,7 +208,7 @@ div.problem-container {
 }
 
 span.solution-step {
-    margin: 5px 10px 10px 10px;
+    padding: 5px 10px 10px 10px;
 }
 
 #assignment-container {

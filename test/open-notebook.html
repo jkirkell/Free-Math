@@ -1001,6 +1001,67 @@ function testAggregateStudentWork() {
     expect(output).toEqual(expectedOutput);
 }
 
+function testSeparateAssignments() {
+    var input = {
+        CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
+        SIMILAR_ASSIGNMENT_SETS : [ ],
+        PROBLEMS : { "1" : {
+            POSSIBLE_POINTS : 3,
+            UNIQUE_ANSWERS : [ 
+                { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 3, SCORE : 3, FEEDBACK : "",
+                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] }, 
+                    { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", FEEDBACK : "Watch your signs", AUTOMATICALLY_ASSIGNED_SCORE : 1.5,  SCORE : 1.5,
+                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2", HIGHLIGHT : ERROR} ] } ] } ]
+        } }
+    };
+
+    // test separating the student work back out into individual assignments
+    var separatedAssignments = separateIndividualStudentAssignments(input);
+    console.log(separatedAssignments);
+
+    var expectedOutput =
+    {
+        "jake r.": {
+            "PROBLEMS": [{
+                "SCORE": 3,
+                "FEEDBACK": "",
+                "STEPS": [{
+                    "CONTENT": "5x=10"
+                }, {
+                    "CONTENT": "x=2"
+                }],
+                "PROBLEM_NUMBER": "1",
+                "POSSIBLE_POINTS": 3
+            }]
+        },
+        "jon m.": {
+            "PROBLEMS": [{
+                "FEEDBACK": "Watch your signs",
+                "SCORE": 1.5,
+                "STEPS": [{
+                    "CONTENT": "5x=10"
+                }, {
+                    "CONTENT": "x=-2",
+                    "HIGHLIGHT": "ERROR"
+                }],
+                "PROBLEM_NUMBER": "1",
+                "POSSIBLE_POINTS": 3
+            }]
+        }
+    };
+    expect(separatedAssignments).toEqual(expectedOutput);
+
+    var zip = new JSZip();
+    for (var filename in separatedAssignments) {
+        if (separatedAssignments.hasOwnProperty(filename)) {
+            console.log(filename);
+            zip.file(filename, JSON.stringify(separatedAssignments[filename]));
+        }
+    }
+    content = zip.generate();
+    //location.href="data:application/zip;base64," + content;
+}
+
 function testAggregateStudentWorkNoAnswerKey() {
     var allStudentWork = [ {STUDENT_FILE : "jake r.", ASSIGNMENT: [{PROBLEM_NUMBER : 1, LAST_SHOWN_STEP : 1, STEPS : [
                                 { CONTENT : "5x=10"}, { CONTENT : "x=2"}]}]},
@@ -1154,15 +1215,32 @@ function separateIndividualStudentAssignments(aggregatedAndGradedWork) {
 
     for (var problemNumber in allProblems) {
         if (allProblems.hasOwnProperty(problemNumber)) {
+            //console.log(problemNumber);
             var possiblePoints = allProblems[problemNumber][POSSIBLE_POINTS];
+            //console.log(possiblePoints);
             var uniqueAnswers = allProblems[problemNumber][UNIQUE_ANSWERS];
-            uniqueAnswers.forEach(function(singleSolution, index, arr) { 
-                var studentAssignment = assignments[singleSolution[STUDENT_FILE]];
-                studentAssignment = (typeof studentAssignment != 'undefined') ? studentAssignment : {};
-                wrappedSteps.push({CONTENT : step});
+            uniqueAnswers.forEach(function(allWorkWithForSingleSolution, index, arr) { 
+                //console.log(allWorkWithForSingleSolution[ANSWER]);
+                allWorkWithForSingleSolution[STUDENT_WORK].forEach(function(singleSolution, index, arr) {
+                    //console.log(singleSolution[STUDENT_FILE]);
+                    var studentAssignment = assignments[singleSolution[STUDENT_FILE]];
+                    studentAssignment = (typeof studentAssignment != 'undefined') ? studentAssignment : {PROBLEMS : []};
+                    var singleSolutionCloned = _.cloneDeep(singleSolution);
+                    singleSolutionCloned[PROBLEM_NUMBER] = problemNumber;
+                    singleSolutionCloned[POSSIBLE_POINTS] = possiblePoints;
+                    delete singleSolutionCloned[STUDENT_FILE];
+                    delete singleSolutionCloned[AUTOMATICALLY_ASSIGNED_SCORE];
+                    // TODO - should it assert here that a score has been given?
+                    // The app fills in a score of 0 for everything right now when
+                    // student assignments are opened
+                    studentAssignment[PROBLEMS].push(singleSolutionCloned);
+                    assignments[singleSolution[STUDENT_FILE]] = studentAssignment;
+                });
             });
         }
     }
+    //console.log(assignments);
+    return assignments;
 }
 
 // currently in the student model, the steps associated with a problem
@@ -2088,6 +2166,7 @@ testAggregateStudentWork();
 testAggregateStudentWorkNoAnswerKey();
 testGradeSolutionClass();
 testGradeSingleSolution();
+testSeparateAssignments();
 console.log("All tests complete");
 
 </script>

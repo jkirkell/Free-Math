@@ -78,8 +78,14 @@ http://mozilla.org/MPL/2.0/
 <!-- Only use this for MathQuill! --> 
 <script type="text/javascript" src="support/jquery-1.7.2.js"></script>
 
+<!-- needed for KAS, as well as general utility functions -->
+<!-- for KAS, investivate impact of lodash vs underscore https://github.com/Khan/KAS/issues/9 -->
+<script type="text/javascript" src="../underscore.js"></script>
+
 <!-- Needed for static math rendering borrowed from Kahn Perseus project -->
 <script type="text/javascript" src="../katexA11.js"></script>
+<!-- for comparing expressions KAS (Khan algebra system) -->
+<script type="text/javascript" src="../kas.js"></script>
 <!-- Katex -->
 <link rel="stylesheet" href="../katex.min.css">
 <script src="../katex.min.js"></script>
@@ -87,8 +93,11 @@ http://mozilla.org/MPL/2.0/
 <script type="text/javascript" src="../build/mathquill.js"></script>
 <!-- App state management -->
 <script type="text/javascript" src="../redux.js"></script>
-<script type="text/javascript" src="../lodash.min.js"></script>
 <script type="text/babel">
+
+// TODO - THIS IS NOT THE RIGHT WAY TO DO THIS, INSTEAD FIND A VERSION OF LODASH COMPATIBLE WITH KAS
+
+_.cloneDeep = function(oldObject) { return JSON.parse(JSON.stringify(oldObject)); };
 
 // Copied from Khan's Perseus project
 let pendingScripts = [];
@@ -769,6 +778,7 @@ var type = 'type';
 var APP_MODE = 'APP_MODE';
 var EDIT_ASSIGNMENT = 'EDIT_ASSIGNMENT';
 var GRADE_ASSIGNMENTS = 'GRADE_ASSIGNMENTS';
+var TEST_PAGE = 'TEST_PAGE';
 
 // Actions to change modes
 var SET_ASSIGNMENTS_TO_GRADE = 'SET_ASSIGNMENTS_TO_GRADE';
@@ -1153,7 +1163,12 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
             var workList;
             var indexInUniqueAnswersList;
             uniqueAnswers.forEach(function(aggregatedWorkForOneAnswer, index, arr) {
-                if (aggregatedWorkForOneAnswer[ANSWER] === studentAnswer) {
+                // TODO - add better comparison that will not have to match the latex exactly
+                var groupAnswer = KAS.parse(aggregatedWorkForOneAnswer[ANSWER]).expr;
+                var parsedStudentAnswer = KAS.parse(studentAnswer).expr;
+                console.log("group answer");
+                console.log(groupAnswer);
+                if (KAS.compare(groupAnswer, parsedStudentAnswer).equal && groupAnswer.sameForm(parsedStudentAnswer)) {
                     workList = aggregatedWorkForOneAnswer;
                     indexInUniqueAnswersList = index;
                     return false;

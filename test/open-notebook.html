@@ -1068,7 +1068,7 @@ function testSeparateAssignments() {
             zip.file(filename, JSON.stringify(separatedAssignments[filename]));
         }
     }
-    content = zip.generate();
+    var content = zip.generate();
     //location.href="data:application/zip;base64," + content;
 }
 

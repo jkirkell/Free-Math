@@ -358,11 +358,11 @@ var buttonSets = {
     ]),
 
     trig: [
-        () => [<TeX key="sin">\sin</TeX>, "\\sin"],
-        () => [<TeX key="cos">\cos</TeX>, "\\cos"],
-        () => [<TeX key="tan">\tan</TeX>, "\\tan"],
-        () => [<TeX key="theta" style={symbStyle}>\theta</TeX>, "\\theta"],
-        () => [<TeX key="pi" style={symbStyle}>\phi</TeX>, "\\phi"]
+        //() => [<TeX key="sin">\sin</TeX>, "\\sin"],
+        //() => [<TeX key="cos">\cos</TeX>, "\\cos"],
+        //() => [<TeX key="tan">\tan</TeX>, "\\tan"],
+        //() => [<TeX key="theta" style={symbStyle}>\theta</TeX>, "\\theta"],
+        //() => [<TeX key="pi" style={symbStyle}>\phi</TeX>, "\\phi"]
     ],
 
     prealgebra: [
@@ -374,7 +374,7 @@ var buttonSets = {
                 input.typedText("nthroot3");
                 input.keystroke("Right");
             }],
-        () => [
+        /*() => [
             <TeX key="pow" style={slightlyBig}>□^a</TeX>,
             input => {
                 var contents = input.latex();
@@ -388,7 +388,7 @@ var buttonSets = {
                 }
             }
         ],
-        () => [<TeX key="pi" style={slightlyBig}>\pi</TeX>, "\\pi"],
+        () => [<TeX key="pi" style={slightlyBig}>\pi</TeX>, "\\pi"], */
     ],
 
     logarithms: [
@@ -417,10 +417,13 @@ var buttonSets = {
         () => [<TeX key="geq">\geq</TeX>, "\\geq"],
     ],
     "calculus": [
+        () => [<TeX key="sum">{"\\sum"}</TeX>, "\\sum"],
         () => [<TeX key="integral">{"\\int"}</TeX>, "\\int"],
         /* TODO - had trouble getting these buttons to produce expressions with mutliple parts, it just inserted the latex text into the box */
         /*() => [<TeX key="dy/dx">{"\\frac{dy}{dx}"}</TeX>, "\\frac {dy}"], */
-        () => [<TeX key="prime">'</TeX>, "'"]
+        () => [<TeX key="prime">'</TeX>, "'"],
+        () => [<TeX key="theta" style={symbStyle}>\theta</TeX>, "\\theta"],
+        () => [<TeX key="pi" style={symbStyle}>\phi</TeX>, "\\phi"]
     ],
 };
 
@@ -656,7 +659,8 @@ var MathInput = React.createClass({
 
             // for intuitive navigation of fractions
             leftRightIntoCmdGoes: 'up',
-            autoCommands: 'pi theta sqrt sum int',
+            
+            autoCommands: 'alpha beta gamma delta epsilon digamma zeta eta theta iota kappa lambda xikappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi omega sqrt sum oint int',
             autoSubscriptNumerals: true,
             charsThatBreakOutOfSupSub: '+-*/=<>≠≤≥',
 
@@ -1135,7 +1139,6 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
         assignInfo[ASSIGNMENT].forEach(function(problem, index, array) {
             var studentAnswer = problem[STEPS][problem[LAST_SHOWN_STEP]][CONTENT];
             var automaticallyAssignedGrade = 0;
-
             if (!$.isEmptyObject(answerKey)) {
                 // this problem did not appear in the answer key
                 if (!answerKey[problem[PROBLEM_NUMBER]]) {
@@ -1178,13 +1181,25 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
                 workList = { ANSWER : studentAnswer, FILTER : SHOW_ALL, STUDENT_WORK : []};
                 indexInUniqueAnswersList = uniqueAnswers.length;
             }
+            var feedback = '';
+            // reopening previously graded assignments
+            console.log("asdfasdfasdf   score");
+            console.log(problem[SCORE]);
+            console.log(problem[FEEDBACK]);
+            if (problem[SCORE] !== undefined) {
+                console.log("prev score found");
+                automaticallyAssignedGrade = problem[SCORE];
+                feedback = problem[FEEDBACK];
+            }
             workList[STUDENT_WORK].push(
-                { STUDENT_FILE : removeExtension(assignInfo[STUDENT_FILE]), 
+                { STUDENT_FILE : assignInfo[STUDENT_FILE], 
                   AUTOMATICALLY_ASSIGNED_SCORE : automaticallyAssignedGrade,
                   SCORE : automaticallyAssignedGrade,
-                  FEEDBACK : '',
-                  STEPS : problem[STEPS]}
+                  FEEDBACK : feedback, 
+                  LAST_SHOWN_STEP : problem[LAST_SHOWN_STEP],
+                  STEPS : problem[STEPS].slice(0, problem[LAST_SHOWN_STEP] + 1)}
             );
+            console.log(workList);
             uniqueAnswers[indexInUniqueAnswersList] = workList;
             problemSummary[UNIQUE_ANSWERS] = uniqueAnswers;
             // this is currently redundant, but the next step to order all of the problems based
@@ -1254,8 +1269,26 @@ function separateIndividualStudentAssignments(aggregatedAndGradedWork) {
             });
         }
     }
-    //console.log(assignments);
+    console.log("assignments");
+    console.log(assignments);
     return assignments;
+}
+
+
+function saveGradedStudentWork(gradedWork) {
+    if (gradedWork === undefined) {
+        console.log("no graded assignments to save");
+    }
+    var separatedAssignments = separateIndividualStudentAssignments(gradedWork);
+    var zip = new JSZip();
+    for (var filename in separatedAssignments) {
+        if (separatedAssignments.hasOwnProperty(filename)) {
+            console.log(filename);
+            zip.file(filename, JSON.stringify(separatedAssignments[filename]));
+        }
+    }
+    var content = zip.generate();
+    location.href="data:application/zip;base64," + content;
 }
 
 // currently in the student model, the steps associated with a problem
@@ -1451,6 +1484,7 @@ function singleSolutionReducer(state, action) {
         return { ...state,
         SCORE : action[SCORE] };
     } else if (action.type === SET_PROBLEM_FEEDBACK) {
+        console.log("set feedback");
         return { ...state,
         FEEDBACK : action[FEEDBACK] };
     } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS) {
@@ -1481,7 +1515,9 @@ function solutionClassReducer(state, action) {
             ...state,
             STUDENT_WORK : workInGivenSolutionClass
         };
-    } else if (action.type === GRADE_SINGLE_SOLUTION) {
+    } else if (action.type === GRADE_SINGLE_SOLUTION ||
+               action.type === SET_PROBLEM_FEEDBACK
+        ) {
         return { 
             ...state,
             STUDENT_WORK : [
@@ -1497,7 +1533,8 @@ function solutionClassReducer(state, action) {
 
 function problemGraderReducer(state, action) {
     if (action.type === GRADE_CLASS_OF_SOLUTIONS ||
-        action.type === GRADE_SINGLE_SOLUTION) {
+        action.type === GRADE_SINGLE_SOLUTION ||
+        action.type === SET_PROBLEM_FEEDBACK ) {
         return { 
             ...state,
             UNIQUE_ANSWERS : [
@@ -1567,7 +1604,9 @@ function grading(state, action) {
         } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS ||
                action.type === EDIT_POSSIBLE_POINTS || 
                action.type === GRADE_CLASS_OF_SOLUTIONS ||
-               action.type === GRADE_SINGLE_SOLUTION) {
+               action.type === GRADE_SINGLE_SOLUTION || 
+               action.type === SET_PROBLEM_FEEDBACK
+        ) {
         return {
             ...state,
             PROBLEMS : {
@@ -1682,7 +1721,7 @@ var Problem = React.createClass({
                             }
                             return (
                             <MathInput key={stepIndex} buttonsVisible='focused' highlight={highlight}
-                                       buttonSets={['calculus']} stepIndex={stepIndex} problemIndex={problemIndex} value={step[CONTENT]}/>
+                                       buttonSets={['trig', 'prealgebra', 'logarithms', 'calculus']} stepIndex={stepIndex} problemIndex={problemIndex} value={step[CONTENT]}/>
                             );
                         })}
                     </div>
@@ -1829,9 +1868,31 @@ var SolutionClassGrader = React.createClass({
 });
 
 var SolutionGrader = React.createClass({
-    render: function() {
+    setScore: function(evt) {
+
+        var problemNumber = this.props.problemNumber
+        var solutionClassIndex = this.props.solutionClassIndex;
+        var studentSolutionIndex = this.props.id;
+        store.dispatch({ type : GRADE_SINGLE_SOLUTION, PROBLEM_NUMBER : problemNumber,
+                         SOLUTION_CLASS_INDEX : solutionClassIndex, SCORE : evt.target.value, SOLUTION_INDEX : studentSolutionIndex});
+    },
+    applyScoreToAll: function(evt) {
         var data = this.props.solutionGradeInfo;
         var problemNumber = this.props.problemNumber;
+        var solutionClassIndex = this.props.solutionClassIndex;
+        store.dispatch({ type : GRADE_CLASS_OF_SOLUTIONS, PROBLEM_NUMBER : problemNumber,
+                         SOLUTION_CLASS_INDEX : solutionClassIndex, SCORE : data[SCORE]});
+    },
+    setFeedback: function(evt) {
+        var problemNumber = this.props.problemNumber
+        var solutionClassIndex = this.props.solutionClassIndex;
+        var studentSolutionIndex = this.props.id;
+        store.dispatch({ type : SET_PROBLEM_FEEDBACK, PROBLEM_NUMBER : problemNumber,
+                         SOLUTION_CLASS_INDEX : solutionClassIndex, FEEDBACK : evt.target.value, SOLUTION_INDEX : studentSolutionIndex});
+    },
+    render: function() {
+        var data = this.props.solutionGradeInfo;
+        var problemNumber = this.props.problemNumber
         var possiblePoints = this.props.possiblePoints;
         var solutionClassIndex = this.props.solutionClassIndex;
         var studentSolutionIndex = this.props.id;
@@ -1842,6 +1903,7 @@ var SolutionGrader = React.createClass({
         // keep possiblePoints as a string in the model to allow it to be
         // empty string while editing the text
         var score = Number(data[SCORE]);
+        var feedback = data[FEEDBACK];
         // TODO - replace with classNames library - https://github.com/JedWatson/classnames
         var possiblePointsNum = Number(possiblePoints);
         if (score == 0) {
@@ -1860,27 +1922,15 @@ var SolutionGrader = React.createClass({
                            Look up react best pratices for this, right now I'll assume I should attach another event here to ensure
                            that the field contains a number when focus is lost
                 */}
-                <p>Score <input type="text" className="problem-grade-input" value={data[SCORE]} onChange={
-                                function(evt) { store.dispatch({ 
-                                    type : GRADE_SINGLE_SOLUTION, PROBLEM_NUMBER : problemNumber,
-                                    SOLUTION_CLASS_INDEX : solutionClassIndex, SCORE : evt.target.value, SOLUTION_INDEX : studentSolutionIndex
-                                }) }}
+                <p>Score <input type="text" className="problem-grade-input" value={data[SCORE]} onChange={this.setScore}
                           /> out of {possiblePoints} 
-                        <input type="submit" name="apply score to all" value="apply score to all" onClick={
-                        function() {store.dispatch({ 
-                                    type : GRADE_CLASS_OF_SOLUTIONS, PROBLEM_NUMBER : problemNumber,
-                                    SOLUTION_CLASS_INDEX : solutionClassIndex, SCORE : data[SCORE]
-                                }) }}/>
+                        <input type="submit" name="apply score to all" value="apply score to all" onClick={this.applyScoreToAll}/>
                 </p>
                 <input type="submit" name="highlight errors" value="highlight errors"/>
                 <input type="submit" name="highlight successes" value="highlight successes"/>
                 <input type="submit" name="clear highlights" value="clear hightlights"/>
-                <p>Feedback</p><div><textarea width="30" height="8" onChange={
-                                function(evt) { store.dispatch({ 
-                                    type : SET_PROBLEM_FEEDBACK, PROBLEM_NUMBER : problemNumber,
-                                    SOLUTION_CLASS_INDEX : solutionClassIndex, FEEDBACK : evt.target.value, SOLUTION_INDEX : studentSolutionIndex
-                                }) }}
-></textarea></div>
+                <p>Feedback</p><div><textarea width="30" height="8" onChange={this.setFeedback}
+>{feedback}</textarea></div>
                 <div style={{float:"left"}} className="equation-list">
                     <br/>
                     {
@@ -1931,6 +1981,8 @@ $(function() {
     render();
     $('#open-file-input').change(readSingleFile);
     $('#open-student-submissions-input').change(studentSubmissionsZip);
+    $('#save-graded-assignments').click(
+        function() {saveGradedStudentWork(store.getState())});
 });
 
 // in the teacher grading experince, student work is grouped by similar final answer
@@ -2194,6 +2246,7 @@ console.log("All tests complete");
         <b>Free Math</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         Open Assignment <input type="file" id="open-file-input"/> 
         Grade Student Assignments <input type="file" id="open-student-submissions-input" />
+        <input type="submit" id="save-graded-assignments" name="save graded assignments" value="save graded assignments" /> <br/>
     </div>
 </div>
 <div id="root"></div>

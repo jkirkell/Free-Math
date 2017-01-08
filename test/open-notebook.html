@@ -655,7 +655,7 @@ var MathInput = React.createClass({
             // contexts). We should also limit to one consecutive space.
             // TODO Jason A. - I modified this, consider if I need it back where
             // the Khan team had it
-            spaceBehavesLikeTab: false,
+            spaceBehavesLikeTab: true,
 
             // for intuitive navigation of fractions
             leftRightIntoCmdGoes: 'up',
@@ -795,7 +795,6 @@ var ASSIGNMENT = 'ASSIGNMENT';
 var UNIQUE_ANSWERS = 'UNIQUE_ANSWERS';
 var AUTOMATICALLY_ASSIGNED_SCORE = 'AUTOMATICALLY_ASSIGNED_SCORE';
 var PROBLEM_SCORE = 'PROBLEM_SCORE';
-var SUCCESS_HIGHLIGHTS = 'SUCCESS_HIGHLIGHTS';
 var SUCCESS = 'SUCCESS';
 var ERROR = 'ERROR';
 var HIGHLIGHT = 'HIGHLIGHT';
@@ -825,6 +824,8 @@ var ANSWER = "ANSWER";
 var CONTENT = "CONTENT";
 
 // teacher grading actions
+var HIGHLIGHTING_SUCCESS = 'HIGHLIGHTING_SUCCESS';
+var HIGHLIGHTING_ERROR = 'HIGHLIGHTING_ERROR';
 
 // action properties
 // PROBLEM_NUMBER, SOLUTION_CLASS_INDEX, SCORE, SOLUTION_INDEX

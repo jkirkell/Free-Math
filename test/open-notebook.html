@@ -1747,7 +1747,13 @@ var Assignment = React.createClass({
         parts of it in your head, use the tool to make sure you show your work. 
         <span className="mathquill-static-math" ref="exampleStaticMath">{defaultEqtn}</span></p>
 
-        Assignment Name <input type="text" id="assignment-name-text" name="assignment name" value={this.props.value[ASSIGNMENT_NAME]}/>
+        Assignment Name 
+        <input type="text" id="assignment-name-text" name="assignment name" value={this.props.value[ASSIGNMENT_NAME]} onChange={
+            function(evt) { 
+                store.dispatch({type : SET_ASSIGNMENT_NAME, ASSIGNMENT_NAME : evt.target.value});
+            }}
+        />
+
         <input type="submit" id="save-assignment" name="save assignment" value="save assignment" onClick={
                         function() { saveAssignment() }} /> <br/>
         {this.props.value[PROBLEMS].map(function(problem, problemIndex) {

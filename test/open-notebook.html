@@ -289,10 +289,9 @@ const TeX = React.createClass({
             }
         }
 
-        return <span
-            style={this.props.style}
-            onClick={this.props.onClick}
-        >
+        var studentAnswerStepStyle = {":hover" : {backgroundColor : SOFT_RED}};
+        return <div onClick={this.props.onClick}>
+            <div style={{":hover" : {backgroundColor : SOFT_RED}, 'display' : 'inline-block'}}>
             <span ref="mathjax" />
             <span
                 ref="katex"
@@ -303,7 +302,8 @@ const TeX = React.createClass({
                 dangerouslySetInnerHTML={katexA11yHtml}
                 style={srOnly}
             />
-        </span>;
+            </div>
+        </div>;
     },
 });
 
@@ -1747,7 +1747,7 @@ var Assignment = React.createClass({
         parts of it in your head, use the tool to make sure you show your work. 
         <span className="mathquill-static-math" ref="exampleStaticMath">{defaultEqtn}</span></p>
 
-        Assignment Name 
+        Assignment and Student Name 
         <input type="text" id="assignment-name-text" name="assignment name" value={this.props.value[ASSIGNMENT_NAME]} onChange={
             function(evt) { 
                 store.dispatch({type : SET_ASSIGNMENT_NAME, ASSIGNMENT_NAME : evt.target.value});
@@ -1921,6 +1921,7 @@ var SolutionGrader = React.createClass({
             correctness = "answer-partially-correct";
         }
         var classes = "student-work " + correctness;
+        var studentAnswerStepStyle = [{":hover" : {backgroundColor : SOFT_RED}}];
         return (
             <div className={classes} style={{float:"left"}}> {/*<!-- container for nav an equation list --> */}
                 <p className="student-name-label"> {showStudentName ? data[STUDENT_FILE] : "" }</p>
@@ -1937,14 +1938,15 @@ var SolutionGrader = React.createClass({
                 <input type="submit" name="highlight successes" value="highlight successes"/>
                 <input type="submit" name="clear highlights" value="clear hightlights"/>
                 <p>Feedback</p><div><textarea width="30" height="8" onChange={this.setFeedback}
->{feedback}</textarea></div>
+                        >{feedback}</textarea></div>
                 <div style={{float:"left"}} className="equation-list">
                     <br/>
                     {
                         data[STEPS].map(function(step, stepIndex) {
                         return (
                             <div key={stepIndex}>
-                            <TeX>{step[CONTENT]}</TeX> <br/><br/>
+                                {/*<TeX style={studentAnswerStepStyle}>{step[CONTENT]}</TeX> <br/><br/>*/}
+                                <TeX style={studentAnswerStepStyle}>{step[CONTENT]}</TeX> <br/><br/>
                             </div>
                         );
                     })}

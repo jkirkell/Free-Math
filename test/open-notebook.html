@@ -788,6 +788,16 @@ var TEST_PAGE = 'TEST_PAGE';
 var SET_ASSIGNMENTS_TO_GRADE = 'SET_ASSIGNMENTS_TO_GRADE';
 // action properties
 var NEW_STATE = 'NEW_STATE';
+// when grading, open the view where overall student grades are show
+var SET_TO_VIEW_GRADES = 'SET_TO_VIEW_GRADES';
+// the state resulting from above ttanstion action
+var VIEW_GRADES = 'VIEW_GRADES';
+
+// properties of the state when showing grade view
+// just a wrapper for the grades and total possible points for now
+var GRADE_INFO = 'GRADE_INFO';
+var STUDENT_GRADES = 'STUDENT_GRADES';
+// Also uses POSSIBLE_POINTS from below
 
 // Object model for teacher grading experience, see return value in the aggreateStudentWork() method
 var STUDENT_FILE = 'STUDENT_FILE';
@@ -1275,6 +1285,51 @@ function separateIndividualStudentAssignments(aggregatedAndGradedWork) {
     return assignments;
 }
 
+/*
+ * Compute a table to show the overall grades for each student
+ * 
+ * parameters:
+ * allProblems - the structure used in the redux store during grading, with
+ *                     student work grouped by problem number and similar student answers
+ * returns:
+ *    {
+ *       STUDENT_GRADES : { "student_name_from_filename" : 6, "other_student_name" : 8 },
+ *       POSSIBLE_POINTS : 10,
+ *    }
+ */
+// PROBLEMS : { "1.a" : {
+//      "POSSIBLE_POINTS : 3,
+//      "UNIQUE_ANSWERS" : [ { ANSWER : "x=7", FILTER : "SHOW_ALL"/"SHOW_NONE", STUDENT_WORK : [ {STUDENT_FILE : "jason", AUTOMATICALLY_ASSIGNED_SCORE : 3, 
+//                             STEPS : [ { CONTENT : "2x=14"},{ CONTENT : "x=7", HIGHLIGHT : SUCCESS ]} ] } } ]}
+function calculateGrades(allProblems) {
+    var totalPossiblePoints = 0;
+    var overallGrades = {};
+
+    for (var problemNumber in allProblems) {
+        if (allProblems.hasOwnProperty(problemNumber)) {
+            //console.log(problemNumber);
+            var possiblePoints = allProblems[problemNumber][POSSIBLE_POINTS];
+            totalPossiblePoints += possiblePoints;
+            //console.log(possiblePoints);
+            var uniqueAnswers = allProblems[problemNumber][UNIQUE_ANSWERS];
+            uniqueAnswers.forEach(function(allWorkWithForSingleSolution, index, arr) { 
+                //console.log(allWorkWithForSingleSolution[ANSWER]);
+                allWorkWithForSingleSolution[STUDENT_WORK].forEach(function(singleSolution, index, arr) {
+                    var studentAssignmentName = singleSolution[STUDENT_FILE];
+                    var runningScore = overallGrades[studentAssignmentName];
+                    runningScore = (typeof runningScore != 'undefined') ? runningScore : 0;
+                    runningScore += Number(singleSolution[SCORE]);
+                    overallGrades[studentAssignmentName] = runningScore;
+                });
+            });
+        }
+    }
+    console.log(overallGrades);
+    return {
+        STUDENT_GRADES : overallGrades,
+        POSSIBLE_POINTS : totalPossiblePoints
+    };
+}
 
 function saveGradedStudentWork(gradedWork) {
     if (gradedWork === undefined) {
@@ -1633,6 +1688,15 @@ function rootReducer(state, action) {
             ...action[NEW_STATE],
             APP_MODE : GRADE_ASSIGNMENTS,
         }
+    } else if (action.type === SET_TO_VIEW_GRADES) {
+        // TODO - only allow this to be transitioned to from grading mode
+        // also disable or hide the button when student is working on an assignment
+        console.log('view grades');
+        var grades = calculateGrades(state[PROBLEMS]);
+        return {
+           GRADE_INFO : grades,
+           APP_MODE : VIEW_GRADES
+        };
     } else if (state[APP_MODE] == EDIT_ASSIGNMENT) {
         return {
             ...assignment(state, action),
@@ -1981,6 +2045,10 @@ var OpenNotebook = React.createClass({
         return (
             <TeacherInteractiveGrader value={this.props.value}/>
         );
+    } else if (this.props.value[APP_MODE] === VIEW_GRADES) {
+        return (
+            <div>{JSON.stringify(this.props.value[GRADE_INFO])}</div>
+        );
     }
   }
 });
@@ -1992,7 +2060,10 @@ $(function() {
     $('#open-student-submissions-input').change(studentSubmissionsZip);
     $('#save-graded-assignments').click(
         function() {saveGradedStudentWork(store.getState())});
-});
+    });
+    $('#view-grades').click(
+        function() {store.dispatch({type : SET_TO_VIEW_GRADES}); 
+    });
 
 // in the teacher grading experince, student work is grouped by similar final answer
 // these groups are called solution classes
@@ -2255,7 +2326,8 @@ console.log("All tests complete");
         <b>Free Math</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         Open Assignment <input type="file" id="open-file-input"/> 
         Grade Student Assignments <input type="file" id="open-student-submissions-input" />
-        <input type="submit" id="save-graded-assignments" name="save graded assignments" value="save graded assignments" /> <br/>
+        <input type="submit" id="save-graded-assignments" name="save graded" value="save graded" />
+        <input type="submit" id="view-grades" name="view grades" value="view grades" /> <br/>
     </div>
 </div>
 <div id="root"></div>

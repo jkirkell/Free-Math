@@ -1331,6 +1331,49 @@ function calculateGrades(allProblems) {
     };
 }
 
+function calculateGradingOverview(allProblems) {
+    var totalPossiblePoints = 0;
+    /*
+        Structure:
+        {
+            PROBLEMS : [
+            { PROBLEM_NUMBER : "1.1", NUMBER_UNIQUE_ANSWERS : 5, LARGEST_ANSWER_GROUP_SIZE : 10,
+              AVG_ANSWER_GROUP_SIZE : 5.6, POSSIBLE_POINTS : 3
+            ]
+        }
+    */
+    var gradeOverview = {};
+    gradeOverview["PROBLEMS"] = [];
+    for (var problemNumber in allProblems) {
+        if (allProblems.hasOwnProperty(problemNumber)) {
+            //console.log(problemNumber);
+            var possiblePoints = allProblems[problemNumber][POSSIBLE_POINTS];
+            totalPossiblePoints += possiblePoints;
+            //console.log(possiblePoints);
+            var uniqueAnswers = allProblems[problemNumber][UNIQUE_ANSWERS];
+            var currentProblemOverview = { "PROBLEM_NUMBER" : problemNumber, "POSSIBLE_POINTS" : possiblePoints,
+                                           "NUMBER_UNIQUE_ANSWERS" : uniqueAnswers.length};
+            var largestAnswerGroupSize = 0;
+            var totalAnswersSubmitted = 0;
+            uniqueAnswers.forEach(function(allWorkWithForSingleSolution, index, arr) {
+                //console.log(allWorkWithForSingleSolution[ANSWER]);
+                if (allWorkWithForSingleSolution[STUDENT_WORK].length > largestAnswerGroupSize) {
+                    largestAnswerGroupSize = allWorkWithForSingleSolution[STUDENT_WORK].length;
+                }
+                totalAnswersSubmitted += allWorkWithForSingleSolution[STUDENT_WORK].length;
+                allWorkWithForSingleSolution[STUDENT_WORK].forEach(function(singleSolution, index, arr) {
+                    // TODO - don't think I want to do anythings for individual solutions, but think about this
+                });
+            });
+            currentProblemOverview["LARGEST_ANSWER_GROUP_SIZE"] = largestAnswerGroupSize;
+            currentProblemOverview["AVG_ANSWER_GROUP_SIZE"] = totalAnswersSubmitted / uniqueAnswers.length;
+            gradeOverview["PROBLEMS"].push(currentProblemOverview);
+        }
+    }
+    console.log(gradeOverview);
+    return gradeOverview;
+}
+
 function saveGradedStudentWork(gradedWork) {
     if (gradedWork === undefined) {
         console.log("no graded assignments to save");
@@ -1676,6 +1719,8 @@ function grading(state, action) {
 }
 
 function rootReducer(state, action) {
+    console.log("an action was fired!!");
+    console.log(action);
     if (state === undefined) {
         return { 
             ...assignment(), 
@@ -1696,7 +1741,12 @@ function rootReducer(state, action) {
         return {
            GRADE_INFO : grades,
            APP_MODE : VIEW_GRADES
-        };
+           };
+    } else if (action.type === "SET_TO_GRADE_OVERVIEW") {
+        // TODO - FINISH!!
+        console.log("an action was fired!!");
+        calculateGradingOverview(state[PROBLEMS]);
+        return state;
     } else if (state[APP_MODE] == EDIT_ASSIGNMENT) {
         return {
             ...assignment(state, action),
@@ -1924,8 +1974,8 @@ var SolutionClassGrader = React.createClass({
             <div className="similar-student-answers" style={{float:"none",overflow:"hidden"}} >
                 <input type="submit" className="show-all-common-answers" name="show all" value="show all"/>
                 <input type="submit" className="hide-all-common-answers" name="hide all" value="hide all"/>
-                <p> {studentCount}{message}
-                <TeX>{studentFinalAnswer}</TeX></p>
+                <p> {studentCount}{message}</p>
+                <TeX>{studentFinalAnswer}</TeX>
                 {
                     data[STUDENT_WORK].map(function(studentSolution, studentSolutionIndex) {
                         return (
@@ -2046,8 +2096,24 @@ var OpenNotebook = React.createClass({
             <TeacherInteractiveGrader value={this.props.value}/>
         );
     } else if (this.props.value[APP_MODE] === VIEW_GRADES) {
+        var props = this.props;
         return (
-            <div>{JSON.stringify(this.props.value[GRADE_INFO])}</div>
+            <table>
+                <tr><th>Student File</th><th>Score</th></tr>
+                {
+                    function() { 
+                        var tableRows = [];
+                        var grades = props.value[GRADE_INFO][STUDENT_GRADES];
+                        for (var studentFileName in grades) {
+                            if (grades.hasOwnProperty(studentFileName)) {
+                                tableRows.push( 
+                                (<tr><td>{studentFileName}</td><td>{grades[studentFileName]}</td></tr> ));
+                            }
+                        }
+                        return tableRows;
+                    }()
+                }
+            </table>
         );
     }
   }
@@ -2060,10 +2126,13 @@ $(function() {
     $('#open-student-submissions-input').change(studentSubmissionsZip);
     $('#save-graded-assignments').click(
         function() {saveGradedStudentWork(store.getState())});
-    });
     $('#view-grades').click(
         function() {store.dispatch({type : SET_TO_VIEW_GRADES}); 
     });
+    $('#grade-summary').click(
+        function() {store.dispatch({type : "SET_TO_GRADE_OVERVIEW"}); 
+    }); 
+});
 
 // in the teacher grading experince, student work is grouped by similar final answer
 // these groups are called solution classes
@@ -2328,6 +2397,7 @@ console.log("All tests complete");
         Grade Student Assignments <input type="file" id="open-student-submissions-input" />
         <input type="submit" id="save-graded-assignments" name="save graded" value="save graded" />
         <input type="submit" id="view-grades" name="view grades" value="view grades" /> <br/>
+        <input type="submit" id="grade-summary" name="grade summary" value="grade summary" /> <br/>
     </div>
 </div>
 <div id="root"></div>

@@ -188,9 +188,10 @@ const TeX = React.createClass({
 
     shouldComponentUpdate(nextProps, nextState) {
         console.log("old");
-        console.log(this.props.children);
+        console.log(JSON.stringify(this.props.children));
+        console.log(typeof this.props.children);
         console.log("new");
-        console.log(nextProps.children);
+        console.log(typeof nextProps.children);
         console.log(this.props.children !== nextProps.children);
         return this.props.children !== nextProps.children;
     },

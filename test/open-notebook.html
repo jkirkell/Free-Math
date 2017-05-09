@@ -1729,8 +1729,10 @@ function rootReducer(state, action) {
     } else if (action.type === SET_ASSIGNMENTS_TO_GRADE) {
         // TODO - consolidate the defaults for filters
         // TODO - get similar assignment list from comparing the assignments
+        var overview = calculateGradingOverview(action[NEW_STATE][PROBLEMS]);
         return {
             ...action[NEW_STATE],
+            "GRADING_OVERVIEW" : overview,
             APP_MODE : GRADE_ASSIGNMENTS,
         }
     } else if (action.type === SET_TO_VIEW_GRADES) {
@@ -1934,6 +1936,7 @@ render: function() {
         return (
             <div> 
                 <TeacherGraderFilters value={this.props.value}/>
+                <p>{JSON.stringify(store.getState()["GRADING_OVERVIEW"])}</p>
                 {
                     function() { 
                         var problemGraders = [];

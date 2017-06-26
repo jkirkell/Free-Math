@@ -1726,6 +1726,8 @@ function rootReducer(state, action) {
             ...assignment(), 
             APP_MODE : EDIT_ASSIGNMENT
         };
+    } else if (action.type === "SET_GLOBAL_STATE") {
+        return action.newState;
     } else if (action.type === SET_ASSIGNMENTS_TO_GRADE) {
         // TODO - consolidate the defaults for filters
         // TODO - get similar assignment list from comparing the assignments
@@ -1766,10 +1768,24 @@ var createStore = Redux.createStore;
 var store = createStore(rootReducer);
 
 function render() {
+    autoSave();
     ReactDOM.render(
         <OpenNotebook value={store.getState()} />,
         document.getElementById('root')
     );
+}
+
+
+function autoSave() {
+    console.log("autosaving " + JSON.stringify(store.getState()));
+    var problems = store.getState()[PROBLEMS];
+    if (problems.length == 1) {
+        var steps = problems[0][STEPS];
+        if (steps.length == 1 && steps[0][CONTENT] == '') {
+            return;
+        }
+    }
+    window.localStorage.setItem("autoSave", JSON.stringify(store.getState()));
 }
 
 var Problem = React.createClass({
@@ -2090,6 +2106,7 @@ var OpenNotebook = React.createClass({
   render: function() {
     // TODO - figure out how to best switch between teacher and
     // student mode rendering
+    console.log("root component render");
     if (this.props.value[APP_MODE] === EDIT_ASSIGNMENT) {
         return (
             <Assignment value={this.props.value}/>
@@ -2118,6 +2135,8 @@ var OpenNotebook = React.createClass({
                 }
             </table>
         );
+    } else  {
+        alert(this.props.value);
     }
   }
 });
@@ -2135,6 +2154,12 @@ $(function() {
     $('#grade-summary').click(
         function() {store.dispatch({type : "SET_TO_GRADE_OVERVIEW"}); 
     }); 
+    if (window.localStorage.getItem("autoSave")) {
+        console.log("restoring");
+        var recovered = JSON.parse(window.localStorage.getItem("autoSave"));
+        console.log(recovered);
+        store.dispatch({"type" : "SET_GLOBAL_STATE", "newState" : recovered });
+    }
 });
 
 // in the teacher grading experince, student work is grouped by similar final answer

@@ -176,6 +176,10 @@ const TeX = React.createClass({
     /* TODO - get re-enabled for perf boost */
     /* mixins: [PureRenderMixin], */
 
+    shouldComponentUpdate: function(oldProps, newProps) {
+        return oldProps.children !== this.props.children;
+    },
+
     getDefaultProps: function() {
         return {
             // Called after math is rendered or re-rendered
@@ -1721,7 +1725,7 @@ function grading(state, action) {
 function rootReducer(state, action) {
     console.log("an action was fired!!");
     console.log(action);
-    if (state === undefined) {
+    if (state === undefined || action.type === "NEW_ASSIGNMENT") {
         return { 
             ...assignment(), 
             APP_MODE : EDIT_ASSIGNMENT
@@ -2154,6 +2158,9 @@ $(function() {
     $('#grade-summary').click(
         function() {store.dispatch({type : "SET_TO_GRADE_OVERVIEW"}); 
     }); 
+    $('#new-assignment').click(
+        function() {store.dispatch({type : "NEW_ASSIGNMENT"}); 
+    }); 
     if (window.localStorage.getItem("autoSave")) {
         console.log("restoring");
         var recovered = JSON.parse(window.localStorage.getItem("autoSave"));
@@ -2424,8 +2431,9 @@ console.log("All tests complete");
         Open Assignment <input type="file" id="open-file-input"/> 
         Grade Student Assignments <input type="file" id="open-student-submissions-input" />
         <input type="submit" id="save-graded-assignments" name="save graded" value="save graded" />
-        <input type="submit" id="view-grades" name="view grades" value="view grades" /> <br/>
-        <input type="submit" id="grade-summary" name="grade summary" value="grade summary" /> <br/>
+        <input type="submit" id="view-grades" name="view grades" value="view grades" />
+        <input type="submit" id="grade-summary" name="grade summary" value="grade summary" />
+        <input type="submit" id="new-assignment" name="new assignment" value="new assignment" />
     </div>
 </div>
 <div id="root"></div>

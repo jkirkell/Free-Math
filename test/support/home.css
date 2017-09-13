@@ -49,12 +49,11 @@ end of styles copied form perseus
 
 .menuBar{
     padding: 10px 10px 10px 10px;
-    border:1px solid black;
     width:100%;
     display:block;
     position:fixed;
-    background-color: #032336;
-    color : #eeeeee;
+    background-color: #212121;
+    color : #efefef;
     top:0;
     left:0;
     z-index: 100;
@@ -75,11 +74,10 @@ html {
 }
 body {
   min-height: 100%;
-  max-width: 95%;
   font-family: Arial,sans-serif;
-  margin-top:40px;
+  margin-top:50px;
   color: black;
-  background-color: #eeeeee;
+  background-color: #e7effd;
 }
 #body {
   padding: 1em;
@@ -188,7 +186,7 @@ div.assignment-filters {
 div.similar-student-answers {
     margin: 15px 15px 15px 15px;
     padding: 15px 15px 15px 15px;
-    background-color:#D2DFE6;
+    background-color:#fafafa;
     box-shadow: 0 10px 6px -6px #777;
 }
 
@@ -200,18 +198,22 @@ div.student-work {
 }
 
 div.problem-container {
-    /* border:1px solid black; */
-    background-color:#D2DFE6;
+    border-radius: 3px;
+    border:1px solid #cfcfcf;
+    background-color:#fafafa;
     margin: 15px 15px 15px 15px;
-    padding: 15px 15px 50px 15px;
-    box-shadow: 0 10px 6px -6px #777;
+    padding: 15px 15px 100px 15px;
+    box-shadow: 0 5px 3px -3px #cfcfcf;
+    min-width: 50%;
 }
 
 span.solution-step {
     margin: 5px 10px 10px 10px;
+    min-width: 50%;
 }
 
 #assignment-container {
+    min-width: 400px;
     margin: 5px 5px 5px 5px;
     padding: 5px 5px 5px 5px;
 }

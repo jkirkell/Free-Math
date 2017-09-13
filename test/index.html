@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <!--    
-    This file is part of OpenNotebook-Web
+    This file is part of Free Math 
 
-    OpenNotebook-Web is free software: you can redistribute it and/or modify
+    Free Math is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    OpenNotebook-Web is distributed in the hope that it will be useful,
+    Free Math is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenNotebook-Web.  If not, see <http://www.gnu.org/licenses/>. 
+    along with Free Math.  If not, see <http://www.gnu.org/licenses/>. 
 
     -->
 <!--
@@ -54,7 +54,7 @@ http://mozilla.org/MPL/2.0/
 <!-- http://paletton.com/#uid=13u0u0kllllaFw0g0qFqFg0w0aF --> 
 
 <meta name="viewport" content="width=624">
-<title>Open Notebook</title>
+<title>Free Math</title>
 
 <link rel="stylesheet" type="text/css" href="../build/mathquill.css">
 <!--link rel="stylesheet" type="text/css" href="../perseus.css"-->
@@ -1774,7 +1774,21 @@ var store = createStore(rootReducer);
 function render() {
     autoSave();
     ReactDOM.render(
-        <OpenNotebook value={store.getState()} />,
+        (<div>
+            {/* TODO - customize buttons based on mode */}
+            <div className="menuBar">
+                <div className="nav"> 
+                    <h1 style={{"display":"inline","font-family":"serif"}}><b>Free Math</b></h1> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    Open Assignment <input type="file" id="open-file-input"/> 
+                    Grade Student Assignments <input type="file" id="open-student-submissions-input" />
+                    <input type="submit" id="save-graded-assignments" name="save graded" value="save graded" />
+                    <input type="submit" id="view-grades" name="view grades" value="view grades" />
+                    <input type="submit" id="grade-summary" name="grade summary" value="grade summary" />
+                    <input type="submit" id="new-assignment" name="new assignment" value="new assignment" />
+                </div>
+            </div>
+            <FreeMath value={store.getState()} />
+        </div>),
         document.getElementById('root')
     );
 }
@@ -1826,15 +1840,15 @@ var Problem = React.createClass({
                 </div>
                 <div>
                     <div>
-                        <input type="submit" value="x" title="Delete problem" onClick={
-                        function() { if (!window.confirm("Delete problem?")) { return; }
-                                     store.dispatch({ type : REMOVE_PROBLEM, PROBLEM_INDEX : problemIndex}) }}/>&nbsp;&nbsp;
                         Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number" onChange={
                         function(evt) { store.dispatch({ type : SET_PROBLEM_NUMBER, PROBLEM_INDEX : problemIndex, 
                                         NEW_PROBLEM_NUMBER : evt.target.value}) }}/> &nbsp;&nbsp;&nbsp;
                         <input type="submit" className="next-step" name="next step" value="Clone Problem" 
                                         title="Make a copy of this work, useful if you need to reference it while trying another solution path." onClick={
-                        function() { store.dispatch({ type : CLONE_PROBLEM, PROBLEM_INDEX : problemIndex}) }}/>
+                        function() { store.dispatch({ type : CLONE_PROBLEM, PROBLEM_INDEX : problemIndex}) }}/>&nbsp;&nbsp;&nbsp;
+                        <input type="submit" value="x" title="Delete problem" onClick={
+                        function() { if (!window.confirm("Delete problem?")) { return; }
+                                     store.dispatch({ type : REMOVE_PROBLEM, PROBLEM_INDEX : problemIndex}) }}/>
                     </div>
                     <div style={{float:'left'}}>
                         <p> Actions </p>
@@ -1873,7 +1887,7 @@ var Assignment = React.createClass({
       var defaultEqtn = "4-9\\left(\\frac{2}{3}\\right)^2+\\frac{4}{5-3\\cdot 4}";
       return (
         <div id="assignment-container">
-        <p>Open Notebook allows you to complete your math homework on your computer. The first problem has been created for you,
+        <p>Free Math allows you to complete your math homework on your computer. The first problem has been created for you,
            use the box below to write an equation. When you want to modify it to solve your math problem click
            the "next step" button to copy your expression or equation and edit it on the next line to show your work.
            This tool is designed to take care of some of the busywork of math, which makes it easier to record all
@@ -2106,7 +2120,7 @@ var TeacherGraderFilters = React.createClass({
     }
 });
 
-var OpenNotebook = React.createClass({
+var FreeMath = React.createClass({
   render: function() {
     // TODO - figure out how to best switch between teacher and
     // student mode rendering
@@ -2147,6 +2161,10 @@ var OpenNotebook = React.createClass({
 
 store.subscribe(render);
 $(function() {
+    // turn on confirmation dialog upon navigation away
+    window.onbeforeunload = function() {
+            return true;
+    };
     render();
     $('#open-file-input').change(readSingleFile);
     $('#open-student-submissions-input').change(studentSubmissionsZip);
@@ -2424,11 +2442,11 @@ console.log("All tests complete");
 </head>
 <body>
 <!-- this is not currently rendered by React, not sure how to make that work as it will be inside of the root div-->
+<!-- 
 <div class="menuBar">
-    <!-- img class="logo" src="logo.jpg"/ -->
     <div class="nav"> 
-        <b>Free Math</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        Open Assignment <input type="file" id="open-file-input"/> 
+        <h1 style="display:inline;font-family:serif"><b>Free Math</b></h1> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        Open Assignment <input type="file" id="open-file-input" value="Open Assignment"/> 
         Grade Student Assignments <input type="file" id="open-student-submissions-input" />
         <input type="submit" id="save-graded-assignments" name="save graded" value="save graded" />
         <input type="submit" id="view-grades" name="view grades" value="view grades" />
@@ -2436,6 +2454,7 @@ console.log("All tests complete");
         <input type="submit" id="new-assignment" name="new assignment" value="new assignment" />
     </div>
 </div>
+-->
 <div id="root"></div>
 </body>
 </html>

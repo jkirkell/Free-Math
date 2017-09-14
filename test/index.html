@@ -786,9 +786,10 @@ var type = 'type';
 var APP_MODE = 'APP_MODE';
 var EDIT_ASSIGNMENT = 'EDIT_ASSIGNMENT';
 var GRADE_ASSIGNMENTS = 'GRADE_ASSIGNMENTS';
-var TEST_PAGE = 'TEST_PAGE';
+var MODE_CHOOSER = 'MODE_CHOOSER';
 
 // Actions to change modes
+var GO_TO_MODE_CHOOSER = 'GO_TO_MODE_CHOOSER';
 var SET_ASSIGNMENTS_TO_GRADE = 'SET_ASSIGNMENTS_TO_GRADE';
 // action properties
 var NEW_STATE = 'NEW_STATE';
@@ -1021,9 +1022,9 @@ function testAggregateStudentWork() {
             POSSIBLE_POINTS : 3,
             UNIQUE_ANSWERS : [ 
                 { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 3, SCORE : 3, FEEDBACK : "",
-                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] }, 
+                    LAST_SHOWN_STEP : 1, STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] }, 
                     { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 1.5,  SCORE : 1.5,FEEDBACK : "",
-                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
+                    LAST_SHOWN_STEP: 1, STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
         } }
     };
     var output = aggregateStudentWork(allStudentWork, answerKey);
@@ -1103,9 +1104,9 @@ function testAggregateStudentWorkNoAnswerKey() {
             POSSIBLE_POINTS : 6,
             UNIQUE_ANSWERS : [ 
                 { ANSWER : "x=2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jake r.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, FEEDBACK : "",
-                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] }, 
+                    LAST_SHOWN_STEP: 1, STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=2"} ] } ] }, 
                 { ANSWER : "x=-2", FILTER : SHOW_ALL, STUDENT_WORK : [ {STUDENT_FILE : "jon m.", AUTOMATICALLY_ASSIGNED_SCORE : 0, SCORE : 0, FEEDBACK : "",
-                    STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
+                    LAST_SHOWN_STEP: 1, STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
         } }
     };
     expect(aggregateStudentWork(allStudentWork)).toEqual(expectedOutput);
@@ -1414,7 +1415,7 @@ function saveAssignment() {
 
 // read a file from the local disk, pass an onChange event from a "file" input type
 // http://www.htmlgoodies.com/beyond/javascript/read-text-files-using-the-javascript-filereader.html
-function readSingleFile(evt) {
+function readSingleFile(evt, discardDataWarning) {
     //Retrieve the first (and only!) File from the FileList object
     var f = evt.target.files[0]; 
 
@@ -1422,7 +1423,7 @@ function readSingleFile(evt) {
         var r = new FileReader();
         r.onload = function(e) { 
             var contents = e.target.result;
-            openAssignment(contents, f.name);  
+            openAssignment(contents, f.name, discardDataWarning);  
         }
         r.readAsText(f);
     } else { 
@@ -1430,8 +1431,8 @@ function readSingleFile(evt) {
     }
 }
 
-function openAssignment(serializedDoc, filename) {
-    if (!window.confirm("Discard your current work and open the selected document?")) { 
+function openAssignment(serializedDoc, filename, discardDataWarning) {
+    if (discardDataWarning && !window.confirm("Discard your current work and open the selected document?")) { 
         return; 
     }
     var newDoc = JSON.parse(serializedDoc);
@@ -1569,10 +1570,6 @@ function assignment(state, action) {
     } else if (action.type === SET_ASSIGNMENT_NAME) {
         state = _.cloneDeep(state);
         state.ASSIGNMENT_NAME = action.ASSIGNMENT_NAME;
-        return state;
-    } else if (action.type === SET_ASSIGNMENT_CONTENT) {
-        state = _.cloneDeep(state);
-        state.PROBLEMS = action.PROBLEMS;
         return state;
     } else {
         var new_state = _.clone(state);
@@ -1725,7 +1722,11 @@ function grading(state, action) {
 function rootReducer(state, action) {
     console.log("an action was fired!!");
     console.log(action);
-    if (state === undefined || action.type === "NEW_ASSIGNMENT") {
+    if (state === undefined || action.type == GO_TO_MODE_CHOOSER) {
+        return { 
+            APP_MODE : MODE_CHOOSER
+        };
+    } else if (action.type === "NEW_ASSIGNMENT") {
         return { 
             ...assignment(), 
             APP_MODE : EDIT_ASSIGNMENT
@@ -1741,6 +1742,11 @@ function rootReducer(state, action) {
             "GRADING_OVERVIEW" : overview,
             APP_MODE : GRADE_ASSIGNMENTS,
         }
+    } else if (action.type === SET_ASSIGNMENT_CONTENT) {
+        return {
+            APP_MODE : EDIT_ASSIGNMENT,
+            PROBLEMS : action.PROBLEMS
+        };
     } else if (action.type === SET_TO_VIEW_GRADES) {
         // TODO - only allow this to be transitioned to from grading mode
         // also disable or hide the button when student is working on an assignment
@@ -1772,23 +1778,9 @@ var createStore = Redux.createStore;
 var store = createStore(rootReducer);
 
 function render() {
-    autoSave();
+    //autoSave();
     ReactDOM.render(
-        (<div>
-            {/* TODO - customize buttons based on mode */}
-            <div className="menuBar">
-                <div className="nav"> 
-                    <h1 style={{"display":"inline","font-family":"serif"}}><b>Free Math</b></h1> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    Open Assignment <input type="file" id="open-file-input"/> 
-                    Grade Student Assignments <input type="file" id="open-student-submissions-input" />
-                    <input type="submit" id="save-graded-assignments" name="save graded" value="save graded" />
-                    <input type="submit" id="view-grades" name="view grades" value="view grades" />
-                    <input type="submit" id="grade-summary" name="grade summary" value="grade summary" />
-                    <input type="submit" id="new-assignment" name="new assignment" value="new assignment" />
-                </div>
-            </div>
-            <FreeMath value={store.getState()} />
-        </div>),
+        <FreeMath value={store.getState()} />,
         document.getElementById('root')
     );
 }
@@ -1897,15 +1889,6 @@ var Assignment = React.createClass({
         parts of it in your head, use the tool to make sure you show your work. 
         <span className="mathquill-static-math" ref="exampleStaticMath">{defaultEqtn}</span></p>
 
-        Assignment and Student Name 
-        <input type="text" id="assignment-name-text" name="assignment name" value={this.props.value[ASSIGNMENT_NAME]} onChange={
-            function(evt) { 
-                store.dispatch({type : SET_ASSIGNMENT_NAME, ASSIGNMENT_NAME : evt.target.value});
-            }}
-        />
-
-        <input type="submit" id="save-assignment" name="save assignment" value="save assignment" onClick={
-                        function() { saveAssignment() }} /> <br/>
         {this.props.value[PROBLEMS].map(function(problem, problemIndex) {
             return (
               <Problem value={problem} key={problemIndex} id={problemIndex}/>
@@ -2120,6 +2103,104 @@ var TeacherGraderFilters = React.createClass({
     }
 });
 
+var LogoHomeNav = React.createClass({
+  render: function() {
+        return (
+            <div style={{float:"left","margin":"0px 15px 0px 15px"}}>
+            <h2 style={{"display":"inline","fontFamily":"serif"}} onClick= {
+                function(evt) {
+                    if (!window.confirm("Are you sure you want to leave your current work?")) { 
+                        return; 
+                    }
+                    store.dispatch({type : "GO_TO_MODE_CHOOSER"});
+                }}
+            >
+                <b>Free Math</b>
+            </h2><br />
+            <span style={{"fontSize": 11}}>Free your mind, learn and discover faster.</span>
+            </div>
+            );
+  }
+});
+
+
+var AssignmentEditorMenubar = React.createClass({
+  render: function() {
+        return (
+            <div className="menuBar">
+                <div className="nav"> 
+                    <LogoHomeNav /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                         
+
+                    <div style={{"verticalAlign":"bottom"}}>
+                        Assignment and Student Name &nbsp;&nbsp;&nbsp;
+                        <input type="text" id="assignment-name-text" name="assignment name" value={this.props.value[ASSIGNMENT_NAME]} onChange={
+                            function(evt) { 
+                                store.dispatch({type : SET_ASSIGNMENT_NAME, ASSIGNMENT_NAME : evt.target.value});
+                            }}
+                        />&nbsp;&nbsp;&nbsp;
+
+                        <input type="submit" id="save-assignment" name="save assignment" value="save assignment" onClick={
+                            function() { saveAssignment() }} /> &nbsp;&nbsp;&nbsp;
+                        Open Assignment <input type="file" id="open-file-input" onChange={
+                            function(evt) {
+                                readSingleFile(evt, true /* warn about data loss */);
+                            }}/> 
+                        <input type="submit" id="new-assignment" name="New assignment" value="New assignment" onClick={
+                        function() {
+                            if (!window.confirm("Are you sure you want to leave your current work and start a new document?")) { 
+                                return; 
+                            }
+                            store.dispatch({type : "NEW_ASSIGNMENT"});
+                        }}/>
+                    </div>
+                </div>
+            </div>
+        );
+  }
+});
+
+var GradingMenuBar = React.createClass({
+    render: function() {
+        return (
+            <div className="menuBar">
+                <div className="nav"> 
+                    <LogoHomeNav /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                         
+                    Grade Student Assignments <input type="file" id="open-student-submissions-input" />
+                    <input type="submit" id="save-graded-assignments" name="save graded" value="save graded" />
+                    <input type="submit" id="view-grades" name="view grades" value="view grades" />
+                    <input type="submit" id="grade-summary" name="grade summary" value="grade summary" />
+                </div>
+            </div>
+        );
+    }
+});
+
+
+var DefaultHomepageActions = React.createClass({
+    render: function() {
+        return (
+            <div>
+                <div>
+                    <div sytle={{width:"40%", float:"left","borderWidth":"1","borderColor":"black"}}>
+                        <p>Student</p>
+
+                            Open Assignment
+                            <input type="file" id="open-file-input" onChange={
+                                function(evt) {
+                                    readSingleFile(evt, false /* don't warn about data loss */);
+                            }}/> 
+                            <input type="submit" id="new-assignment" name="New assignment" value="New assignment" />
+                    </div>
+                    <div sytle={{width:"40%", float:"left","borderWidth":"1px","borderColor":"black"}}>
+                        <p>Teacher</p>
+                        Grade Student Assignments <input type="file" id="open-student-submissions-input" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+})
+
 var FreeMath = React.createClass({
   render: function() {
     // TODO - figure out how to best switch between teacher and
@@ -2127,11 +2208,30 @@ var FreeMath = React.createClass({
     console.log("root component render");
     if (this.props.value[APP_MODE] === EDIT_ASSIGNMENT) {
         return (
-            <Assignment value={this.props.value}/>
+            <div>
+                <AssignmentEditorMenubar value={this.props.value}/>
+                <Assignment value={this.props.value}/>
+            </div>
         );
     } else if (this.props.value[APP_MODE] === GRADE_ASSIGNMENTS) {
         return (
-            <TeacherInteractiveGrader value={this.props.value}/>
+            <div>
+                <GradingMenuBar />
+                <TeacherInteractiveGrader value={this.props.value}/>
+            </div>
+        );
+    } else if (this.props.value[APP_MODE] === MODE_CHOOSER) {
+        return (
+        <div>
+            <div className="menuBar">
+                <div className="nav"> 
+                    <LogoHomeNav /> 
+                </div>
+            </div>
+            <DefaultHomepageActions />
+            <br />
+            <h1>Meet your new math classroom</h1>
+        </div>
         );
     } else if (this.props.value[APP_MODE] === VIEW_GRADES) {
         var props = this.props;
@@ -2166,7 +2266,6 @@ $(function() {
             return true;
     };
     render();
-    $('#open-file-input').change(readSingleFile);
     $('#open-student-submissions-input').change(studentSubmissionsZip);
     $('#save-graded-assignments').click(
         function() {saveGradedStudentWork(store.getState())});
@@ -2176,15 +2275,14 @@ $(function() {
     $('#grade-summary').click(
         function() {store.dispatch({type : "SET_TO_GRADE_OVERVIEW"}); 
     }); 
-    $('#new-assignment').click(
-        function() {store.dispatch({type : "NEW_ASSIGNMENT"}); 
-    }); 
+    /*
     if (window.localStorage.getItem("autoSave")) {
         console.log("restoring");
         var recovered = JSON.parse(window.localStorage.getItem("autoSave"));
         console.log(recovered);
         store.dispatch({"type" : "SET_GLOBAL_STATE", "newState" : recovered });
     }
+    */
 });
 
 // in the teacher grading experince, student work is grouped by similar final answer

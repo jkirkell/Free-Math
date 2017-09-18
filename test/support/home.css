@@ -75,9 +75,10 @@ html {
 body {
   min-height: 100%;
   font-family: Arial,sans-serif;
-  margin-top:100px;
+  margin-top:70px;
   color: black;
   background-color: #e7effd;
+  margin-bottom: 0
 }
 #body {
   padding: 1em;
@@ -124,6 +125,8 @@ div.problem-summary-container {
 }
 
 div.answer-incorrect {
+    border-radius: 2px;
+    border:1px solid #dc8484;
     background-color:#FFDEDE;
 }
 
@@ -136,10 +139,14 @@ div.answer-incorrect {
 }
 
 div.answer-partially-correct {
+    border-radius: 2px;
+    border:1px solid #ece583;
     background-color:#FFFDBF;
 }
 
 div.answer-correct {
+    border-radius: 2px;
+    border:1px solid #94b98e;
     background-color:#D0FFC9;
 }
 
@@ -179,19 +186,22 @@ div.similar-assignment-filters {
 }
 
 div.assignment-filters {
-    margin: 15px 15px 15px 15px;
-    padding: 15px 15px 15px 15px;
+    margin: 5px 5px 5px 5px;
+    padding: 5px 5px 5px 5px;
 }
 
 div.similar-student-answers {
+    /*
     margin: 15px 15px 15px 15px;
     padding: 15px 15px 15px 15px;
-    background-color:#fafafa;
+    background-color:white;
+    border:1px solid #cfcfcf;
+    border-radius: 3px;
     box-shadow: 0 10px 6px -6px #777;
+    */
 }
 
 div.student-work {
-    border:1px solid black;
     margin: 15px 15px 15px 15px;
     padding: 15px 15px 15px 15px;
     box-shadow: 0 10px 6px -6px #777;
@@ -200,7 +210,7 @@ div.student-work {
 div.problem-container {
     border-radius: 3px;
     border:1px solid #cfcfcf;
-    background-color:#fafafa;
+    background-color:white;
     margin: 15px 15px 15px 15px;
     padding: 15px 15px 100px 15px;
     box-shadow: 0 5px 3px -3px #cfcfcf;

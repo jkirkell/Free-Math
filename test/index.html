@@ -797,6 +797,7 @@ var NEW_STATE = 'NEW_STATE';
 var SET_TO_VIEW_GRADES = 'SET_TO_VIEW_GRADES';
 // the state resulting from above ttanstion action
 var VIEW_GRADES = 'VIEW_GRADES';
+var NAV_BACK_TO_GRADING = 'NAV_BACK_TO_GRADING';
 
 // properties of the state when showing grade view
 // just a wrapper for the grades and total possible points for now
@@ -1383,6 +1384,9 @@ function saveGradedStudentWork(gradedWork) {
     if (gradedWork === undefined) {
         console.log("no graded assignments to save");
     }
+    // temporarily disable data loss warning
+    window.onbeforeunload = null;
+
     var separatedAssignments = separateIndividualStudentAssignments(gradedWork);
     var zip = new JSZip();
     for (var filename in separatedAssignments) {
@@ -1392,6 +1396,7 @@ function saveGradedStudentWork(gradedWork) {
         }
     }
     var content = zip.generate();
+    
     location.href="data:application/zip;base64," + content;
 }
 
@@ -1432,9 +1437,16 @@ function readSingleFile(evt, discardDataWarning) {
 }
 
 function openAssignment(serializedDoc, filename, discardDataWarning) {
+    // this is now handled at a higher level, this is mostly triggered by onChange events of "file" input elements
+    // if the user selects "cancel", I want them to be able to try re-opening again. If they pick the same file I
+    // won't get on onChange event without resetting the value, and here I don't have a reference to the DOM element
+    // to reset its value
+    /*
     if (discardDataWarning && !window.confirm("Discard your current work and open the selected document?")) { 
         return; 
     }
+    */
+
     var newDoc = JSON.parse(serializedDoc);
     // compatibility for old files, need to convert the old proerty names as
     // well as add the LAST_SHOWN_STEP
@@ -1752,15 +1764,17 @@ function rootReducer(state, action) {
         // also disable or hide the button when student is working on an assignment
         console.log('view grades');
         var grades = calculateGrades(state[PROBLEMS]);
+        // leave existing entries in the state, so users can navigate back to grading
         return {
-           GRADE_INFO : grades,
-           APP_MODE : VIEW_GRADES
-           };
-    } else if (action.type === "SET_TO_GRADE_OVERVIEW") {
-        // TODO - FINISH!!
-        console.log("an action was fired!!");
-        calculateGradingOverview(state[PROBLEMS]);
-        return state;
+            ...state,
+            GRADE_INFO : grades,
+            APP_MODE : VIEW_GRADES
+        };
+    } else if (action.type === NAV_BACK_TO_GRADING ) {
+        return {
+            ...state,
+            APP_MODE : GRADE_ASSIGNMENTS,
+        };
     } else if (state[APP_MODE] == EDIT_ASSIGNMENT) {
         return {
             ...assignment(state, action),
@@ -1919,7 +1933,7 @@ var ProblemGrader = React.createClass({
         return (
             <div className="problem-summary-container" style={{float:"none",overflow:"hidden"}}>
                 <h3>Problem number {problemNumber}</h3>
-                <p>Total incorrect answers {totalIncorrect}</p>
+                {/*<p>Total incorrect answers {totalIncorrect}</p>*/}
                 <p>Possible points &nbsp;<input type="text" className="possible-points-input" width="4" value={possiblePoints} onChange={
                                 function(evt) { store.dispatch({ 
                                     type : EDIT_POSSIBLE_POINTS, PROBLEM_NUMBER : problemNumber,
@@ -1952,8 +1966,8 @@ render: function() {
         var problems = store.getState()[PROBLEMS];
         return (
             <div> 
-                <TeacherGraderFilters value={this.props.value}/>
-                <p>{JSON.stringify(store.getState()["GRADING_OVERVIEW"])}</p>
+                {/* TODO - finish option to grade anonymously <TeacherGraderFilters value={this.props.value}/> */}
+                {/* TODO - finish adding graph for this data <p>{JSON.stringify(store.getState()["GRADING_OVERVIEW"])}</p> */}
                 {
                     function() { 
                         var problemGraders = [];
@@ -1992,8 +2006,8 @@ var SolutionClassGrader = React.createClass({
         }
         return (
             <div className="similar-student-answers" style={{float:"none",overflow:"hidden"}} >
-                <input type="submit" className="show-all-common-answers" name="show all" value="show all"/>
-                <input type="submit" className="hide-all-common-answers" name="hide all" value="hide all"/>
+                {/*<input type="submit" className="show-all-common-answers" name="show all" value="show all"/>*/}
+                {/*<input type="submit" className="hide-all-common-answers" name="hide all" value="hide all"/>*/}
                 <p> {studentCount}{message}</p>
                 <TeX>{studentFinalAnswer}</TeX>
                 {
@@ -2090,12 +2104,13 @@ var SolutionGrader = React.createClass({
     }
 });
 
+// TODO FINISH SETTING TO GRADE ANAONYMOUSLY
 var TeacherGraderFilters = React.createClass({
     render: function() {
         return (
         <div className="assignment-filters">
             <h3>Grading Settings</h3>
-            <div><label>&nbsp;<input type="checkbox" id="show-student-names" checked="checked"/>
+            <div><label><input type="checkbox" id="show-student-names" checked="checked"/>&nbsp;&nbsp;
                     Show student names (or grade anonymously)</label>
             </div>
         </div>
@@ -2141,9 +2156,14 @@ var AssignmentEditorMenubar = React.createClass({
 
                         <input type="submit" id="save-assignment" name="save assignment" value="save assignment" onClick={
                             function() { saveAssignment() }} /> &nbsp;&nbsp;&nbsp;
-                        Open Assignment <input type="file" id="open-file-input" onChange={
+                            Open Assignment <input type="file"  ref={(input) => { this.fileInput = input; }} id="open-file-input" onChange={
                             function(evt) {
+                                if (!window.confirm("Are you sure you want to leave your current work?")) { 
+                                    evt.target.value = "";
+                                    return; 
+                                }
                                 readSingleFile(evt, true /* warn about data loss */);
+                                evt.target.value = "";
                             }}/> 
                         <input type="submit" id="new-assignment" name="New assignment" value="New assignment" onClick={
                         function() {
@@ -2164,39 +2184,103 @@ var GradingMenuBar = React.createClass({
         return (
             <div className="menuBar">
                 <div className="nav"> 
-                    <LogoHomeNav /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                         
-                    Grade Student Assignments <input type="file" id="open-student-submissions-input" />
-                    <input type="submit" id="save-graded-assignments" name="save graded" value="save graded" />
-                    <input type="submit" id="view-grades" name="view grades" value="view grades" />
-                    <input type="submit" id="grade-summary" name="grade summary" value="grade summary" />
+                    <LogoHomeNav /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <div style={{"verticalAlign":"bottom"}}>
+                        Grade Student Assignments <input type="file" id="open-student-submissions-input" onChange={
+                            function(evt){
+                                if (!window.confirm("Are you sure you want to leave your current work?")) { 
+                                    evt.target.value = "";
+                                    return; 
+                                }
+                                studentSubmissionsZip(evt);
+                                evt.target.value = "";
+                            }
+                        }/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="submit" id="save-graded-assignments" name="save graded" value="save graded" onClick={
+                            function() {
+                                saveGradedStudentWork(store.getState());
+                                setTimeout(function() { window.onbeforeunload = function() { return true; }}, 500);
+                            }
+                        }/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="submit" id="view-grades" name="view grades" value="view grades" onClick={
+                            function() {store.dispatch({type : SET_TO_VIEW_GRADES})}
+                        }/>
+                    </div>
                 </div>
             </div>
         );
     }
 });
 
-
-var DefaultHomepageActions = React.createClass({
+var ModalWhileGradingMenuBar = React.createClass({
     render: function() {
         return (
-            <div>
-                <div>
-                    <div sytle={{width:"40%", float:"left","borderWidth":"1","borderColor":"black"}}>
-                        <p>Student</p>
-
-                            Open Assignment
-                            <input type="file" id="open-file-input" onChange={
-                                function(evt) {
-                                    readSingleFile(evt, false /* don't warn about data loss */);
-                            }}/> 
-                            <input type="submit" id="new-assignment" name="New assignment" value="New assignment" />
-                    </div>
-                    <div sytle={{width:"40%", float:"left","borderWidth":"1px","borderColor":"black"}}>
-                        <p>Teacher</p>
-                        Grade Student Assignments <input type="file" id="open-student-submissions-input" />
+            <div className="menuBar">
+                <div className="nav"> 
+                    <LogoHomeNav /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <div style={{"verticalAlign":"bottom"}}>
+                        <input type="submit" id="back-to-grading" value="Back to grading" onClick={
+                            function() {store.dispatch({type : NAV_BACK_TO_GRADING})}
+                        }/>
                     </div>
                 </div>
             </div>
+        );
+    }
+});
+
+var DefaultHomepageActions = React.createClass({
+    render: function() {
+        var divStyle = {
+            width:"42%",
+            float: "left",
+            borderRadius:"3px",
+            border:"1px solid #cfcfcf",
+            backgroundColor:"white",
+            margin:"0px 15px 15px 15px",
+            padding:"0px 15px 15px 15px"
+        };
+        var wrapperDivStyle = {
+            padding:"30px 30px 0px 30px",
+            "backgroundColor":"#fafafa",
+            "margin-left":"auto",
+            "margin-right": "auto",
+            width:"1024"
+        };
+        return (
+            <div style={wrapperDivStyle}>
+                <div style={{display:"inline-block", width:"100%"}}>
+                    <div>
+                        <div style={divStyle}>  
+                            <h3>Students</h3>
+                                New Assignment &nbsp;&nbsp;&nbsp;
+                                <input type="submit" id="new-assignment" name="New assignment" value="Create" onClick={
+                                    function() {
+                                        store.dispatch({type : "NEW_ASSIGNMENT"});
+                                }}/><br />
+
+                                Open Assignment &nbsp;&nbsp;&nbsp;
+                                <input type="file" id="open-file-input" onChange={
+                                    function(evt) {
+                                        readSingleFile(evt, false /* don't warn about data loss */);
+                                }}/> 
+                        </div>
+                        <div style={divStyle}>
+                            <h3>Teachers</h3>
+                            Grade Student Assignments <input type="file" id="open-student-submissions-input" onChange={
+                                function(evt){studentSubmissionsZip(evt);}
+                            }/>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <h1>Meet Your New Math Classroom</h1>
+                <p>Students digitally record step-by-step math work.</p>
+                <p>No account setup required, free for teachers and students. Share docs through your existing course management solution.</p>
+                <p>Teachers load all students docs for simultaneous grading, reviewing complete solutions, grouped by similar final answer.</p>
+                <p>Provide targeted feedback before a test or quiz, and improve daily communication with students.</p>
+                <div style={{position:"relative",height:"0","padding-bottom":"56.25%"}}><iframe src="https://www.youtube.com/embed/aSqRBUle7eE?ecver=2" width="640" height="360" frameborder="0" style={{position:"absolute",width:"100%",height:"100%",left:0}} allowfullscreen></iframe></div>
+            </div> 
         );
     }
 })
@@ -2206,16 +2290,26 @@ var FreeMath = React.createClass({
     // TODO - figure out how to best switch between teacher and
     // student mode rendering
     console.log("root component render");
+    var wrapperDivStyle = {
+        padding:"30px 30px 0px 30px",
+        "backgroundColor":"#fafafa",
+        "margin-left":"auto",
+        "margin-right": "auto",
+        width:"1024",
+        height:"100%"
+    };
     if (this.props.value[APP_MODE] === EDIT_ASSIGNMENT) {
         return (
-            <div>
+            <div style={wrapperDivStyle}>
                 <AssignmentEditorMenubar value={this.props.value}/>
-                <Assignment value={this.props.value}/>
+                <div style={{display:"inline-block", width:"100%"}}>
+                    <Assignment value={this.props.value}/>
+                </div>
             </div>
         );
     } else if (this.props.value[APP_MODE] === GRADE_ASSIGNMENTS) {
         return (
-            <div>
+            <div style={{...wrapperDivStyle, width : "90%" }}>
                 <GradingMenuBar />
                 <TeacherInteractiveGrader value={this.props.value}/>
             </div>
@@ -2229,29 +2323,30 @@ var FreeMath = React.createClass({
                 </div>
             </div>
             <DefaultHomepageActions />
-            <br />
-            <h1>Meet your new math classroom</h1>
         </div>
         );
     } else if (this.props.value[APP_MODE] === VIEW_GRADES) {
         var props = this.props;
         return (
-            <table>
-                <tr><th>Student File</th><th>Score</th></tr>
-                {
-                    function() { 
-                        var tableRows = [];
-                        var grades = props.value[GRADE_INFO][STUDENT_GRADES];
-                        for (var studentFileName in grades) {
-                            if (grades.hasOwnProperty(studentFileName)) {
-                                tableRows.push( 
-                                (<tr><td>{studentFileName}</td><td>{grades[studentFileName]}</td></tr> ));
+            <div>
+                <ModalWhileGradingMenuBar />
+                <table>
+                    <tr><th>Student File</th><th>Score</th></tr>
+                    {
+                        function() { 
+                            var tableRows = [];
+                            var grades = props.value[GRADE_INFO][STUDENT_GRADES];
+                            for (var studentFileName in grades) {
+                                if (grades.hasOwnProperty(studentFileName)) {
+                                    tableRows.push( 
+                                    (<tr><td>{studentFileName}</td><td>{grades[studentFileName]}</td></tr> ));
+                                }
                             }
-                        }
-                        return tableRows;
-                    }()
-                }
-            </table>
+                            return tableRows;
+                        }()
+                    }
+                </table>
+            </div>
         );
     } else  {
         alert(this.props.value);
@@ -2266,15 +2361,6 @@ $(function() {
             return true;
     };
     render();
-    $('#open-student-submissions-input').change(studentSubmissionsZip);
-    $('#save-graded-assignments').click(
-        function() {saveGradedStudentWork(store.getState())});
-    $('#view-grades').click(
-        function() {store.dispatch({type : SET_TO_VIEW_GRADES}); 
-    });
-    $('#grade-summary').click(
-        function() {store.dispatch({type : "SET_TO_GRADE_OVERVIEW"}); 
-    }); 
     /*
     if (window.localStorage.getItem("autoSave")) {
         console.log("restoring");

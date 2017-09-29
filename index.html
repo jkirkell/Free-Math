@@ -1741,6 +1741,7 @@ function rootReducer(state, action) {
     } else if (action.type === "NEW_ASSIGNMENT") {
         return { 
             ...assignment(), 
+	    "DOC_ID" : Math.floor(Math.random() * 200000000),
             APP_MODE : EDIT_ASSIGNMENT
         };
     } else if (action.type === "SET_GLOBAL_STATE") {
@@ -1788,28 +1789,40 @@ function rootReducer(state, action) {
     }
 }
 
-var createStore = Redux.createStore;
-var store = createStore(rootReducer);
-
-function render() {
-    //autoSave();
-    ReactDOM.render(
-        <FreeMath value={store.getState()} />,
-        document.getElementById('root')
-    );
-}
-
-
 function autoSave() {
-    console.log("autosaving " + JSON.stringify(store.getState()));
-    var problems = store.getState()[PROBLEMS];
-    if (problems.length == 1) {
-        var steps = problems[0][STEPS];
-        if (steps.length == 1 && steps[0][CONTENT] == '') {
-            return;
-        }
+    var appState = store.getState();
+    // TODO - validate this against actual saved data on startup
+    // or possibly just re-derive it each time?
+    var saveIndex = window.localStorage.getItem("save_index");
+    if (!saveIndex) {
+	saveIndex = { "TEACHERS" : {}, "STUDENTS" : {}};
     }
-    window.localStorage.setItem("autoSave", JSON.stringify(store.getState()));
+
+    if (appState[APP_MODE] == EDIT_ASSIGNMENT) {
+        var problems = appState[PROBLEMS];
+        if (problems.length == 1) {
+            var steps = problems[0][STEPS];
+            if (steps.length == 1 && steps[0][CONTENT] == '') {
+                return;
+            }
+        }
+	if (saveIndex["STUDENTS"][appState["DOC_ID"]]) {
+	    var toDelete = saveIndex["STUDENTS"][appState["DOC_ID"]];
+	}
+        var doc = JSON.stringify(appState);
+        console.log("autosaving student doc: " + doc);
+        // TODO - escape underscores (with double underscore?) in doc name
+        window.localStorage.setItem("autoSave_student_" + appState[ASSIGNMENT_NAME] + "_" + new Date(), doc);
+    } else if (appState[APP_MODE] == GRADE_ASSIGNMENTS) {
+        var doc = JSON.stringify(appState);
+        console.log("autosaving teacher grading: " + doc);
+        // TODO - escape underscores (with double underscore?) in doc name
+        // TODO - add input for assignment name to teacher page
+        window.localStorage.setItem("autoSave_teacher_" + new Date(), doc);
+    } else {
+        // current other states include mode chooser homepage and view grades "modal"
+        return;
+    }
 }
 
 var Problem = React.createClass({
@@ -1957,7 +1970,7 @@ var ProblemGrader = React.createClass({
 });
 
 var TeacherInteractiveGrader = React.createClass({
-render: function() {
+    render: function() {
         // TODO - figure out the right way to do this
         // TODO - do I want to be able to change the sort ordering, possibly to put
         //        the most important to review problem first, rather than just the
@@ -2086,7 +2099,7 @@ var SolutionGrader = React.createClass({
                 <input type="submit" name="highlight successes" value="highlight successes"/>
                 <input type="submit" name="clear highlights" value="clear hightlights"/>
                 <p>Feedback</p><div><textarea width="30" height="8" onChange={this.setFeedback}
-                        >{feedback}</textarea></div>
+                        value={feedback}></textarea></div>
                 <div style={{float:"left"}} className="equation-list">
                     <br/>
                     {
@@ -2121,8 +2134,7 @@ var TeacherGraderFilters = React.createClass({
 var LogoHomeNav = React.createClass({
   render: function() {
         return (
-            <div style={{float:"left","margin":"0px 15px 0px 15px"}}>
-            <h2 style={{"display":"inline","fontFamily":"serif"}} onClick= {
+            <div style={{float:"left","margin":"0px 15px 0px 15px"}} onClick= {
                 function(evt) {
                     if (!window.confirm("Are you sure you want to leave your current work?")) { 
                         return; 
@@ -2130,6 +2142,7 @@ var LogoHomeNav = React.createClass({
                     store.dispatch({type : "GO_TO_MODE_CHOOSER"});
                 }}
             >
+            <h2 style={{"display":"inline","fontFamily":"serif"}}>
                 <b>Free Math</b>
             </h2><br />
             <span style={{"fontSize": 11}}>Free your mind, learn and discover faster.</span>
@@ -2247,6 +2260,25 @@ var DefaultHomepageActions = React.createClass({
             "margin-right": "auto",
             width:"1024"
         };
+
+        var recoverAutoSaveCallback = function(docName) {
+            var recovered = JSON.parse(window.localStorage.getItem(docName));
+            //console.log(recovered);
+            store.dispatch({"type" : "SET_GLOBAL_STATE", "newState" : recovered });
+        };
+        // TODO - this is ugly, a component shouldn't access localStorage, this should be read in at app startup
+        // stored in the redux state tree and then kept in sync with what is actually stored through actions
+        // use subscribers - https://stackoverflow.com/questions/35305661/where-to-write-to-localstorage-in-a-redux-app
+        var recoveredStudentDocs = [];
+        var recoveredTeacherDocs = [];
+        // recovered autoSaved docs
+        for (var key in localStorage){
+            if (key.startsWith("autoSave_student")) {
+                recoveredStudentDocs.push(key);
+            } else if (key.startsWith("autoSave_teacher")) {
+                recoveredTeacherDocs.push(key);
+            }
+        } 
         return (
             <div style={wrapperDivStyle}>
                 <div style={{display:"inline-block", width:"100%"}}>
@@ -2264,19 +2296,41 @@ var DefaultHomepageActions = React.createClass({
                                     function(evt) {
                                         readSingleFile(evt, false /* don't warn about data loss */);
                                 }}/> 
+                                { (recoveredStudentDocs.length > 0) ? (<h4>Recovered assignments:</h4>) : null }
+                                { (recoveredStudentDocs.length > 0) ?
+                                        
+                                        recoveredStudentDocs.map(function(docName, docIndex) {
+                                            return (
+                                                <div><input type="submit" value="open" onClick={function() {recoverAutoSaveCallback(docName)}} />
+                                                {docName.replace("autoSave_student_","")}</div>
+                                            );
+                                        })
+                                   : null
+                                }
                         </div>
                         <div style={divStyle}>
                             <h3>Teachers</h3>
                             Grade Student Assignments <input type="file" id="open-student-submissions-input" onChange={
                                 function(evt){studentSubmissionsZip(evt);}
                             }/>
+                            { (recoveredTeacherDocs.length > 0) ? (<h4>Recovered grading sessions:</h4>) : null }
+                            { (recoveredTeacherDocs.length > 0) ?
+                                    
+                                    recoveredTeacherDocs.map(function(docName, docIndex) {
+                                        return (
+                                            <div><input type="submit" value="open" onClick={function() {recoverAutoSaveCallback(docName)}} />
+                                            {docName.replace("autoSave_teacher_","")}</div>
+                                        );
+                                    })
+                               : null
+                            }
                         </div>
                     </div>
                 </div>
                 <br />
                 <h1>Meet Your New Math Classroom</h1>
                 <p>Students digitally record step-by-step math work.</p>
-                <p>No account setup required, free for teachers and students. Share docs through your existing course management solution.</p>
+                <p>No account setup required, free for teachers and students. Work saves as files on your local device, share docs through your existing course management solution.</p>
                 <p>Teachers load all students docs for simultaneous grading, reviewing complete solutions, grouped by similar final answer.</p>
                 <p>Provide targeted feedback before a test or quiz, and improve daily communication with students.</p>
                 <div style={{position:"relative",height:"0","padding-bottom":"56.25%"}}><iframe src="https://www.youtube.com/embed/aSqRBUle7eE?ecver=2" width="640" height="360" frameborder="0" style={{position:"absolute",width:"100%",height:"100%",left:0}} allowfullscreen></iframe></div>
@@ -2353,6 +2407,17 @@ var FreeMath = React.createClass({
     }
   }
 });
+
+var createStore = Redux.createStore;
+var store = createStore(rootReducer);
+
+function render() {
+    autoSave();
+    ReactDOM.render(
+        <FreeMath value={store.getState()} />,
+        document.getElementById('root')
+    );
+}
 
 store.subscribe(render);
 $(function() {

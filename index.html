@@ -1741,7 +1741,7 @@ function rootReducer(state, action) {
     } else if (action.type === "NEW_ASSIGNMENT") {
         return { 
             ...assignment(), 
-	    "DOC_ID" : Math.floor(Math.random() * 200000000),
+	        "DOC_ID" : Math.floor(Math.random() * 200000000),
             APP_MODE : EDIT_ASSIGNMENT
         };
     } else if (action.type === "SET_GLOBAL_STATE") {
@@ -1752,6 +1752,7 @@ function rootReducer(state, action) {
         var overview = calculateGradingOverview(action[NEW_STATE][PROBLEMS]);
         return {
             ...action[NEW_STATE],
+	        "DOC_ID" : Math.floor(Math.random() * 200000000),
             "GRADING_OVERVIEW" : overview,
             APP_MODE : GRADE_ASSIGNMENTS,
         }
@@ -1789,36 +1790,56 @@ function rootReducer(state, action) {
     }
 }
 
-function autoSave() {
-    var appState = store.getState();
+function updateAutoSave(docType, docName, appState) {
     // TODO - validate this against actual saved data on startup
     // or possibly just re-derive it each time?
     var saveIndex = window.localStorage.getItem("save_index");
-    if (!saveIndex) {
-	saveIndex = { "TEACHERS" : {}, "STUDENTS" : {}};
+    console.log(saveIndex);
+    if (saveIndex) {
+        saveIndex = JSON.parse(saveIndex);
     }
+    console.log(saveIndex);
+    var oldDoc = undefined;
+    if (!saveIndex) {
+        saveIndex = { "TEACHERS" : {}, "STUDENTS" : {}};
+    } 
+    if (saveIndex[docType][appState["DOC_ID"]]) {
+        var toDelete = saveIndex[docType][appState["DOC_ID"]];
+    }
+    var doc = JSON.stringify(appState);
+    console.log("autosaving " + docType + " doc: " + doc);
+    // TODO - escape underscores (with double underscore?) in doc name, to allow splitting cleanly
+    // and presenting a better name to users
+    // nvm will just store a key with spaces
+    var dt = new Date();
+    var dateString = dt.getFullYear() + "-" + dt.getMonth() + "-" + dt.getDate() + " " + dt.getHours() + 
+                    ":" + dt.getMinutes() + ":" + dt.getSeconds() + "." + dt.getMilliseconds();
+    var saveKey = "auto save " + docType.toLowerCase() + " " + docName + " " + dateString;
+    window.localStorage.setItem(saveKey, doc);
+    saveIndex[docType][appState["DOC_ID"]] = saveKey;
+    window.localStorage.setItem("save_index", JSON.stringify(saveIndex));
+    if (toDelete != undefined) {
+        window.localStorage.removeItem(toDelete);
+    }
+}
+
+function autoSave() {
+    var appState = store.getState();
 
     if (appState[APP_MODE] == EDIT_ASSIGNMENT) {
         var problems = appState[PROBLEMS];
+        // check for the initial state, do not save this
         if (problems.length == 1) {
             var steps = problems[0][STEPS];
             if (steps.length == 1 && steps[0][CONTENT] == '') {
+                console.log("state was empty");
                 return;
             }
         }
-	if (saveIndex["STUDENTS"][appState["DOC_ID"]]) {
-	    var toDelete = saveIndex["STUDENTS"][appState["DOC_ID"]];
-	}
-        var doc = JSON.stringify(appState);
-        console.log("autosaving student doc: " + doc);
-        // TODO - escape underscores (with double underscore?) in doc name
-        window.localStorage.setItem("autoSave_student_" + appState[ASSIGNMENT_NAME] + "_" + new Date(), doc);
+        updateAutoSave("STUDENTS", appState["ASSIGNMENT_NAME"], appState);
     } else if (appState[APP_MODE] == GRADE_ASSIGNMENTS) {
-        var doc = JSON.stringify(appState);
-        console.log("autosaving teacher grading: " + doc);
-        // TODO - escape underscores (with double underscore?) in doc name
         // TODO - add input for assignment name to teacher page
-        window.localStorage.setItem("autoSave_teacher_" + new Date(), doc);
+        updateAutoSave("TEACHERS", "", appState);
     } else {
         // current other states include mode chooser homepage and view grades "modal"
         return;
@@ -2273,9 +2294,9 @@ var DefaultHomepageActions = React.createClass({
         var recoveredTeacherDocs = [];
         // recovered autoSaved docs
         for (var key in localStorage){
-            if (key.startsWith("autoSave_student")) {
+            if (key.startsWith("auto save students")) {
                 recoveredStudentDocs.push(key);
-            } else if (key.startsWith("autoSave_teacher")) {
+            } else if (key.startsWith("auto save teachers")) {
                 recoveredTeacherDocs.push(key);
             }
         } 
@@ -2302,11 +2323,12 @@ var DefaultHomepageActions = React.createClass({
                                         recoveredStudentDocs.map(function(docName, docIndex) {
                                             return (
                                                 <div><input type="submit" value="open" onClick={function() {recoverAutoSaveCallback(docName)}} />
-                                                {docName.replace("autoSave_student_","")}</div>
+                                                {docName.replace("auto save students ","")}</div>
                                             );
                                         })
                                    : null
                                 }
+                                { (recoveredStudentDocs.length > 0) ? (<p>Recovered assignments stored temporarily in your browser, save to your device as soon as possible</p>) : null }
                         </div>
                         <div style={divStyle}>
                             <h3>Teachers</h3>
@@ -2319,7 +2341,7 @@ var DefaultHomepageActions = React.createClass({
                                     recoveredTeacherDocs.map(function(docName, docIndex) {
                                         return (
                                             <div><input type="submit" value="open" onClick={function() {recoverAutoSaveCallback(docName)}} />
-                                            {docName.replace("autoSave_teacher_","")}</div>
+                                            {docName.replace("auto save teachers ","")}</div>
                                         );
                                     })
                                : null

@@ -372,12 +372,14 @@ var buttonSets = {
     prealgebra: [
         () => [<TeX key="sqrt">{"\\sqrt{x}"}</TeX>, "\\sqrt"],
         // TODO(joel) - how does desmos do this?
+        /*
         () => [
             <TeX key="nthroot">{"\\sqrt[3]{x}"}</TeX>,
             input => {
                 input.typedText("nthroot3");
                 input.keystroke("Right");
             }],
+        */
         /*() => [
             <TeX key="pow" style={slightlyBig}>□^a</TeX>,
             input => {
@@ -426,8 +428,9 @@ var buttonSets = {
         /* TODO - had trouble getting these buttons to produce expressions with mutliple parts, it just inserted the latex text into the box */
         /*() => [<TeX key="dy/dx">{"\\frac{dy}{dx}"}</TeX>, "\\frac {dy}"], */
         () => [<TeX key="prime">'</TeX>, "'"],
+        () => [<TeX key="pi" style={symbStyle}>\pi</TeX>, "\\pi"],
         () => [<TeX key="theta" style={symbStyle}>\theta</TeX>, "\\theta"],
-        () => [<TeX key="pi" style={symbStyle}>\phi</TeX>, "\\phi"]
+        () => [<TeX key="sigma" style={symbStyle}>\phi</TeX>, "\\sigma"]
     ],
 };
 
@@ -1398,6 +1401,7 @@ function saveGradedStudentWork(gradedWork) {
     var content = zip.generate();
     
     location.href="data:application/zip;base64," + content;
+    setTimeout(function() { window.onbeforeunload = function() { return true; }}, 500);
 }
 
 // currently in the student model, the steps associated with a problem
@@ -2161,6 +2165,9 @@ var LogoHomeNav = React.createClass({
                         return; 
                     }
                     store.dispatch({type : "GO_TO_MODE_CHOOSER"});
+
+                    // temporarily disable data loss warning
+                    setTimeout(function() { window.onbeforeunload = null;}, 500);
                 }}
             >
             <h2 style={{"display":"inline","fontFamily":"serif"}}>
@@ -2233,7 +2240,6 @@ var GradingMenuBar = React.createClass({
                         <input type="submit" id="save-graded-assignments" name="save graded" value="save graded" onClick={
                             function() {
                                 saveGradedStudentWork(store.getState());
-                                setTimeout(function() { window.onbeforeunload = function() { return true; }}, 500);
                             }
                         }/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         <input type="submit" id="view-grades" name="view grades" value="view grades" onClick={
@@ -2309,12 +2315,20 @@ var DefaultHomepageActions = React.createClass({
                                 New Assignment &nbsp;&nbsp;&nbsp;
                                 <input type="submit" id="new-assignment" name="New assignment" value="Create" onClick={
                                     function() {
+                                        // turn on confirmation dialog upon navigation away
+                                        window.onbeforeunload = function() {
+                                                return true;
+                                        };
                                         store.dispatch({type : "NEW_ASSIGNMENT"});
                                 }}/><br />
 
                                 Open Assignment &nbsp;&nbsp;&nbsp;
                                 <input type="file" id="open-file-input" onChange={
                                     function(evt) {
+                                        // turn on confirmation dialog upon navigation away
+                                        window.onbeforeunload = function() {
+                                                return true;
+                                        };
                                         readSingleFile(evt, false /* don't warn about data loss */);
                                 }}/> 
                                 { (recoveredStudentDocs.length > 0) ? (<h4>Recovered assignments:</h4>) : null }
@@ -2333,7 +2347,13 @@ var DefaultHomepageActions = React.createClass({
                         <div style={divStyle}>
                             <h3>Teachers</h3>
                             Grade Student Assignments <input type="file" id="open-student-submissions-input" onChange={
-                                function(evt){studentSubmissionsZip(evt);}
+                                function(evt){
+                                    // turn on confirmation dialog upon navigation away
+                                    window.onbeforeunload = function() {
+                                            return true;
+                                    };
+                                    studentSubmissionsZip(evt);
+                                }
                             }/>
                             { (recoveredTeacherDocs.length > 0) ? (<h4>Recovered grading sessions:</h4>) : null }
                             { (recoveredTeacherDocs.length > 0) ?
@@ -2346,6 +2366,8 @@ var DefaultHomepageActions = React.createClass({
                                     })
                                : null
                             }
+                            { (recoveredTeacherDocs.length > 0) ? (<p>Recovered grading sessions stored temporarily in your browser, save to your device as soon as possible</p>) : null }
+                            <p><a href="Archive.zip">Download Example Assignments To Test Grading</a></p>
                         </div>
                     </div>
                 </div>
@@ -2443,19 +2465,7 @@ function render() {
 
 store.subscribe(render);
 $(function() {
-    // turn on confirmation dialog upon navigation away
-    window.onbeforeunload = function() {
-            return true;
-    };
     render();
-    /*
-    if (window.localStorage.getItem("autoSave")) {
-        console.log("restoring");
-        var recovered = JSON.parse(window.localStorage.getItem("autoSave"));
-        console.log(recovered);
-        store.dispatch({"type" : "SET_GLOBAL_STATE", "newState" : recovered });
-    }
-    */
 });
 
 // in the teacher grading experince, student work is grouped by similar final answer

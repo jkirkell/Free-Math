@@ -86,6 +86,8 @@ http://mozilla.org/MPL/2.0/
 <script type="text/javascript" src="katexA11.js"></script>
 <!-- for comparing expressions KAS (Khan algebra system) -->
 <script type="text/javascript" src="kas.js"></script>
+<!-- for diffing JSON structures -->
+<script type="text/javascript" src="diff.js"></script>
 <!-- Katex -->
 <link rel="stylesheet" href="katex.min.css">
 <script src="katex.min.js"></script>
@@ -834,6 +836,8 @@ var ANSWER_CLASSES = "ANSWER_CLASSES";
 var ANSWERS = "ANSWERS";
 var SCORE = "SCORE";
 var FEEDBACK = "FEEDBACK";
+var SIMILAR_ASSIGNMENT_GROUP_INDEX = "SIMILAR_ASSIGNMENT_GROUP_INDEX";
+var SIMILAR_ASSIGNMENT_SETS = "SIMILAR_ASSIGNMENT_SETS";
 
 // teacher grade page model properties
 var SHOW_ALL = "SHOW_ALL";
@@ -845,6 +849,9 @@ var CONTENT = "CONTENT";
 // teacher grading actions
 var HIGHLIGHTING_SUCCESS = 'HIGHLIGHTING_SUCCESS';
 var HIGHLIGHTING_ERROR = 'HIGHLIGHTING_ERROR';
+
+var VIEW_SIMILAR_ASSIGNMENTS = "VIEW_SIMILAR_ASSIGNMENTS";
+// action property declared above: SIMILAR_ASSIGNMENT_GROUP_INDEX 
 
 // action properties
 // PROBLEM_NUMBER, SOLUTION_CLASS_INDEX, SCORE, SOLUTION_INDEX
@@ -1234,6 +1241,10 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
             aggregatedWork[problem[PROBLEM_NUMBER]] = problemSummary;
         });
     });
+    // TODO - need to add this back
+    // TODO - need to think about how this handles outliers that do a wrong problem
+    //        should probably only add these for questions where a majority of students answered a question
+    //        need to give a clear experience for teachers, currently this will throw off score calculation
     /*
     // add blank answers for any students missing problems
     $.each(allStudentWork, function(index, assignInfo) {
@@ -1249,8 +1260,9 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
     });
     */
 
+    var similarAssignments = findSimilarStudentAssignments(allStudentWork);
     return { CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
-    SIMILAR_ASSIGNMENT_SETS : [ ], PROBLEMS : aggregatedWork }
+    SIMILAR_ASSIGNMENT_SETS : similarAssignments, PROBLEMS : aggregatedWork }
 }
 
 // PROBLEMS : { "1.a" : {
@@ -1338,6 +1350,46 @@ function calculateGrades(allProblems) {
         STUDENT_GRADES : overallGrades,
         POSSIBLE_POINTS : totalPossiblePoints
     };
+}
+
+function findSimilarStudentAssignments(allStudentWork) {
+    // 2d array of student names whose docs were similar
+    var allSimilarityGroups = [];
+    // map from student names to hash set with group id's
+    var groupMemberships = {};
+    allStudentWork.forEach(function(assignment1, index, array) {
+        allStudentWork.forEach(function(assignment2, index, array) {
+            if (assignment1[STUDENT_FILE] == assignment2[STUDENT_FILE]) return;
+            var result = JsDiff.diffJson(assignment1, assignment2);
+            //console.log(result.length);
+            // TODO - better threshold
+            //      - need to make sure size of diffs is taken into acount
+            //      - students should match 95% of their assignments exactly and then
+            //        have unique work on 1 or two problem (this currently shows up as
+            //        a bunch of small diffs, and I'm only lookin at number of diffs here)
+            if (result.length < 5) {
+                // is the first assignment matched with at least one similarity group
+                var matchingGroup = groupMemberships[assignment1[STUDENT_FILE]];
+                console.log(groupMemberships);
+                // does assignment 1 already belong to match groups, if so just add
+                // assignment 2 to each of those, TODO - missing a loop?
+                // TODO - need a length here?
+                if (matchingGroup >= 0) {
+                    if (groupMemberships[assignment2[STUDENT_FILE]] >= 0) return;
+                    allSimilarityGroups[matchingGroup].push(assignment2[STUDENT_FILE]);
+                    groupMemberships[assignment2[STUDENT_FILE]] = matchingGroup;
+                } else {
+                    groupMemberships[assignment1[STUDENT_FILE]] = allSimilarityGroups.length;
+                    groupMemberships[assignment2[STUDENT_FILE]] = allSimilarityGroups.length;
+                    allSimilarityGroups.push([assignment1[STUDENT_FILE], assignment2[STUDENT_FILE]]);
+                }
+            }
+            //console.log(result);
+        });
+    });
+    console.log("SIMILAR ASSIGNMENTS+++++++++++++++++++");
+    console.log(allSimilarityGroups);
+    return allSimilarityGroups;
 }
 
 function calculateGradingOverview(allProblems) {
@@ -2002,10 +2054,36 @@ var TeacherInteractiveGrader = React.createClass({
         //        problems in order?
         
         var problems = store.getState()[PROBLEMS];
+        var similarAssignments = store.getState()[SIMILAR_ASSIGNMENT_SETS];
+
+            //var similarAssignmentGroup = $("<p>A group of " + similarityGroup.length + " assignments had similar work &nbsp;</p>");
+            //var viewButton = $('<input type="submit" value="View"/>');
         return (
             <div> 
                 {/* TODO - finish option to grade anonymously <TeacherGraderFilters value={this.props.value}/> */}
                 {/* TODO - finish adding graph for this data <p>{JSON.stringify(store.getState()["GRADING_OVERVIEW"])}</p> */}
+                { (similarAssignments && similarAssignments.length > 0) ? (
+                    <div className="similar-assignment-filters"><h3>Some students may have copied each others work.</h3>
+                    {
+                        var similarityGroups = [];
+                        similarAssignments.forEach(function(similarityGroup, index, array) {
+                            problemGraders.push( 
+                                (
+                                    <p>A group of " + similarityGroup.length + " assignments had similar work &nbsp;</p>
+                                    <input type="submit" value="View" onclick={
+                                        function(evt) {
+                                            store.dispatch({action : VIEW_SIMILAR_ASSIGNMENTS, SIMILAR_ASSIGNMENT_GROUP_INDEX : index});
+                                        }
+                                    }/>
+                                )
+                            );
+                        }
+                    }
+                    </div>
+                    )
+                   : null
+                }
+            
                 {
                     function() { 
                         var problemGraders = [];

@@ -2198,9 +2198,6 @@ var SolutionGrader = React.createClass({
                           /> out of {possiblePoints} 
                         <input type="submit" name="apply score to all" value="apply score to all" onClick={this.applyScoreToAll}/>
                 </p>
-                <input type="submit" name="highlight errors" value="highlight errors"/>
-                <input type="submit" name="highlight successes" value="highlight successes"/>
-                <input type="submit" name="clear highlights" value="clear hightlights"/>
                 <p>Feedback</p><div><textarea width="30" height="8" onChange={this.setFeedback}
                         value={feedback}></textarea></div>
                 <div style={{float:"left"}} className="equation-list">

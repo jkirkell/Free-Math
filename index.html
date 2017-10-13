@@ -1970,7 +1970,8 @@ var Problem = React.createClass({
                             }
                             return (
                             <MathInput key={stepIndex} buttonsVisible='focused' highlight={highlight}
-                                       buttonSets={['trig', 'prealgebra', 'logarithms', 'calculus']} stepIndex={stepIndex} problemIndex={problemIndex} value={step[CONTENT]}/>
+                                       buttonSets={['trig', 'prealgebra', 'logarithms', 'calculus']} stepIndex={stepIndex}
+                                       problemIndex={problemIndex} value={step[CONTENT]}/>
                             );
                         })}
                     </div>
@@ -2400,6 +2401,10 @@ var DefaultHomepageActions = React.createClass({
         };
 
         var recoverAutoSaveCallback = function(docName) {
+            // turn on confirmation dialog upon navigation away
+            window.onbeforeunload = function() {
+                    return true;
+            };
             var recovered = JSON.parse(window.localStorage.getItem(docName));
             //console.log(recovered);
             store.dispatch({"type" : "SET_GLOBAL_STATE", "newState" : recovered });

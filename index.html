@@ -847,9 +847,6 @@ var ANSWER = "ANSWER";
 var CONTENT = "CONTENT";
 
 // teacher grading actions
-var HIGHLIGHTING_SUCCESS = 'HIGHLIGHTING_SUCCESS';
-var HIGHLIGHTING_ERROR = 'HIGHLIGHTING_ERROR';
-
 var VIEW_SIMILAR_ASSIGNMENTS = "VIEW_SIMILAR_ASSIGNMENTS";
 // action property declared above: SIMILAR_ASSIGNMENT_GROUP_INDEX 
 
@@ -1767,14 +1764,19 @@ function grading(state, action) {
                       SCORE : 0, FEEDBACK : "",
                       STEPS : [ { CONTENT : "5x=10"},{ CONTENT : "x=-2"} ] } ] } ]
             } }
-            };
+        };
         alert("Defualt state has not been defined for teacher grading experience");
-        } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS ||
-               action.type === EDIT_POSSIBLE_POINTS || 
-               action.type === GRADE_CLASS_OF_SOLUTIONS ||
-               action.type === GRADE_SINGLE_SOLUTION || 
-               action.type === SET_PROBLEM_FEEDBACK
-        ) {
+    } else if (action.type == VIEW_SIMILAR_ASSIGNMENTS) {
+        return {
+            ...state,
+            SIMILAR_ASSIGNMENT_GROUP_INDEX : action[SIMILAR_ASSIGNMENT_GROUP_INDEX]
+        }
+    } else if (action.type === SET_PROBLEM_POSSIBLE_POINTS ||
+           action.type === EDIT_POSSIBLE_POINTS || 
+           action.type === GRADE_CLASS_OF_SOLUTIONS ||
+           action.type === GRADE_SINGLE_SOLUTION || 
+           action.type === SET_PROBLEM_FEEDBACK
+    ) {
         return {
             ...state,
             PROBLEMS : {
@@ -1939,7 +1941,7 @@ var Problem = React.createClass({
                         Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number" onChange={
                         function(evt) { store.dispatch({ type : SET_PROBLEM_NUMBER, PROBLEM_INDEX : problemIndex, 
                                         NEW_PROBLEM_NUMBER : evt.target.value}) }}/> &nbsp;&nbsp;&nbsp;
-                        <input type="submit" className="next-step" name="next step" value="Clone Problem" 
+                        <input type="submit" value="Clone Problem" 
                                         title="Make a copy of this work, useful if you need to reference it while trying another solution path." onClick={
                         function() { store.dispatch({ type : CLONE_PROBLEM, PROBLEM_INDEX : problemIndex}) }}/>&nbsp;&nbsp;&nbsp;
                         <input type="submit" value="x" title="Delete problem" onClick={
@@ -1948,11 +1950,11 @@ var Problem = React.createClass({
                     </div>
                     <div style={{float:'left'}}>
                         <p> Actions </p>
-                        <input type="submit" className="next-step" name="next step" value="next step (enter)" onClick={
+                        <input type="submit" name="next step" value="Next step (Enter)" onClick={
                             function() { store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
-                        <input type="submit" className="undo-step" name="undo step" value="undo step (ctrl-z)" onClick={
+                        <input type="submit" name="undo step" value="Undo step" onClick={
                             function() { store.dispatch({ type : UNDO_STEP, PROBLEM_INDEX : problemIndex}) }}/> <br/>
-                        <input type="submit" className="redo-step" name="redo step" value="redo step (ctrl-shift-z)" onClick={
+                        <input type="submit" name="redo step" value="Redo step" onClick={
                             function() { store.dispatch({ type : REDO_STEP, PROBLEM_INDEX : problemIndex}) }}/>
                     </div>
                         <div style={{float:'left'}} className="equation-list">
@@ -2015,6 +2017,7 @@ var Assignment = React.createClass({
 var ProblemGrader = React.createClass({
     render: function() {
         var problemNumber = this.props.problemNumber;
+        var studentsToView = this.props.studentsToView;
         var problemInfo = this.props.problemInfo;
         var possiblePoints = problemInfo[POSSIBLE_POINTS];
         var totalIncorrect = "TODO";
@@ -2038,7 +2041,8 @@ var ProblemGrader = React.createClass({
                         return (
                             <SolutionClassGrader solutionClassInfo={solutionClassInfo} key={solutionClassIndex}
                                                  solutionClassIndex={solutionClassIndex} problemNumber={problemNumber} 
-                                                 possiblePoints={oldPossiblePoints}/>
+                                                 possiblePoints={oldPossiblePoints} studentsToView={studentsToView}/>
+
                         );
                     }) 
                 }
@@ -2055,29 +2059,44 @@ var TeacherInteractiveGrader = React.createClass({
         
         var problems = store.getState()[PROBLEMS];
         var similarAssignments = store.getState()[SIMILAR_ASSIGNMENT_SETS];
+        var currentSimilarityGroupIndex = store.getState()[SIMILAR_ASSIGNMENT_GROUP_INDEX];
 
-            //var similarAssignmentGroup = $("<p>A group of " + similarityGroup.length + " assignments had similar work &nbsp;</p>");
-            //var viewButton = $('<input type="submit" value="View"/>');
         return (
             <div> 
                 {/* TODO - finish option to grade anonymously <TeacherGraderFilters value={this.props.value}/> */}
                 {/* TODO - finish adding graph for this data <p>{JSON.stringify(store.getState()["GRADING_OVERVIEW"])}</p> */}
                 { (similarAssignments && similarAssignments.length > 0) ? (
                     <div className="similar-assignment-filters"><h3>Some students may have copied each others work.</h3>
+                    {   (typeof(currentSimilarityGroupIndex) != "undefined" && currentSimilarityGroupIndex != null) ? 
+                            (<p> Currently viewing a group of similar assignments, back to grading full class: <input type="submit" value="View All" onClick={
+                                function(evt) {
+                                    store.dispatch({type : VIEW_SIMILAR_ASSIGNMENTS, SIMILAR_ASSIGNMENT_GROUP_INDEX : undefined});
+                                }
+                            }/></p>)
+                        : null
+                    }
                     {
-                        var similarityGroups = [];
-                        similarAssignments.forEach(function(similarityGroup, index, array) {
-                            problemGraders.push( 
-                                (
-                                    <p>A group of " + similarityGroup.length + " assignments had similar work &nbsp;</p>
-                                    <input type="submit" value="View" onclick={
-                                        function(evt) {
-                                            store.dispatch({action : VIEW_SIMILAR_ASSIGNMENTS, SIMILAR_ASSIGNMENT_GROUP_INDEX : index});
+                        function() {
+                            var similarityGroups = [];
+                            similarAssignments.forEach(function(similarityGroup, index, array) {
+                                similarityGroups.push( 
+                                    (
+                                        <p>
+                                        { (index == currentSimilarityGroupIndex) ? 
+                                            (<b>A group of  {similarityGroup.length} students submitted similar assignments &nbsp;</b>)
+                                           : (<span>A group of  {similarityGroup.length} students submitted similar assignments &nbsp;</span>)
                                         }
-                                    }/>
-                                )
-                            );
-                        }
+                                        <input type="submit" value="View" onClick={
+                                            function(evt) {
+                                                store.dispatch({type : VIEW_SIMILAR_ASSIGNMENTS, SIMILAR_ASSIGNMENT_GROUP_INDEX : index});
+                                            }
+                                        }/>
+                                        </p>
+                                    )
+                                );
+                            });
+                            return similarityGroups;
+                        }()
                     }
                     </div>
                     )
@@ -2090,7 +2109,8 @@ var TeacherInteractiveGrader = React.createClass({
                         for (var property in problems) {
                             if (problems.hasOwnProperty(property)) {
                                 problemGraders.push( 
-                                    (<ProblemGrader problemInfo={problems[property]} problemNumber={property}/> ));
+                                    (<ProblemGrader problemInfo={problems[property]} problemNumber={property}
+                                        studentsToView={similarAssignments[currentSimilarityGroupIndex]}/> ));
                             }
                         }
                         return problemGraders;
@@ -2105,6 +2125,7 @@ var SolutionClassGrader = React.createClass({
     render: function() {
         // TODO - finish
         var data = this.props.solutionClassInfo;
+        var studentsToView = this.props.studentsToView;
         // TODO - finish
         var solutionClassIndex = this.props.solutionClassIndex;
         var problemNumber = this.props.problemNumber;
@@ -2120,19 +2141,34 @@ var SolutionClassGrader = React.createClass({
         if (studentFinalAnswer === 'unanswered') {
            message = 'with the question '; 
         }
+        // due to filtering there may be no answers showing in this group, in this case render nothing
+        // not even the header
+        var anyAnswersShowing = false;
+        data[STUDENT_WORK].map(function(studentSolution, studentSolutionIndex) {
+            if (studentsToView == undefined || !studentsToView || studentsToView.includes(studentSolution[STUDENT_FILE])) {
+                anyAnswersShowing = true;
+            }
+        });
         return (
-            <div className="similar-student-answers" style={{float:"none",overflow:"hidden"}} >
+            <div>
+            { !anyAnswersShowing ? null :
+            (<div className="similar-student-answers" style={{float:"none",overflow:"hidden"}} >
                 {/*<input type="submit" className="show-all-common-answers" name="show all" value="show all"/>*/}
                 {/*<input type="submit" className="hide-all-common-answers" name="hide all" value="hide all"/>*/}
                 <p> {studentCount}{message}</p>
                 <TeX>{studentFinalAnswer}</TeX>
                 {
                     data[STUDENT_WORK].map(function(studentSolution, studentSolutionIndex) {
-                        return (
-                            <SolutionGrader solutionGradeInfo={studentSolution} problemNumber={problemNumber} possiblePoints={possiblePoints}
-                                            key={studentSolutionIndex} id={studentSolutionIndex} solutionClassIndex={solutionClassIndex}/>
-                    );
-                })}
+                        if (studentsToView == undefined || !studentsToView || studentsToView.includes(studentSolution[STUDENT_FILE])) {
+                            return (<SolutionGrader solutionGradeInfo={studentSolution} problemNumber={problemNumber} possiblePoints={possiblePoints}
+                                                key={studentSolutionIndex} id={studentSolutionIndex} solutionClassIndex={solutionClassIndex}/>)
+                        } else {
+                            return null;
+                        }
+                    })
+                }
+            </div>)
+            }
             </div>
         );
     }
@@ -2482,7 +2518,7 @@ var FreeMath = React.createClass({
         );
     } else if (this.props.value[APP_MODE] === GRADE_ASSIGNMENTS) {
         return (
-            <div style={{...wrapperDivStyle, width : "90%" }}>
+            <div style={{...wrapperDivStyle, width : "95%" }}>
                 <GradingMenuBar />
                 <TeacherInteractiveGrader value={this.props.value}/>
             </div>

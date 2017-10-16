@@ -1240,6 +1240,14 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
             aggregatedWork[problem[PROBLEM_NUMBER]] = problemSummary;
         });
     });
+    for (var problemNumber in aggregatedWork) {
+        if (aggregatedWork.hasOwnProperty(problemNumber)) {
+            var uniqueAnswers = aggregatedWork[problemNumber][UNIQUE_ANSWERS];
+            uniqueAnswers.forEach(function(uniqueAnswer, index, arr) {
+                uniqueAnswer[STUDENT_WORK].sort(function(a,b) { return a[LAST_SHOWN_STEP] - b[LAST_SHOWN_STEP]; });
+            });
+        }
+    }
     // TODO - need to add this back
     // TODO - need to think about how this handles outliers that do a wrong problem
     //        should probably only add these for questions where a majority of students answered a question

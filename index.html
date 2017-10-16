@@ -2203,7 +2203,6 @@ var SolutionClassGrader = React.createClass({
 
 var SolutionGrader = React.createClass({
     setScore: function(evt) {
-
         var problemNumber = this.props.problemNumber
         var solutionClassIndex = this.props.solutionClassIndex;
         var studentSolutionIndex = this.props.id;
@@ -2223,6 +2222,13 @@ var SolutionGrader = React.createClass({
         var studentSolutionIndex = this.props.id;
         store.dispatch({ type : SET_PROBLEM_FEEDBACK, PROBLEM_NUMBER : problemNumber,
                          SOLUTION_CLASS_INDEX : solutionClassIndex, FEEDBACK : evt.target.value, SOLUTION_INDEX : studentSolutionIndex});
+    },
+    setQuickFeedback: function(text) {
+        var problemNumber = this.props.problemNumber
+        var solutionClassIndex = this.props.solutionClassIndex;
+        var studentSolutionIndex = this.props.id;
+        store.dispatch({ type : SET_PROBLEM_FEEDBACK, PROBLEM_NUMBER : problemNumber,
+                         SOLUTION_CLASS_INDEX : solutionClassIndex, FEEDBACK : text, SOLUTION_INDEX : studentSolutionIndex});
     },
     render: function() {
         var data = this.props.solutionGradeInfo;
@@ -2266,8 +2272,13 @@ var SolutionGrader = React.createClass({
                           /> out of {possiblePoints} 
                         <input type="submit" name="apply score to all" value="apply score to all ungraded" onClick={this.applyScoreToAll}/>
                 </p>
-                <p>Feedback</p><div><textarea width="30" height="8" onChange={this.setFeedback}
-                        value={feedback}></textarea></div>
+                <p>Feedback &nbsp; &nbsp;
+                <input type="submit" value="Show work" onClick={function() {this.setQuickFeedback("Show your complete work.");}.bind(this)}/>
+                <input type="submit" value="Simple mistake" onClick={function() {this.setQuickFeedback("Review your work for a simple mistake.")}.bind(this)}/>
+                </p>
+
+                <div><textarea width="30" height="8" onChange={this.setFeedback} value={feedback}></textarea>
+                </div>
                 <div style={{float:"left"}} className="equation-list">
                     <br/>
                     {

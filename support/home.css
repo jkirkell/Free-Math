@@ -129,6 +129,12 @@ div.answer-incorrect {
     background-color:#FFDEDE;
 }
 
+div.answer-complete {
+    border-radius: 2px;
+    border:1px solid #747474;
+    background-color:#DEDEDE;
+}
+
 .error-highlight{
     background-color:#FF99CC;
 }

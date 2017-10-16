@@ -1162,11 +1162,13 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
     allStudentWork.forEach(function(assignInfo, index, array) {
         assignInfo[ASSIGNMENT].forEach(function(problem, index, array) {
             var studentAnswer = problem[STEPS][problem[LAST_SHOWN_STEP]][CONTENT];
-            var automaticallyAssignedGrade = 0;
+            // TODO - consider if empty string is the best way to indicate "not yet graded"/complete
+            var automaticallyAssignedGrade = "";
             if (!$.isEmptyObject(answerKey)) {
                 // this problem did not appear in the answer key
                 if (!answerKey[problem[PROBLEM_NUMBER]]) {
-                    automaticallyAssignedGrade = 0;
+                    // TODO - consider if empty string is the best way to indicate "not yet graded"/complete
+                    automaticallyAssignedGrade = "";
                 } else {
                     automaticallyAssignedGrade = gradeSingleProblem(problem, answerKey);
                 }
@@ -1336,7 +1338,12 @@ function calculateGrades(allProblems) {
                     var studentAssignmentName = singleSolution[STUDENT_FILE];
                     var runningScore = overallGrades[studentAssignmentName];
                     runningScore = (typeof runningScore != 'undefined') ? runningScore : 0;
-                    runningScore += Number(singleSolution[SCORE]);
+                    // empty string is considered ungraded, which defaults to "complete" and full credit
+                    if (singleSolution[SCORE] == "") {
+                        runningScore += possiblePoints;
+                    } else {
+                        runningScore += Number(singleSolution[SCORE]);
+                    }
                     overallGrades[studentAssignmentName] = runningScore;
                 });
             });
@@ -1674,6 +1681,10 @@ function solutionClassReducer(state, action) {
             action.type = GRADE_SINGLE_SOLUTION;
         }
         workInGivenSolutionClass.forEach(function(singleStudentsWork, index, arr) {
+            if (singleStudentsWork[SCORE] !== "") {
+                return;
+                //workInGivenSolutionClass[index] = singleStudentsWork;
+            }
             workInGivenSolutionClass[index] = singleSolutionReducer(singleStudentsWork, action);
         });
         return { 
@@ -2220,8 +2231,12 @@ var SolutionGrader = React.createClass({
         var score = Number(data[SCORE]);
         var feedback = data[FEEDBACK];
         // TODO - replace with classNames library - https://github.com/JedWatson/classnames
+        // or computed inline styles, sharing through explicit imports/passing down
         var possiblePointsNum = Number(possiblePoints);
-        if (score == 0) {
+        // TODO - consider if empty string is the best way to convey "not yet scored"/complete
+        if (data[SCORE] === "") {
+            correctness = "answer-complete";
+        } else if (score == 0) {
             correctness = "answer-incorrect";
         } else if (score >= possiblePointsNum) {
             correctness = "answer-correct";
@@ -2232,6 +2247,7 @@ var SolutionGrader = React.createClass({
         var studentAnswerStepStyle = [{":hover" : {backgroundColor : SOFT_RED}}];
         return (
             <div className={classes} style={{float:"left"}}> {/*<!-- container for nav an equation list --> */}
+                { data[SCORE] === "" ? (<div><span style={{color:"#545454"}}>Complete - Full Credit</span></div>) : null }
                 <p className="student-name-label"> {showStudentName ? data[STUDENT_FILE] : "" }</p>
                 {/* TODO - I need teachers to be able to edit the score, including deleting down to empty string, so they
                            can write a new score. If I add validation when setting the value in the reducer the field won't be editable.
@@ -2240,7 +2256,7 @@ var SolutionGrader = React.createClass({
                 */}
                 <p>Score <input type="text" className="problem-grade-input" value={data[SCORE]} onChange={this.setScore}
                           /> out of {possiblePoints} 
-                        <input type="submit" name="apply score to all" value="apply score to all" onClick={this.applyScoreToAll}/>
+                        <input type="submit" name="apply score to all" value="apply score to all ungraded" onClick={this.applyScoreToAll}/>
                 </p>
                 <p>Feedback</p><div><textarea width="30" height="8" onChange={this.setFeedback}
                         value={feedback}></textarea></div>

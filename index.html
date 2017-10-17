@@ -856,6 +856,11 @@ var GRADE_SINGLE_SOLUTION = "GRADE_SINGLE_SOLUTION";
 // action properties
 // PROBLEM_NUMBER, SOLUTION_CLASS_INDEX, SCORE 
 var GRADE_CLASS_OF_SOLUTIONS = "GRADE_CLASS_OF_SOLUTIONS";
+// action properties: MODE (JUST_UNGRADED | ALL)
+var MODE = "MODE";
+var JUST_UNGRADED = "JUST_UNGRADED" 
+var ALL = "ALL";
+
 var SOLUTION_CLASS_INDEX = "SOLUTION_CLASS_INDEX";
 var SET_PROBLEM_FEEDBACK = "SET_PROBLEM_FEEDBACK";
 var HIDE_CLASS_OF_SOLUTIONS = "HIDE_CLASS_OF_SOLUTIONS";
@@ -1689,9 +1694,8 @@ function solutionClassReducer(state, action) {
             action.type = GRADE_SINGLE_SOLUTION;
         }
         workInGivenSolutionClass.forEach(function(singleStudentsWork, index, arr) {
-            if (singleStudentsWork[SCORE] !== "") {
+            if (action[MODE] === JUST_UNGRADED && singleStudentsWork[SCORE] !== "") {
                 return;
-                //workInGivenSolutionClass[index] = singleStudentsWork;
             }
             workInGivenSolutionClass[index] = singleSolutionReducer(singleStudentsWork, action);
         });
@@ -2209,11 +2213,35 @@ var SolutionGrader = React.createClass({
         store.dispatch({ type : GRADE_SINGLE_SOLUTION, PROBLEM_NUMBER : problemNumber,
                          SOLUTION_CLASS_INDEX : solutionClassIndex, SCORE : evt.target.value, SOLUTION_INDEX : studentSolutionIndex});
     },
+    fullPoints: function(evt) {
+        var problemNumber = this.props.problemNumber
+        var solutionClassIndex = this.props.solutionClassIndex;
+        var studentSolutionIndex = this.props.id;
+        store.dispatch({ type : GRADE_SINGLE_SOLUTION, PROBLEM_NUMBER : problemNumber,
+                         SOLUTION_CLASS_INDEX : solutionClassIndex, SCORE : this.props.possiblePoints, SOLUTION_INDEX : studentSolutionIndex});
+    },
     applyScoreToAll: function(evt) {
         var data = this.props.solutionGradeInfo;
         var problemNumber = this.props.problemNumber;
         var solutionClassIndex = this.props.solutionClassIndex;
-        store.dispatch({ type : GRADE_CLASS_OF_SOLUTIONS, PROBLEM_NUMBER : problemNumber,
+        // TODO - check if any unique grades have been applied to student solutions other than this one in
+        // this solution class
+        // if not, just send the action through, otherwise prompt a warning about losing grades
+        // this is to prevent loss of work if a teacher already gave specific grades to a
+        // few students, it is necessary to have this feature to allow re-grading a whole group
+        // which is not possible with "apply to ungraded"
+        // TODO - inside of this component I shouldn't really know about all of the other solutions
+        // in this group, as this is just rendering a single problems grader. Could pass down callback
+        // that doesn't expose the data completely but just allows this check to be made
+
+        store.dispatch({ type : GRADE_CLASS_OF_SOLUTIONS, MODE : ALL, PROBLEM_NUMBER : problemNumber,
+                         SOLUTION_CLASS_INDEX : solutionClassIndex, SCORE : data[SCORE]});
+    },
+    applyScoreToUngraded: function(evt) {
+        var data = this.props.solutionGradeInfo;
+        var problemNumber = this.props.problemNumber;
+        var solutionClassIndex = this.props.solutionClassIndex;
+        store.dispatch({ type : GRADE_CLASS_OF_SOLUTIONS, MODE : JUST_UNGRADED, PROBLEM_NUMBER : problemNumber,
                          SOLUTION_CLASS_INDEX : solutionClassIndex, SCORE : data[SCORE]});
     },
     setFeedback: function(evt) {
@@ -2270,11 +2298,14 @@ var SolutionGrader = React.createClass({
                 */}
                 <p>Score <input type="text" className="problem-grade-input" value={data[SCORE]} onChange={this.setScore}
                           /> out of {possiblePoints} 
-                        <input type="submit" name="apply score to all" value="apply score to all ungraded" onClick={this.applyScoreToAll}/>
+                        <input type="submit" value="Full points" onClick={this.fullPoints}/>
+                        <input type="submit" name="apply score to all" value="Apply to ungraded" onClick={this.applyScoreToUngraded}/>
+                        <input type="submit" name="apply score to all" value="Apply to all" onClick={this.applyScoreToAll}/>
                 </p>
                 <p>Feedback &nbsp; &nbsp;
                 <input type="submit" value="Show work" onClick={function() {this.setQuickFeedback("Show your complete work.");}.bind(this)}/>
                 <input type="submit" value="Simple mistake" onClick={function() {this.setQuickFeedback("Review your work for a simple mistake.")}.bind(this)}/>
+                <input type="submit" value="Let's talk" onClick={function() {this.setQuickFeedback("Let's chat about this next class.");}.bind(this)}/>
                 </p>
 
                 <div><textarea width="30" height="8" onChange={this.setFeedback} value={feedback}></textarea>

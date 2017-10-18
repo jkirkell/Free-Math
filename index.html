@@ -529,7 +529,7 @@ var MathInput = React.createClass({
             colorCss = {backgroundColor : GREEN };
         }
         return <div>
-            <div style={{...colorCss, display: 'inline-block'}}>
+            <div style={{...colorCss, display: 'inline-block', float: 'left'}}>
                 <span className={className}
                       ref="mathinput"
                       aria-label={this.props.labelText}
@@ -707,9 +707,7 @@ var MathInput = React.createClass({
                     }
 
                     if (initialized && this.props.value !== value) {
-                        //this.props.onChange(value);
-                        store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : this.props.problemIndex, 
-                                         STEP_KEY : this.props.stepIndex, NEW_STEP_CONTENT : value});
+                        this.props.onChange(value);
                     }
                 },
                 enter: () => {
@@ -718,7 +716,7 @@ var MathInput = React.createClass({
                     // to manually trigger the usually automatic form submit.
 
                     // Using enter for go to next step
-                    store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : this.props.problemIndex});
+					this.props.onEnterPressed();
 
                     //$(ReactDOM.findDOMNode(this.refs.mathinput)).submit();
                 },
@@ -929,6 +927,9 @@ var EDIT_STEP = 'EDIT_STEP';
 // a new step partway through a current problem
 // this action expects an index for which problem to change
 var NEW_STEP = 'NEW_STEP';
+var REMOVE_STEP = 'REMOVE_STEP';
+var NEW_BLANK_STEP = 'NEW_BLANK_STEP';
+
 // this action expects an index for which problem to change
 var UNDO_STEP = 'UNDO_STEP';
 // this action expects an index for which problem to change
@@ -2033,10 +2034,21 @@ var Problem = React.createClass({
                                 highlight = 'red';
                             }
                             return (
-                            <MathInput key={stepIndex} buttonsVisible='focused' highlight={highlight}
-                                       buttonSets={['trig', 'prealgebra', 'logarithms', 'calculus']} stepIndex={stepIndex}
-                                       problemIndex={problemIndex} value={step[CONTENT]}/>
-                            );
+							<div key={stepIndex + ' ' + step[CONTENT]} style={{float:"none"}}>
+							<div>
+                            <MathInput buttonsVisible='focused' highlight={highlight}
+                                       buttonSets={['trig', 'prealgebra', 'logarithms', 'calculus']} value={step[CONTENT]}
+									   onChange={function(){
+											store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : problemIndex, 
+															 STEP_KEY : stepIndex, NEW_STEP_CONTENT : value});}}
+										onEnterPressed={function(){
+                    						store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : problemIndex});
+										}}/>
+							</div>
+                        	<input type="submit" value="x" onClick={
+                            	function() { store.dispatch({ type : REMOVE_STEP, PROBLEM_INDEX : problemIndex, 
+															 STEP_KEY : stepIndex}) }}/>
+                            </div>);
                         })}
                     </div>
                 </div>

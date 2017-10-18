@@ -297,9 +297,8 @@ const TeX = React.createClass({
             }
         }
 
-        var studentAnswerStepStyle = {":hover" : {backgroundColor : SOFT_RED}};
         return <div onClick={this.props.onClick}>
-            <div style={{":hover" : {backgroundColor : SOFT_RED}, 'display' : 'inline-block'}}>
+            <div style={{...this.props.style, display : "inline-block",padding: "3px 3px 3px 3px"}}>
             <span ref="mathjax" />
             <span
                 ref="katex"
@@ -863,6 +862,10 @@ var MODE = "MODE";
 var JUST_UNGRADED = "JUST_UNGRADED" 
 var ALL = "ALL";
 
+var HIGHLIGHT_STEP = 'HIGHLIGHT_STEP';
+var HIGHLIGHT_TYPE = 'HIGHLIGHT_TYPE';
+// HIGHLIGHT_TYPE : (ERROR | SUCCESS)
+
 var SOLUTION_CLASS_INDEX = "SOLUTION_CLASS_INDEX";
 var SET_PROBLEM_FEEDBACK = "SET_PROBLEM_FEEDBACK";
 var HIDE_CLASS_OF_SOLUTIONS = "HIDE_CLASS_OF_SOLUTIONS";
@@ -934,7 +937,7 @@ var REDO_STEP = 'REDO_STEP';
 // CSS constants
 var SOFT_RED = '#FFDEDE';
 var RED = '#FF99CC';
-var GREEN = '#99FFBB';
+var GREEN = '#2cff72';
 var YELLOW = '#FFFDBF';
 
 // open zip file full of student assignments for grading
@@ -1511,16 +1514,16 @@ function readSingleFile(evt, discardDataWarning) {
     }
 }
 
+// TODO - consider giving legacy docs an ID upon opening, allows auto-save to work properly when
+// opening older docs
 function openAssignment(serializedDoc, filename, discardDataWarning) {
     // this is now handled at a higher level, this is mostly triggered by onChange events of "file" input elements
     // if the user selects "cancel", I want them to be able to try re-opening again. If they pick the same file I
     // won't get on onChange event without resetting the value, and here I don't have a reference to the DOM element
     // to reset its value
-    /*
-    if (discardDataWarning && !window.confirm("Discard your current work and open the selected document?")) { 
-        return; 
-    }
-    */
+    //if (discardDataWarning && !window.confirm("Discard your current work and open the selected document?")) { 
+    //    return; 
+    //}
 
     var newDoc = JSON.parse(serializedDoc);
     // compatibility for old files, need to convert the old proerty names as
@@ -1670,6 +1673,24 @@ function singleSolutionReducer(state, action) {
         // currently no validation here
         return { ...state,
         SCORE : action[SCORE] };
+	} else if (action.type === HIGHLIGHT_STEP) {
+		var oldHighlight = state[STEPS][action[STEP_KEY]][HIGHLIGHT];
+		var newHighlight;
+		if (oldHighlight == undefined)
+			newHighlight = ERROR;
+		else if (oldHighlight == ERROR)
+			newHighlight = SUCCESS;
+		else if (oldHighlight == SUCCESS)
+			newHighlight = undefined;
+
+		var newState = { ...state,
+			STEPS : [
+				...state[STEPS].slice(0, action[STEP_KEY]),
+				{ ...state[STEPS][action[STEP_KEY]], HIGHLIGHT : newHighlight},
+				...state[STEPS].slice(action[STEP_KEY] + 1)
+			]
+		};
+		return newState;
     } else if (action.type === SET_PROBLEM_FEEDBACK) {
         console.log("set feedback");
         return { ...state,
@@ -1706,7 +1727,8 @@ function solutionClassReducer(state, action) {
             STUDENT_WORK : workInGivenSolutionClass
         };
     } else if (action.type === GRADE_SINGLE_SOLUTION ||
-               action.type === SET_PROBLEM_FEEDBACK
+               action.type === SET_PROBLEM_FEEDBACK ||
+			   action.type === HIGHLIGHT_STEP
         ) {
         return { 
             ...state,
@@ -1724,6 +1746,7 @@ function solutionClassReducer(state, action) {
 function problemGraderReducer(state, action) {
     if (action.type === GRADE_CLASS_OF_SOLUTIONS ||
         action.type === GRADE_SINGLE_SOLUTION ||
+		action.type === HIGHLIGHT_STEP ||
         action.type === SET_PROBLEM_FEEDBACK ) {
         return { 
             ...state,
@@ -1800,6 +1823,7 @@ function grading(state, action) {
            action.type === EDIT_POSSIBLE_POINTS || 
            action.type === GRADE_CLASS_OF_SOLUTIONS ||
            action.type === GRADE_SINGLE_SOLUTION || 
+           action.type === HIGHLIGHT_STEP || 
            action.type === SET_PROBLEM_FEEDBACK
     ) {
         // check if the value in the possible points input is a valid number
@@ -1847,9 +1871,12 @@ function rootReducer(state, action) {
             APP_MODE : GRADE_ASSIGNMENTS,
         }
     } else if (action.type === SET_ASSIGNMENT_CONTENT) {
+		// TODO - consider serializing DOC_ID and other future top level attributes into file
+		// for now this prevents all opened docs from clobbering other suto-saves
         return {
             APP_MODE : EDIT_ASSIGNMENT,
-            PROBLEMS : action.PROBLEMS
+            PROBLEMS : action.PROBLEMS,
+	        "DOC_ID" : Math.floor(Math.random() * 200000000)
         };
     } else if (action.type === SET_TO_VIEW_GRADES) {
         // TODO - only allow this to be transitioned to from grading mode
@@ -2337,7 +2364,6 @@ var SolutionGrader = React.createClass({
             correctness = "answer-partially-correct";
         }
         var classes = "student-work " + correctness;
-        var studentAnswerStepStyle = [{":hover" : {backgroundColor : SOFT_RED}}];
         return (
             <div className={classes} style={{float:"left"}}> {/*<!-- container for nav an equation list --> */}
                 { data[SCORE] === "" ? (<div><span style={{color:"#545454"}}>Complete - Full Credit</span></div>) : null }
@@ -2367,10 +2393,18 @@ var SolutionGrader = React.createClass({
                     <br/>
                     {
                         data[STEPS].map(function(step, stepIndex) {
+        				var stepStyle = {};
+						if (step[HIGHLIGHT] == ERROR) stepStyle = {backgroundColor : RED}
+						else if (step[HIGHLIGHT] == SUCCESS) stepStyle = {backgroundColor : GREEN}
+
                         return (
-                            <div key={stepIndex}>
-                                {/*<TeX style={studentAnswerStepStyle}>{step[CONTENT]}</TeX> <br/><br/>*/}
-                                <TeX style={studentAnswerStepStyle}>{step[CONTENT]}</TeX> <br/><br/>
+                            <div key={stepIndex + ' ' + step[HIGHLIGHT]}>
+                                <TeX style={stepStyle} onClick={function() {
+									store.dispatch({ type : HIGHLIGHT_STEP, PROBLEM_NUMBER : problemNumber,
+													SOLUTION_CLASS_INDEX : solutionClassIndex,
+													SOLUTION_INDEX : studentSolutionIndex,
+													STEP_KEY : stepIndex});
+        							}}>{step[CONTENT]}</TeX> <br/><br/>
                             </div>
                         );
                     })}

@@ -62,6 +62,8 @@ http://mozilla.org/MPL/2.0/
 <!-- testing -->
 <script src="expect.min.js"></script>
 
+<script src="chartjs_2_7_0_bundle.min.js"></script>
+
 <!-- UI react-->
 <script src="test/react/build/react.js"></script>
 <script src="test/react/build/react-dom.js"></script>
@@ -1895,7 +1897,7 @@ function updateAutoSave(docType, docName, appState) {
         var toDelete = saveIndex[docType][appState["DOC_ID"]];
     }
     var doc = JSON.stringify(appState);
-    console.log("autosaving " + docType + " doc: " + doc);
+    //console.log("autosaving " + docType + " doc: " + doc);
     // TODO - escape underscores (with double underscore?) in doc name, to allow splitting cleanly
     // and presenting a better name to users
     // nvm will just store a key with spaces
@@ -1920,7 +1922,6 @@ function autoSave() {
         if (problems.length == 1) {
             var steps = problems[0][STEPS];
             if (steps.length == 1 && steps[0][CONTENT] == '') {
-                console.log("state was empty");
                 return;
             }
         }
@@ -1945,21 +1946,27 @@ var Problem = React.createClass({
         var scoreClass = undefined;
         var score = this.props.value[SCORE];
         var possiblePoints = this.props.value[POSSIBLE_POINTS];
-        if (score == possiblePoints) {
+        if (score === '') {
+            scoreClass = 'show-complete-div';
+        } else if (score == possiblePoints) {
             scoreClass = 'show-correct-div';
         } else if (score == 0) {
             scoreClass = 'show-incorrect-div';
         } else {
             scoreClass = 'show-partially-correct-div';
         }
+
+		var scoreMessage = null;
+		if (score === '')
+			scoreMessage = 'Complete';
+		else if (score != undefined)
+			scoreMessage = 'Score: ' + score + ' / ' + possiblePoints;
         return (
             <div className="problem-container" style={{float:'none',overflow: 'hidden'}}>
                 <div style={{width:"200", height:"100%",float:"left"}}>
-                    {   this.props.value[SCORE] != undefined 
-                            ? (<div className={scoreClass}>
-                                    Score: {this.props.value[SCORE]} / {this.props.value[POSSIBLE_POINTS]}
-                               </div>) : null
-                    } 
+                    {   score != undefined ? (<div className={scoreClass}>{scoreMessage}</div>)
+										   : null
+                    }
                     {   this.props.value[FEEDBACK] != undefined 
                             ? (<div>
                                     Feedback:<br /> {this.props.value[FEEDBACK]}
@@ -2082,6 +2089,50 @@ var ProblemGrader = React.createClass({
 });
 
 var TeacherInteractiveGrader = React.createClass({
+    componentDidMount() {
+		var gradingOverview = _.cloneDeep(store.getState()["GRADING_OVERVIEW"][PROBLEMS]);
+		gradingOverview.sort(function(a,b) { return a["LARGEST_ANSWER_GROUP_SIZE"] - b["LARGEST_ANSWER_GROUP_SIZE"];});
+		var labels = [];
+		var numberUniqueAnswersData = {
+			label: "Number unique answers",
+			backgroundColor: "blue",
+			data: []
+		};
+		var largestAnswerGroups = {
+			label: "Largest answer group size",
+			backgroundColor: "green",
+			data: []
+		};
+		var averageAnswerGroups = {
+			label: "Average answer group size",
+			backgroundColor: "purple",
+			data: []
+		};
+		var graphData = [numberUniqueAnswersData, largestAnswerGroups, averageAnswerGroups];
+		gradingOverview.forEach(function(problemSummary, index, array) {
+			labels.push(problemSummary[PROBLEM_NUMBER]);
+			numberUniqueAnswersData["data"].push(problemSummary["NUMBER_UNIQUE_ANSWERS"]);
+			largestAnswerGroups["data"].push(problemSummary["LARGEST_ANSWER_GROUP_SIZE"]);
+			averageAnswerGroups["data"].push(problemSummary["AVG_ANSWER_GROUP_SIZE"]);
+		});
+		console.log(gradingOverview);
+		var myChart = new Chart(this.chart.getContext('2d'), {
+			type: 'bar',
+			data: {
+				labels: labels,
+				datasets: graphData
+			},
+			options: {
+				scales: {
+					yAxes: [{
+						ticks: {
+							beginAtZero:true
+						}
+					}]
+				}
+			}
+		});
+  	},
     render: function() {
         // TODO - figure out the right way to do this
         // TODO - do I want to be able to change the sort ordering, possibly to put
@@ -2094,8 +2145,8 @@ var TeacherInteractiveGrader = React.createClass({
 
         return (
             <div> 
+            	<canvas ref={(input) => { this.chart = input }} width="400" height="50"></canvas>
                 {/* TODO - finish option to grade anonymously <TeacherGraderFilters value={this.props.value}/> */}
-                {/* TODO - finish adding graph for this data <p>{JSON.stringify(store.getState()["GRADING_OVERVIEW"])}</p> */}
                 { (similarAssignments && similarAssignments.length > 0) ? (
                     <div className="similar-assignment-filters"><h3>Some students may have copied each others work.</h3>
                     {   (typeof(currentSimilarityGroupIndex) != "undefined" && currentSimilarityGroupIndex != null) ? 
@@ -2306,6 +2357,8 @@ var SolutionGrader = React.createClass({
                 <input type="submit" value="Show work" onClick={function() {this.setQuickFeedback("Show your complete work.");}.bind(this)}/>
                 <input type="submit" value="Simple mistake" onClick={function() {this.setQuickFeedback("Review your work for a simple mistake.")}.bind(this)}/>
                 <input type="submit" value="Let's talk" onClick={function() {this.setQuickFeedback("Let's chat about this next class.");}.bind(this)}/>
+                <input type="submit" value="Not simplified" onClick={function() {this.setQuickFeedback("Be sure to simplify completely.");}.bind(this)}/>
+                <input type="submit" value="Sig figs" onClick={function() {this.setQuickFeedback("Incorrect significant figures.");}.bind(this)}/>
                 </p>
 
                 <div><textarea width="30" height="8" onChange={this.setFeedback} value={feedback}></textarea>
@@ -2422,13 +2475,16 @@ var GradingMenuBar = React.createClass({
                                 evt.target.value = "";
                             }
                         }/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <input type="submit" id="save-graded-assignments" name="save graded" value="save graded" onClick={
+                        <input type="submit" id="save-graded-assignments" value="Save graded" onClick={
                             function() {
                                 saveGradedStudentWork(store.getState());
                             }
                         }/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <input type="submit" id="view-grades" name="view grades" value="view grades" onClick={
+                        <input type="submit" id="view-grades" value="View grades" onClick={
                             function() {store.dispatch({type : SET_TO_VIEW_GRADES})}
+                        }/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="submit" id="scroll-to-top" value="Scroll to top" onClick={
+                            function() {document.body.scrollTop = document.documentElement.scrollTop = 0;}
                         }/>
                     </div>
                 </div>
@@ -2568,7 +2624,7 @@ var DefaultHomepageActions = React.createClass({
                                : null
                             }
                             { (recoveredTeacherDocs.length > 0) ? (<p>Recovered grading sessions stored temporarily in your browser, save to your device as soon as possible</p>) : null }
-                            <p><a href="Archive.zip">Download Example Assignments To Test Grading</a></p>
+                            <p><a href="student_submissions.zip">Download Example Assignments To Test Grading</a></p>
                         </div>
                     </div>
                 </div>

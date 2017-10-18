@@ -182,6 +182,15 @@ div.show-partially-correct-div {
     padding: 5px 5px 5px 5px;
 }
 
+div.show-complete-div {
+    border:1px solid black;
+    background-color:#DEDEDE;
+    border-radius: 2px;
+    display:inline-block;
+    margin: 0px 5px 5px 0px;
+    padding: 5px 5px 5px 5px;
+}
+
 div.similar-assignment-filters {
     border:1px solid black;
     margin: 15px 15px 15px 15px;

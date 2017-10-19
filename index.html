@@ -2055,7 +2055,14 @@ var Problem = React.createClass({
                                 highlight = 'red';
                             }
                             return (
-                            <tr key={stepIndex + ' ' + step[CONTENT]}>
+							/*
+							 This is a bit complicated, I currently am firing a change action for every keystroke.
+                             It appears that when the MathInput component re-renders it moves the cursor to the end
+							 of the box. The temporary fix was to remove the key from the top level container so that react
+							 wouldn't know the step had changed, but this messes a bit with the render lifecycle and may cause issues
+							 in the future.
+							*/
+                            <tr>
 							<td>
                             <MathInput buttonsVisible='focused' highlight={highlight}
                                        buttonSets={['trig', 'prealgebra', 'logarithms', 'calculus']} value={step[CONTENT]}
@@ -2067,10 +2074,10 @@ var Problem = React.createClass({
 										}}/>
 							</td>
 							<td>
-                        	<input type="submit" value="x" onClick={
+							&nbsp;&nbsp;&nbsp;<input type="submit" value="x" onClick={
                             	function() { store.dispatch({ type : REMOVE_STEP, PROBLEM_INDEX : problemIndex, 
 															 STEP_KEY : stepIndex}) }}/>
-							<input type="submit" value="Add step above" title="Add step above" onClick={
+							&nbsp;&nbsp;&nbsp;<input type="submit" value="Add step above" title="Add step above" onClick={
 								function() { store.dispatch({ type : ADD_STEP_ABOVE, PROBLEM_INDEX : problemIndex, 
 															 STEP_KEY : stepIndex}) }}/>
 							</td>

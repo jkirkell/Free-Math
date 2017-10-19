@@ -524,12 +524,12 @@ var MathInput = React.createClass({
 
         var colorCss = {};
         if (this.props.highlight === 'red') {
-            colorCss = {backgroundColor : SOFT_RED};
+            colorCss = {backgroundColor : RED};
         } else if (this.props.highlight === 'green') {
             colorCss = {backgroundColor : GREEN };
         }
         return <div>
-            <div style={{...colorCss, display: 'inline-block', float: 'left'}}>
+            <div style={{...colorCss, display:"inline-block"}}>
                 <span className={className}
                       ref="mathinput"
                       aria-label={this.props.labelText}
@@ -2024,6 +2024,8 @@ var Problem = React.createClass({
                     </div>
                         <div style={{float:'left'}} className="equation-list">
                         <p> Type math here </p>
+						<table>
+						<tbody>
                         {
                             this.props.value[STEPS].map(function(step, stepIndex) {
                             if (stepIndex > lastShownStep) return;
@@ -2034,22 +2036,26 @@ var Problem = React.createClass({
                                 highlight = 'red';
                             }
                             return (
-							<div key={stepIndex + ' ' + step[CONTENT]} style={{float:"none"}}>
-							<div>
+                            <tr key={stepIndex + ' ' + step[CONTENT]}>
+							<td>
                             <MathInput buttonsVisible='focused' highlight={highlight}
                                        buttonSets={['trig', 'prealgebra', 'logarithms', 'calculus']} value={step[CONTENT]}
-									   onChange={function(){
+									   onChange={function(value){
 											store.dispatch({ type : EDIT_STEP, PROBLEM_INDEX : problemIndex, 
 															 STEP_KEY : stepIndex, NEW_STEP_CONTENT : value});}}
 										onEnterPressed={function(){
                     						store.dispatch({ type : NEW_STEP, PROBLEM_INDEX : problemIndex});
 										}}/>
-							</div>
+							</td>
+							<td>
                         	<input type="submit" value="x" onClick={
                             	function() { store.dispatch({ type : REMOVE_STEP, PROBLEM_INDEX : problemIndex, 
 															 STEP_KEY : stepIndex}) }}/>
-                            </div>);
+							</td>
+							</tr>);
                         })}
+						</tbody>
+						</table>
                     </div>
                 </div>
             </div>
@@ -2731,8 +2737,11 @@ var FreeMath = React.createClass({
         return (
             <div>
                 <ModalWhileGradingMenuBar />
-                <table>
-                    <tr><th>Student File</th><th>Score</th></tr>
+				<table>
+					<thead>
+					<tr><th>Student File</th><th>Score</th></tr>
+					</thead>
+					<tbody>
                     {
                         function() { 
                             var tableRows = [];
@@ -2740,12 +2749,13 @@ var FreeMath = React.createClass({
                             for (var studentFileName in grades) {
                                 if (grades.hasOwnProperty(studentFileName)) {
                                     tableRows.push( 
-                                    (<tr><td>{studentFileName}</td><td>{grades[studentFileName]}</td></tr> ));
+                                    (<tr key={studentFileName}><td>{studentFileName}</td><td>{grades[studentFileName]}</td></tr> ));
                                 }
                             }
                             return tableRows;
                         }()
                     }
+                </tbody>
                 </table>
             </div>
         );

@@ -3034,6 +3034,12 @@ function testUndoStep() {
     ).toEqual(expectedProblem);
 }
 
+// working on new UNDO/REDO to accomodate adding/deleting steps partway through a solution, as well as allow undoing large
+// edits in a single step (such as accidentally clearing it)
+// took some paper notes on technique and an example test
+// remember that for legacy docs I will not have undo/redo stack
+//    - was thinkging I wanted undo to still back up a step, but not really necessary with the delete step buttons
+
 function testRedoStep() {
     var initialProblem = { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 0 };
     var expectedProblem = { PROBLEM_NUMBER : "1", STEPS : [{CONTENT : "1+2"}, {CONTENT : "3"}], LAST_SHOWN_STEP : 1 };

@@ -943,6 +943,8 @@ var YELLOW = '#FFFDBF';
 // open zip file full of student assignments for grading
 function studentSubmissionsZip(evt) {
 
+    // reset scroll location from previous view of student docs
+    window.location.hash = '';
     var f = evt.target.files[0]; 
 
     if (f) {
@@ -1982,6 +1984,7 @@ var Problem = React.createClass({
       this.setState({value: event.target.value});
     },
     render: function() {
+        var probNumber = this.props.value[PROBLEM_NUMBER];
         var problemIndex = this.props.id;
         var lastShownStep = this.props.value[LAST_SHOWN_STEP];
         var scoreClass = undefined;
@@ -2016,7 +2019,7 @@ var Problem = React.createClass({
                 </div>
                 <div>
                     <div>
-                        Problem number <input type="text" value={this.props.value[PROBLEM_NUMBER]} className="problem-number" onChange={
+                        Problem number <input type="text" value={probNumber} className="problem-number" onChange={
                         function(evt) { store.dispatch({ type : SET_PROBLEM_NUMBER, PROBLEM_INDEX : problemIndex, 
                                         NEW_PROBLEM_NUMBER : evt.target.value}) }}/> &nbsp;&nbsp;&nbsp;
                         <input type="submit" value="Clone Problem" 
@@ -2104,7 +2107,9 @@ var ProblemGrader = React.createClass({
         var oldPossiblePoints = problemInfo[POSSIBLE_POINTS];
         return (
             <div className="problem-summary-container" style={{float:"none",overflow:"hidden"}}>
-                <h3>Problem number {problemNumber}</h3>
+                {/* TODO - hack to avoid hei being covred bu top menubar when scrilled to by setting location.hash */}
+                <span id={"Problem_" + problemNumber}></span>
+                <h3 style={{paddingTop: "100px", marginTop: "-100px"}}>Problem number {problemNumber}</h3>
                 {/*<p>Total incorrect answers {totalIncorrect}</p>*/}
                 <p>Possible points &nbsp;<input type="text" className="possible-points-input" width="4" value={possiblePoints} onChange={
                                 function(evt) { store.dispatch({ 
@@ -2157,7 +2162,14 @@ var TeacherInteractiveGrader = React.createClass({
 			averageAnswerGroups["data"].push(problemSummary["AVG_ANSWER_GROUP_SIZE"]);
 		});
 		console.log(gradingOverview);
-		var myChart = new Chart(this.chart.getContext('2d'), {
+        var chart;
+        var onClickFunc = function(evt) {
+           var activePoints = chart.getElementsAtEvent(evt); 
+           console.log("asdasdf");
+           console.log(activePoints);
+           window.location.hash = "#Problem_" + labels[activePoints[0]["_index"]];
+        };
+		chart = new Chart(this.chart.getContext('2d'), {
 			type: 'bar',
 			data: {
 				labels: labels,
@@ -2170,7 +2182,8 @@ var TeacherInteractiveGrader = React.createClass({
 							beginAtZero:true
 						}
 					}]
-				}
+				},
+                onClick: onClickFunc
 			}
 		});
   	},
@@ -2532,7 +2545,9 @@ var GradingMenuBar = React.createClass({
                             function() {store.dispatch({type : SET_TO_VIEW_GRADES})}
                         }/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         <input type="submit" id="scroll-to-top" value="Scroll to top" onClick={
-                            function() {document.body.scrollTop = document.documentElement.scrollTop = 0;}
+                            function() {
+                                window.location.hash = '';
+                                document.body.scrollTop = document.documentElement.scrollTop = 0;}
                         }/>
                     </div>
                 </div>

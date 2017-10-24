@@ -1205,8 +1205,8 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
                 // TODO - add better comparison that will not have to match the latex exactly
                 var groupAnswer = KAS.parse(aggregatedWorkForOneAnswer[ANSWER]).expr;
                 var parsedStudentAnswer = KAS.parse(studentAnswer).expr;
-                console.log("group answer");
-                console.log(groupAnswer);
+                //console.log("group answer");
+                //console.log(groupAnswer);
                 if (KAS.compare(groupAnswer, parsedStudentAnswer).equal && groupAnswer.sameForm(parsedStudentAnswer)) {
                     workList = aggregatedWorkForOneAnswer;
                     indexInUniqueAnswersList = index;
@@ -1219,11 +1219,11 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
             }
             var feedback = '';
             // reopening previously graded assignments
-            console.log("asdfasdfasdf   score");
-            console.log(problem[SCORE]);
-            console.log(problem[FEEDBACK]);
+            //console.log("asdfasdfasdf   score");
+            //console.log(problem[SCORE]);
+            //console.log(problem[FEEDBACK]);
             if (problem[SCORE] !== undefined) {
-                console.log("prev score found");
+                //console.log("prev score found");
                 automaticallyAssignedGrade = problem[SCORE];
                 feedback = problem[FEEDBACK];
             }
@@ -1235,7 +1235,7 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
                   LAST_SHOWN_STEP : problem[LAST_SHOWN_STEP],
                   STEPS : problem[STEPS].slice(0, problem[LAST_SHOWN_STEP] + 1)}
             );
-            console.log(workList);
+            //console.log(workList);
             uniqueAnswers[indexInUniqueAnswersList] = workList;
             problemSummary[UNIQUE_ANSWERS] = uniqueAnswers;
             // this is currently redundant, but the next step to order all of the problems based
@@ -1379,20 +1379,37 @@ function findSimilarStudentAssignments(allStudentWork) {
     var allSimilarityGroups = [];
     // map from student names to hash set with group id's
     var groupMemberships = {};
+
+    // TODO - FINISH FLAGGING DOCS NOT SHOWING ENOUGH WORK
+    // average amount of work on each problem
+
+    // calculate average length of answer accross all docs
+    var totalWork = 0
+    var totalProblemsCompleted = 0;
+    var totalProblemsAttempted = 0;
+    var maxProblemsAttempted = 0;
+    allStudentWork.forEach(function(assignment, index, array) {
+        if (assignment[ASSIGNMENT].length > maxProblemsAttempted) maxProblemsAttempted = assignment[ASSIGNMENT].length;
+        totalProblemsAttempted += assignment[ASSIGNMENT].length;
+        assignment[ASSIGNMENT].forEach(function(problem, index, array) {
+            totalWork += problem[STEPS].length;
+            totalProblemsCompleted++;
+        });
+    });
+    var averageAnswerLength = totalWork / totalProblemsCompleted;
+    var averageNumberOfQuestions = totalProblemsAttempted / allStudentWork.length;
+
     allStudentWork.forEach(function(assignment1, index, array) {
         allStudentWork.forEach(function(assignment2, index, array) {
             if (assignment1[STUDENT_FILE] == assignment2[STUDENT_FILE]) return;
             var result = JsDiff.diffJson(assignment1, assignment2);
-            //console.log(result.length);
-            // TODO - better threshold
-            //      - need to make sure size of diffs is taken into acount
-            //      - students should match 95% of their assignments exactly and then
-            //        have unique work on 1 or two problem (this currently shows up as
-            //        a bunch of small diffs, and I'm only lookin at number of diffs here)
-            if (result.length < 5) {
+            // currently a rough threshold of 30% unique work, will improve later
+            console.log(result);
+            // the -2 is to adjust for the filename difference in the structures
+            if ((result.length - 2) / 2.0 < averageNumberOfQuestions * averageAnswerLength * 0.3) {
                 // is the first assignment matched with at least one similarity group
                 var matchingGroup = groupMemberships[assignment1[STUDENT_FILE]];
-                console.log(groupMemberships);
+                //console.log(groupMemberships);
                 // does assignment 1 already belong to match groups, if so just add
                 // assignment 2 to each of those, TODO - missing a loop?
                 // TODO - need a length here?
@@ -1406,11 +1423,8 @@ function findSimilarStudentAssignments(allStudentWork) {
                     allSimilarityGroups.push([assignment1[STUDENT_FILE], assignment2[STUDENT_FILE]]);
                 }
             }
-            //console.log(result);
         });
     });
-    console.log("SIMILAR ASSIGNMENTS+++++++++++++++++++");
-    console.log(allSimilarityGroups);
     return allSimilarityGroups;
 }
 

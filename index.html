@@ -430,10 +430,14 @@ var buttonSets = {
         () => [<TeX key="integral">{"\\int"}</TeX>, "\\int"],
         /* TODO - had trouble getting these buttons to produce expressions with mutliple parts, it just inserted the latex text into the box */
         /*() => [<TeX key="dy/dx">{"\\frac{dy}{dx}"}</TeX>, "\\frac {dy}"], */
-        () => [<TeX key="prime">'</TeX>, "'"],
+        /* () => [<TeX key="prime">'</TeX>, "'"], */
         () => [<TeX key="pi" style={symbStyle}>\pi</TeX>, "\\pi"],
         () => [<TeX key="theta" style={symbStyle}>\theta</TeX>, "\\theta"],
-        () => [<TeX key="sigma" style={symbStyle}>\phi</TeX>, "\\sigma"]
+        () => [<TeX key="plusminux" style={symbStyle}>\pm</TeX>, "\\pm"],
+        () => [<TeX key="abs" style={symbStyle}>\left|x\right|</TeX>, "\\left|x\\right|"],
+        () => [<TeX key="inf" style={symbStyle}>\infty</TeX>, "\\infty"],
+        () => [<TeX key="rightarrow" style={symbStyle}>\rightarrow</TeX>, "\\rightarrow"],
+        () => [<TeX key="neq" style={symbStyle}>\neq</TeX>, "\\neq"],
     ],
 };
 

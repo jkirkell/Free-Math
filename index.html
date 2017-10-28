@@ -1283,6 +1283,21 @@ function aggregateStudentWork(allStudentWork, answerKey = {}) {
     });
     */
 
+    // similarity check does a generic diff on JSON docs, for re-opened docs this will include data intermixed
+    // for the grading marks
+    // Loop through the structure to remove all grading marks from the versions that will be used to compare the students
+    // TODO - try to remove this deep clone of all docs, don't know if it is safe today to mutate the incoming data
+    allStudentWork = _.cloneDeep(allStudentWork);
+    allStudentWork.forEach(function(assignInfo, index, array) {
+        assignInfo[ASSIGNMENT].forEach(function(problem, index, array) {
+            problem[FEEDBACK] = "";
+            problem[SCORE] = "";
+            problem[STEPS].forEach(function(step, index, array) {
+                if (step[HIGHLIGHT])
+                    delete step[HIGHLIGHT];
+            });
+        });
+    });
     var similarAssignments = findSimilarStudentAssignments(allStudentWork);
     return { CURRENT_FILTERS : { SIMILAR_ASSIGNMENT_GROUP_INDEX : null, ANONYMOUS : true },
     SIMILAR_ASSIGNMENT_SETS : similarAssignments, PROBLEMS : aggregatedWork }

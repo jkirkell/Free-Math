@@ -2490,7 +2490,11 @@ var LogoHomeNav = React.createClass({
             >
             <h2 style={{"display":"inline","fontFamily":"serif"}}>
                 <b>Free Math</b>
-            </h2><br />
+            </h2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <h3 style={{"color" : "#3abfc7","display":"inline","fontFamily":"serif"}}>
+                <b>Beta</b>
+            </h3>
+            <br />
             <span style={{"fontSize": 11}}>Free your mind, learn and discover faster.</span>
             </div>
             );
@@ -2503,7 +2507,7 @@ var AssignmentEditorMenubar = React.createClass({
         return (
             <div className="menuBar">
                 <div className="nav"> 
-                    <LogoHomeNav /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                         
+                    <LogoHomeNav /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
                     <div style={{"verticalAlign":"bottom"}}>
                         Assignment and Student Name &nbsp;&nbsp;&nbsp;
@@ -2710,13 +2714,36 @@ var DefaultHomepageActions = React.createClass({
                         </div>
                     </div>
                 </div>
+                <div style={{position:"relative",height:"0","padding-bottom":"56.25%"}}><iframe src="https://www.youtube.com/embed/vB7KCDeBYpI?ecver=2" width="640" height="360" frameborder="0" gesture="media" style={{position:"absolute",width:"100%",height:"100%",left:0}} allowfullscreen></iframe></div>
                 <br />
                 <h1>Meet Your New Math Classroom</h1>
                 <p>Students digitally record step-by-step math work.</p>
                 <p>No account setup required, free for teachers and students. Work saves as files on your local device, share docs through your existing course management solution.</p>
                 <p>Teachers load all students docs for simultaneous grading, reviewing complete solutions, grouped by similar final answer.</p>
                 <p>Provide targeted feedback before a test or quiz, and improve daily communication with students.</p>
-                <div style={{position:"relative",height:"0","padding-bottom":"56.25%"}}><iframe src="https://www.youtube.com/embed/aSqRBUle7eE?ecver=2" width="640" height="360" frameborder="0" style={{position:"absolute",width:"100%",height:"100%",left:0}} allowfullscreen></iframe></div>
+                <p>The software is released under the terms of the Open Source GNU General Public License. <a href="https://github.com/jaltekruse/Free-Math">Source Code</a></p>
+                <h2>Contact the Developer</h2>
+                <p>I am currently looking for classes to pilot the software, if you would like to discuss how you could use Free Math in your classroom send me a message at this address.</p>
+                <p>developers@freemathapp.org</p>
+<div>Follow the project <a href="https://www.facebook.com/freemathapp"><img alt="facebook" src="images/facebook.png" style={{height:"35px"}}></img></a>
+    <a href="https://twitter.com/freemathapp"><img alt="twitter" src="images/twitter.png" style={{height:"35px"}}></img></a>
+    <a href="https://github.com/jaltekruse/Free-Math/issues">Report Bug or Request Feature</a>
+    </div>
+                <h3>Legal</h3>
+                <small>
+                Free Math is free software: you can redistribute it and/or modify
+                it under the terms of the GNU General Public License as published by
+                the Free Software Foundation, either version 3 of the License, or
+                (at your option) any later version.
+
+                Free Math is distributed in the hope that it will be useful,
+                but WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                GNU General Public License for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with Free Math.  If not, see &lt;http://www.gnu.org/licenses/&gt;. 
+                </small>
             </div> 
         );
     }
